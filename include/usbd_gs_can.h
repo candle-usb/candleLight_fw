@@ -5,7 +5,7 @@
 
 extern USBD_ClassTypeDef  USBD_GS_CAN;
 
-void USBD_GS_CAN_MessageReceived(
+void USBD_GS_CAN_SendFrameToHost(
 	USBD_HandleTypeDef *pdev,
 	uint32_t echo_id,
 	uint32_t can_id,

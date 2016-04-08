@@ -77,14 +77,17 @@ int main(void)
 	USBD_Start(&hUsbDeviceFS);
 
 	while (1) {
+
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
 		HAL_Delay(200);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 		HAL_Delay(200);
-		USBD_GS_CAN_MessageReceived(&hUsbDeviceFS, -1, 0x100, 0, 0, 0, 0);
+		USBD_GS_CAN_SendFrameToHost(&hUsbDeviceFS, -1, 0x100, 0, 0, 0, 0);
 		HAL_Delay(500);
+
+
 	}
 
 }

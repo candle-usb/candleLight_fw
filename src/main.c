@@ -67,47 +67,25 @@ USBD_HandleTypeDef hUsbDeviceFS;
 
 int main(void)
 {
+	HAL_Init();
+	SystemClock_Config();
+	MX_GPIO_Init();
+	MX_CAN_Init();
 
-  /* USER CODE BEGIN 1 */
+	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
+	USBD_RegisterClass(&hUsbDeviceFS, &USBD_GS_CAN);
+	USBD_Start(&hUsbDeviceFS);
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration----------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_CAN_Init();
-
-  USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
-  USBD_RegisterClass(&hUsbDeviceFS, &USBD_GS_CAN);
-  USBD_Start(&hUsbDeviceFS);
-
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-  /* USER CODE END WHILE */
+	while (1) {
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
 		HAL_Delay(200);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 		HAL_Delay(200);
-
-  /* USER CODE BEGIN 3 */
-
-  }
-  /* USER CODE END 3 */
+		USBD_GS_CAN_MessageReceived(&hUsbDeviceFS, -1, 0x100, 0, 0, 0, 0);
+		HAL_Delay(500);
+	}
 
 }
 

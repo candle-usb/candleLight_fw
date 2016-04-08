@@ -4,4 +4,13 @@
 
 
 extern USBD_ClassTypeDef  USBD_GS_CAN;
-uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len);
+
+void USBD_GS_CAN_MessageReceived(
+	USBD_HandleTypeDef *pdev,
+	uint32_t echo_id,
+	uint32_t can_id,
+	uint8_t dlc,
+	uint8_t channel,
+	uint8_t flags,
+	uint8_t *data
+);

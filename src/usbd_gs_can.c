@@ -1,27 +1,31 @@
 #include "usbd_gs_can.h"
+
+#include "stm32f0xx_hal.h"
 #include "usbd_desc.h"
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
 #include "gs_usb.h"
+#include "can.h"
 
 #define CAN_DATA_MAX_PACKET_SIZE 32  /* Endpoint IN & OUT Packet size */
 #define CAN_CMD_PACKET_SIZE      64  /* Control Endpoint Packet size */
 #define USB_CAN_CONFIG_DESC_SIZ  32
+#define NUM_CAN_CHANNEL           1
 
 typedef struct {
 	__IO uint32_t TxState;
 
-	uint8_t req_bRequest;
-	uint8_t req_wLength;
+	uint8_t  req_bRequest;
+	uint16_t req_wLength;
+	uint16_t req_wValue;
 
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
 	uint8_t ep_out_buf[CAN_DATA_MAX_PACKET_SIZE];
 	uint8_t ep_in_buf[CAN_DATA_MAX_PACKET_SIZE];
 
 	struct gs_host_config host_config;
-	struct gs_device_mode device_mode;
-	struct gs_device_bittiming bittiming;
 
+	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
 } USBD_GS_CAN_HandleTypeDef;
 
 static uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
@@ -127,6 +131,13 @@ static uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	return ret;
 }
 
+void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, CAN_HandleTypeDef* handle) {
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	if ((hcan!=NULL) && (channel < NUM_CAN_CHANNEL)) {
+		hcan->channels[channel] = handle;
+	}
+}
+
 static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
 	(void) cfgidx;
@@ -148,6 +159,10 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 
+	struct gs_device_bittiming *timing;
+	struct gs_device_mode *mode;
+	CAN_HandleTypeDef *ch;
+
     switch (hcan->req_bRequest) {
 
     	case GS_USB_BREQ_HOST_FORMAT:
@@ -156,19 +171,44 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
     		break;
 
     	case GS_USB_BREQ_MODE:
-    		// TODO set device mode (flags, start/reset...)
-    		memcpy(&hcan->device_mode, hcan->ep0_buf, sizeof(hcan->device_mode));
+    		if (hcan->req_wValue < NUM_CAN_CHANNEL) {
+
+    			mode = (struct gs_device_mode*)hcan->ep0_buf;
+    			ch = hcan->channels[hcan->req_wValue];
+
+				if (mode->mode == GS_CAN_MODE_RESET) {
+
+					can_disable(ch);
+
+				} else if (mode->mode == GS_CAN_MODE_START) {
+
+					can_enable(ch,
+						(mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+						(mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
+						(mode->flags & GS_CAN_MODE_ONE_SHOT) != 0,
+						(mode->flags & GS_CAN_MODE_TRIPLE_SAMPLE) != 0
+					);
+
+				}
+			}
     		break;
 
     	case GS_USB_BREQ_BITTIMING:
-    		// TODO set bit timing
-    		memcpy(&hcan->bittiming, hcan->ep0_buf, sizeof(hcan->bittiming));
+    		timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+    		if (hcan->req_wValue < NUM_CAN_CHANNEL) {
+				can_set_bittiming(
+					hcan->channels[hcan->req_wValue],
+					timing->brp,
+					timing->prop_seg + timing->phase_seg1,
+					timing->phase_seg2,
+					timing->sjw
+				);
+    		}
     		break;
 
 		default:
 			break;
     }
-
 
 	hcan->req_bRequest = 0xFF;
 	return USBD_OK;
@@ -203,7 +243,8 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_BITTIMING:
 			hcan->req_bRequest = req->bRequest;
-			hcan->req_wLength = (uint8_t)req->wLength;
+			hcan->req_wLength = req->wLength;
+			hcan->req_wValue = req->wValue;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
 			break;
 
@@ -324,7 +365,5 @@ void USBD_GS_CAN_SendFrameToHost(
 		hf.data[i] = data[i];
 	}
 
-	if (hcan->device_mode.mode == GS_CAN_MODE_START) {
-		USBD_GS_CAN_Transmit(pdev, (uint8_t*)&hf, sizeof(hf));
-	}
+	USBD_GS_CAN_Transmit(pdev, (uint8_t*)&hf, sizeof(hf));
 }

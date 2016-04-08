@@ -3,7 +3,9 @@
 #include  "usbd_def.h"
 
 
-extern USBD_ClassTypeDef  USBD_GS_CAN;
+extern USBD_ClassTypeDef USBD_GS_CAN;
+
+void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, CAN_HandleTypeDef* handle);
 
 void USBD_GS_CAN_SendFrameToHost(
 	USBD_HandleTypeDef *pdev,

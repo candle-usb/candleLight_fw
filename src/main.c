@@ -74,6 +74,7 @@ int main(void)
 
 	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUsbDeviceFS, &USBD_GS_CAN);
+	USBD_GS_CAN_SetChannel(&hUsbDeviceFS, 0, &hcan);
 	USBD_Start(&hUsbDeviceFS);
 
 	while (1) {

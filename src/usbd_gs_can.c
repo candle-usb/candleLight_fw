@@ -59,28 +59,28 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 {
 	/*---------------------------------------------------------------------------*/
 	/* Configuration Descriptor */
-	0x09,                        /* bLength */
-	USB_DESC_TYPE_CONFIGURATION, /* bDescriptorType */
-	USB_CAN_CONFIG_DESC_SIZ,     /* wTotalLength */
+	0x09,                             /* bLength */
+	USB_DESC_TYPE_CONFIGURATION,      /* bDescriptorType */
+	USB_CAN_CONFIG_DESC_SIZ,          /* wTotalLength */
 	0x00,
-	0x01,   /* bNumInterfaces */
-	0x01,   /* bConfigurationValue */
-	0x00,   /* iConfiguration */
-	0x80,   /* bmAttributes */
-	0x4B,   /* MaxPower 150 mA */
+	0x01,                             /* bNumInterfaces */
+	0x01,                             /* bConfigurationValue */
+	0x00,                             /* iConfiguration */
+	0x80,                             /* bmAttributes */
+	0x4B,                             /* MaxPower 150 mA */
 	/*---------------------------------------------------------------------------*/
 
 	/*---------------------------------------------------------------------------*/
 	/* Interface Descriptor */
-	0x09,   /* bLength */
-	USB_DESC_TYPE_INTERFACE,  /* bDescriptorType */
-	0x00,   /* bInterfaceNumber */
-	0x00,   /* bAlternateSetting */
-	0x02,   /* bNumEndpoints */
-	0xFF,   /* bInterfaceClass: Vendor Specific*/
-	0x00,   /* bInterfaceSubClass */
-	0x00,   /* bInterfaceProtocol */
-	0x00,   /* iInterface */
+	0x09,                             /* bLength */
+	USB_DESC_TYPE_INTERFACE,          /* bDescriptorType */
+	0x00,                             /* bInterfaceNumber */
+	0x00,                             /* bAlternateSetting */
+	0x02,                             /* bNumEndpoints */
+	0xFF,                             /* bInterfaceClass: Vendor Specific*/
+	0x00,                             /* bInterfaceSubClass */
+	0x00,                             /* bInterfaceProtocol */
+	0x00,                             /* iInterface */
 	/*---------------------------------------------------------------------------*/
 
 	/*---------------------------------------------------------------------------*/
@@ -279,7 +279,6 @@ static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 
 static uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
-	/* Suspend or Resume USB Out process */
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, hcan->ep_out_buf, CAN_DATA_MAX_PACKET_SIZE);
 }

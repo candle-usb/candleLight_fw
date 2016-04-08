@@ -85,7 +85,7 @@ int main(void)
   MX_CAN_Init();
 
   USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
-  USBD_RegisterClass(&hUsbDeviceFS, &USBD_CAN);
+  USBD_RegisterClass(&hUsbDeviceFS, &USBD_GS_CAN);
   USBD_Start(&hUsbDeviceFS);
 
   /* USER CODE BEGIN 2 */

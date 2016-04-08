@@ -56,14 +56,14 @@
 /** @defgroup USBD_DESC_Private_Defines
   * @{
   */ 
-#define USBD_VID     1155
-#define USBD_LANGID_STRING     1033
+#define USBD_VID                     0x1d50
+#define USBD_PID_FS                  0x606f
+#define USBD_LANGID_STRING           1033
 #define USBD_MANUFACTURER_STRING     "bytewerk"
-#define USBD_PID_FS     22336
-#define USBD_PRODUCT_STRING_FS     "candleLight gs_usb"
-#define USBD_SERIALNUMBER_STRING_FS     "000000000001"
-#define USBD_CONFIGURATION_STRING_FS     "gs_usb config"
+#define USBD_PRODUCT_STRING_FS       "candleLight gs_usb"
+#define USBD_CONFIGURATION_STRING_FS "gs_usb config"
 #define USBD_INTERFACE_STRING_FS     "gs_usb interface"
+#define USBD_SERIALNUMBER_STRING_FS  "000000000001"
 
 /* USER CODE BEGIN 0 */
 

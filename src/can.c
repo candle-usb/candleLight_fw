@@ -2,7 +2,7 @@
 
 void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance)
 {
-/*	hcan->Instance = instance;
+	hcan->Instance = instance;
 	hcan->Init.Prescaler = 6-1;
 	hcan->Init.Mode = CAN_MODE_SILENT;
 	hcan->Init.SJW = CAN_SJW_1TQ;
@@ -13,14 +13,11 @@ void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance)
 	hcan->Init.AWUM = DISABLE;
 	hcan->Init.NART = DISABLE;
 	hcan->Init.RFLM = DISABLE;
-	hcan->Init.TXFP = DISABLE;
-	HAL_CAN_Init(hcan); */
+	hcan->Init.TXFP = ENABLE;
 }
 
 void can_set_bittiming(CAN_HandleTypeDef *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
 {
-/*	HAL_CAN_DeInit(hcan);
-
 	hcan->Init.Prescaler = brp & 0x3FF;
 
 	if ((phase_seg1>0) && (phase_seg1<17)) {
@@ -34,13 +31,11 @@ void can_set_bittiming(CAN_HandleTypeDef *hcan, uint16_t brp, uint8_t phase_seg1
 	if ((sjw>0) && (sjw<5)) {
 		hcan->Init.SJW = (sjw-1)<<24;
 	}
-
-	HAL_CAN_Init(hcan); */
 }
 
 void can_enable(CAN_HandleTypeDef *hcan, bool loop_back, bool listen_only, bool one_shot)
 {
-/*	hcan->Init.Mode = 0;
+	hcan->Init.Mode = 0;
 	if (loop_back) {
 		hcan->Init.Mode |= CAN_MODE_LOOPBACK;
 	}
@@ -49,10 +44,23 @@ void can_enable(CAN_HandleTypeDef *hcan, bool loop_back, bool listen_only, bool 
 	}
 
 	hcan->Init.NART = one_shot ? ENABLE : DISABLE;
-	HAL_CAN_Init(hcan); */
+	HAL_CAN_Init(hcan);
+
+	CAN_FilterConfTypeDef fd;
+	fd.FilterNumber = 0;
+	fd.FilterMode = CAN_FILTERMODE_IDMASK;
+	fd.FilterScale = CAN_FILTERSCALE_32BIT;
+	fd.BankNumber = 0;
+	fd.FilterIdLow = 0;
+	fd.FilterIdHigh = 0;
+	fd.FilterMaskIdLow = 0;
+	fd.FilterMaskIdHigh = 0;
+	fd.FilterActivation = ENABLE;
+	fd.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	HAL_CAN_ConfigFilter(hcan, &fd);
 }
 
 void can_disable(CAN_HandleTypeDef *hcan)
 {
-	//HAL_CAN_DeInit(hcan);
+	HAL_CAN_DeInit(hcan);
 }

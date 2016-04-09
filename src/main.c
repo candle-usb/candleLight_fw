@@ -1,100 +1,77 @@
-/**
-  ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
-  ******************************************************************************
-  *
-  * COPYRIGHT(c) 2016 STMicroelectronics
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
-
-/* USER CODE BEGIN Includes */
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_core.h"
 #include "usbd_gs_can.h"
+#include <queue.h>
+#include <gs_usb.h>
+#include <can.h>
 
-/* USER CODE END Includes */
+#define CAN_QUEUE_SIZE 32
 
-/* Private variables ---------------------------------------------------------*/
-CAN_HandleTypeDef hcan;
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_CAN_Init(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
 
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
-USBD_HandleTypeDef hUsbDeviceFS;
+CAN_HandleTypeDef hCAN;
+USBD_HandleTypeDef hUSB;
 
 int main(void)
 {
+
 	HAL_Init();
 	SystemClock_Config();
 	MX_GPIO_Init();
-	MX_CAN_Init();
+	can_init(&hCAN, CAN);
 
-	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
-	USBD_RegisterClass(&hUsbDeviceFS, &USBD_GS_CAN);
-	USBD_GS_CAN_SetChannel(&hUsbDeviceFS, 0, &hcan);
-	USBD_Start(&hUsbDeviceFS);
+	queue_t *q_free_frames = queue_create(CAN_QUEUE_SIZE);
+	queue_t *q_from_host   = queue_create(CAN_QUEUE_SIZE);
+
+	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
+	for (int i=0; i<CAN_QUEUE_SIZE; i++) {
+		queue_push_back(q_free_frames, &msgbuf[i]);
+	}
+
+	USBD_Init(&hUSB, &FS_Desc, DEVICE_FS);
+	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
+	USBD_GS_CAN_Init(&hUSB, q_free_frames, q_from_host);
+	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
+	USBD_Start(&hUSB);
+
+
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+
+	uint32_t t_next_send = 100;
 
 	while (1) {
 
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-		HAL_Delay(200);
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-		HAL_Delay(200);
-		USBD_GS_CAN_SendFrameToHost(&hUsbDeviceFS, -1, 0x100, 0, 0, 0, 0);
-		HAL_Delay(500);
 
+		if (queue_size(q_from_host)>0) {
+			HAL_Delay(10);
+			if (USBD_GS_CAN_TxReady(&hUSB)) {
+
+				struct gs_host_frame *frame = queue_pop_front(q_from_host);
+				if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
+					queue_push_back(q_free_frames, frame);
+				} else {
+					queue_push_back(q_from_host, frame);
+				}
+
+			}
+		}
+
+		if (HAL_GetTick() >= t_next_send) {
+			t_next_send = HAL_GetTick() + 500;
+			//USBD_GS_CAN_SendFrameToHost(&hUSB, -1, 0x100, 0, 0, 0, 0);
+			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
+		}
 
 	}
 
 }
 
-/** System Clock Configuration
-*/
 void SystemClock_Config(void)
 {
 
@@ -137,33 +114,6 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* CAN init function */
-void MX_CAN_Init(void)
-{
-
-  hcan.Instance = CAN;
-  hcan.Init.Prescaler = 16;
-  hcan.Init.Mode = CAN_MODE_NORMAL;
-  hcan.Init.SJW = CAN_SJW_1TQ;
-  hcan.Init.BS1 = CAN_BS1_1TQ;
-  hcan.Init.BS2 = CAN_BS2_1TQ;
-  hcan.Init.TTCM = DISABLE;
-  hcan.Init.ABOM = DISABLE;
-  hcan.Init.AWUM = DISABLE;
-  hcan.Init.NART = DISABLE;
-  hcan.Init.RFLM = DISABLE;
-  hcan.Init.TXFP = DISABLE;
-  HAL_CAN_Init(&hcan);
-
-}
-
-/** Configure pins as 
-        * Analog 
-        * Input 
-        * Output
-        * EVENT_OUT
-        * EXTI
-*/
 void MX_GPIO_Init(void)
 {
 
@@ -195,37 +145,3 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-#ifdef USE_FULL_ASSERT
-
-/**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
-void assert_failed(uint8_t* file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-    ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-
-}
-
-#endif
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-*/ 
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

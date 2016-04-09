@@ -13,35 +13,37 @@
 #define NUM_CAN_CHANNEL           1
 
 typedef struct {
+	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
+	uint8_t ep_out_buf[CAN_DATA_MAX_PACKET_SIZE];
+	uint8_t ep_in_buf[CAN_DATA_MAX_PACKET_SIZE];
+
 	__IO uint32_t TxState;
 
 	uint8_t  req_bRequest;
 	uint16_t req_wLength;
 	uint16_t req_wValue;
 
-	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
-	uint8_t ep_out_buf[CAN_DATA_MAX_PACKET_SIZE];
-	uint8_t ep_in_buf[CAN_DATA_MAX_PACKET_SIZE];
 
 	struct gs_host_config host_config;
+	queue_t *q_free_frames;
+	queue_t *q_from_host;
 
 	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
-} USBD_GS_CAN_HandleTypeDef;
+} USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
-static uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
 static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
 static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev);
 static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
-static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len);
+static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
 
 static uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev);
-static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len);
 
 /* CAN interface class callbacks structure */
 USBD_ClassTypeDef USBD_GS_CAN = {
-	USBD_GS_CAN_Init,
+	USBD_GS_CAN_Start,
 	USBD_GS_CAN_DeInit,
 	USBD_GS_CAN_Setup,
 	NULL, // EP0_TxSent
@@ -111,48 +113,58 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 
 };
 
-static uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_free_frames, queue_t *q_from_host)
 {
-	(void) cfgidx;
-	uint8_t ret = 0;
-  
-	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
-	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+	uint8_t ret = USBD_FAIL;
+	USBD_GS_CAN_HandleTypeDef *hcan = calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef));
 
-	USBD_GS_CAN_HandleTypeDef *hcan = USBD_malloc(sizeof(USBD_GS_CAN_HandleTypeDef));
-  
-	if(hcan == 0) {
-		ret = 1;
-	} else {
-		memset(hcan, 0, sizeof(USBD_GS_CAN_HandleTypeDef));
+	if(hcan != 0) {
+		hcan->q_free_frames = q_free_frames;
+		hcan->q_from_host = q_from_host;
 		pdev->pClassData = hcan;
-		USBD_GS_CAN_PrepareReceive(pdev);
+		ret = USBD_OK;
+	} else {
+		pdev->pClassData = 0;
 	}
+
 	return ret;
 }
+
+
+
+static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+{
+	UNUSED(cfgidx);
+	uint8_t ret = USBD_FAIL;
+
+	if (pdev->pClassData) {
+		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+		USBD_GS_CAN_PrepareReceive(pdev);
+		ret = USBD_OK;
+	} else {
+		ret = USBD_FAIL;
+	}
+
+	return ret;
+}
+
+static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+{
+	UNUSED(cfgidx);
+
+	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_IN);
+	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
+
+	return USBD_OK;
+}
+
 
 void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, CAN_HandleTypeDef* handle) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	if ((hcan!=NULL) && (channel < NUM_CAN_CHANNEL)) {
 		hcan->channels[channel] = handle;
 	}
-}
-
-static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
-{
-	(void) cfgidx;
-	uint8_t ret = 0;
-
-	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_IN);
-	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
-
-	/* DeInit  physical Interface components */
-	if(pdev->pClassData != NULL) {
-		USBD_free(pdev->pClassData);
-		pdev->pClassData = NULL;
-	}
-
-	return ret;
 }
 
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
@@ -185,8 +197,8 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					can_enable(ch,
 						(mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
 						(mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
-						(mode->flags & GS_CAN_MODE_ONE_SHOT) != 0,
-						(mode->flags & GS_CAN_MODE_TRIPLE_SAMPLE) != 0
+						(mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
+						// triple sampling not supported on bxCAN
 					);
 
 				}
@@ -300,16 +312,22 @@ static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
+	uint8_t retval = USBD_FAIL;
+
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= sizeof(struct gs_host_frame)) {
-		struct gs_host_frame *hf = (struct gs_host_frame*) hcan->ep_out_buf;
-		// TODO process and send echo back to host (from non-interrupt context?)
+		struct gs_host_frame *hf = queue_pop_front(hcan->q_free_frames);
+		if (hf) {
+			memcpy(hf, hcan->ep_out_buf, sizeof(struct gs_host_frame));
+			queue_push_back(hcan->q_from_host, hf);
+			retval = USBD_OK;
+		}
 	}
 
 	USBD_GS_CAN_PrepareReceive(pdev);
-    return USBD_OK;
+    return retval;
 }
 
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
@@ -324,16 +342,18 @@ static uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, hcan->ep_out_buf, CAN_DATA_MAX_PACKET_SIZE);
 }
 
-static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
+bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	// TODO handle received CAN messages via this function
-	if (hcan->TxState == 0) {
-		hcan->TxState = 1;
+	return hcan->TxState == 0;
+}
 
-		USBD_memset(hcan->ep_in_buf, 0, CAN_DATA_MAX_PACKET_SIZE);
-		USBD_memcpy(hcan->ep_in_buf, buf, len);
-		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, hcan->ep_in_buf, len);
+uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	if (USBD_GS_CAN_TxReady(pdev)) {
+		hcan->TxState = 1;
+		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, buf, len);
 		return USBD_OK;
 	} else {
 		return USBD_BUSY;
@@ -350,7 +370,6 @@ void USBD_GS_CAN_SendFrameToHost(
 	uint8_t flags,
 	uint8_t *data
 ) {
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	struct gs_host_frame hf;
 
 	if (dlc>8) { dlc = 8; }

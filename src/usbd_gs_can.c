@@ -318,10 +318,10 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= sizeof(struct gs_host_frame)) {
-		struct gs_host_frame *hf = queue_pop_front(hcan->q_free_frames);
+		struct gs_host_frame *hf = queue_pop_front_i(hcan->q_free_frames);
 		if (hf) {
 			memcpy(hf, hcan->ep_out_buf, sizeof(struct gs_host_frame));
-			queue_push_back(hcan->q_from_host, hf);
+			queue_push_back_i(hcan->q_from_host, hf);
 			retval = USBD_OK;
 		}
 	}

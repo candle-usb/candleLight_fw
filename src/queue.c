@@ -55,3 +55,38 @@ void *queue_pop_front(queue_t *q)
 	enable_irq(primask);
 	return el;
 }
+
+unsigned queue_size_i(queue_t *q)
+{
+	return q->size;
+}
+
+bool queue_is_empty_i(queue_t *q)
+{
+	return queue_size_i(q)==0;
+}
+
+bool queue_push_back_i(queue_t *q, void *el)
+{
+	bool retval = false;
+
+	if (q->size < q->max_elements) {
+		unsigned pos = (q->first + q->size) % q->max_elements;
+		q->buf[pos] = el;
+		q->size += 1;
+		retval = true;
+	}
+
+	return retval;
+}
+
+void *queue_pop_front_i(queue_t *q)
+{
+	void *el = 0;
+	if (q->size > 0) {
+		el = q->buf[q->first];
+		q->first = (q->first + 1) % q->max_elements;
+		q->size -= 1;
+	}
+	return el;
+}

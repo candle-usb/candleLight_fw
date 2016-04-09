@@ -48,16 +48,13 @@ int main(void)
 
 
 		if (queue_size(q_from_host)>0) {
-			HAL_Delay(10);
 			if (USBD_GS_CAN_TxReady(&hUSB)) {
-
 				struct gs_host_frame *frame = queue_pop_front(q_from_host);
 				if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
 					queue_push_back(q_free_frames, frame);
 				} else {
 					queue_push_back(q_from_host, frame);
 				}
-
 			}
 		}
 

@@ -25,7 +25,7 @@ typedef struct {
 
 
 	struct gs_host_config host_config;
-	queue_t *q_free_frames;
+	queue_t *q_frame_pool;
 	queue_t *q_from_host;
 
 	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
@@ -113,13 +113,13 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 
 };
 
-uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_free_frames, queue_t *q_from_host)
+uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host)
 {
 	uint8_t ret = USBD_FAIL;
 	USBD_GS_CAN_HandleTypeDef *hcan = calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef));
 
 	if(hcan != 0) {
-		hcan->q_free_frames = q_free_frames;
+		hcan->q_frame_pool = q_frame_pool;
 		hcan->q_from_host = q_from_host;
 		pdev->pClassData = hcan;
 		ret = USBD_OK;
@@ -318,7 +318,7 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= sizeof(struct gs_host_frame)) {
-		struct gs_host_frame *hf = queue_pop_front_i(hcan->q_free_frames);
+		struct gs_host_frame *hf = queue_pop_front_i(hcan->q_frame_pool);
 		if (hf) {
 			memcpy(hf, hcan->ep_out_buf, sizeof(struct gs_host_frame));
 			queue_push_back_i(hcan->q_from_host, hf);
@@ -359,30 +359,4 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 		return USBD_BUSY;
 	}
 
-}
-
-void USBD_GS_CAN_SendFrameToHost(
-	USBD_HandleTypeDef *pdev,
-	uint32_t echo_id,
-	uint32_t can_id,
-	uint8_t dlc,
-	uint8_t channel,
-	uint8_t flags,
-	uint8_t *data
-) {
-	struct gs_host_frame hf;
-
-	if (dlc>8) { dlc = 8; }
-
-	hf.echo_id = echo_id;
-	hf.can_id = can_id;
-	hf.can_dlc = dlc;
-	hf.channel = channel;
-	hf.flags = flags;
-
-	for (int i=0; i<dlc; i++) {
-		hf.data[i] = data[i];
-	}
-
-	USBD_GS_CAN_Transmit(pdev, (uint8_t*)&hf, sizeof(hf));
 }

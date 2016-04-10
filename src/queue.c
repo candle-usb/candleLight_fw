@@ -43,6 +43,24 @@ bool queue_push_back(queue_t *q, void *el)
 	return retval;
 }
 
+bool queue_push_front(queue_t *q, void *el)
+{
+	bool retval = false;
+	int primask = disable_irq();
+	if (q->size < q->max_elements) {
+		if (q->first==0) {
+			q->first = q->max_elements - 1;
+		} else {
+			q->first = q->first - 1;
+		}
+		q->buf[q->first] = el;
+		q->size += 1;
+		retval = true;
+	}
+	enable_irq(primask);
+	return retval;
+}
+
 void *queue_pop_front(queue_t *q)
 {
 	int primask = disable_irq();
@@ -77,6 +95,22 @@ bool queue_push_back_i(queue_t *q, void *el)
 		retval = true;
 	}
 
+	return retval;
+}
+
+bool queue_push_front_i(queue_t *q, void *el)
+{
+	bool retval = false;
+	if (q->size < q->max_elements) {
+		if (q->first==0) {
+			q->first = q->max_elements - 1;
+		} else {
+			q->first = q->first - 1;
+		}
+		q->buf[q->first] = el;
+		q->size += 1;
+		retval = true;
+	}
 	return retval;
 }
 

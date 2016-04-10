@@ -72,7 +72,7 @@ int main(void)
 				if (can_send(&hCAN, &tx_msg, 0)) {
 					queue_push_back(q_to_host, frame); // send echo frame back to host
 				} else {
-					queue_push_back(q_from_host, frame); // retry later
+					queue_push_front(q_from_host, frame); // retry later
 				}
 			}
 		}
@@ -84,7 +84,7 @@ int main(void)
 				if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
 					queue_push_back(q_frame_pool, frame);
 				} else {
-					queue_push_back(q_to_host, frame);
+					queue_push_front(q_to_host, frame);
 				}
 			}
 		}

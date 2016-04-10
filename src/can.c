@@ -64,3 +64,20 @@ void can_disable(CAN_HandleTypeDef *hcan)
 {
 	HAL_CAN_DeInit(hcan);
 }
+
+bool can_send(CAN_HandleTypeDef *hcan, CanTxMsgTypeDef *tx_msg, uint32_t timeout)
+{
+	hcan->pTxMsg = tx_msg;
+	return HAL_CAN_Transmit(hcan, timeout) == HAL_OK;
+}
+
+bool can_receive(CAN_HandleTypeDef *hcan, CanRxMsgTypeDef *rx_msg, uint32_t timeout)
+{
+	hcan->pRxMsg = rx_msg;
+	return HAL_CAN_Receive(hcan, CAN_FIFO0, timeout) == HAL_OK;
+}
+
+bool can_is_rx_pending(CAN_HandleTypeDef *hcan)
+{
+	return (__HAL_CAN_MSG_PENDING(hcan, CAN_FIFO0) > 0);
+}

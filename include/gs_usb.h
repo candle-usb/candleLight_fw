@@ -18,6 +18,10 @@
 #define GS_CAN_FEATURE_ONE_SHOT         (1<<3)
 #define GS_CAN_FLAG_OVERFLOW 1
 
+#define CAN_EFF_FLAG 0x80000000U /* EFF/SFF is set in the MSB */
+#define CAN_RTR_FLAG 0x40000000U /* remote transmission request */
+#define CAN_ERR_FLAG 0x20000000U /* error message frame */
+
 enum gs_usb_breq {
 	GS_USB_BREQ_HOST_FORMAT = 0,
 	GS_USB_BREQ_BITTIMING,

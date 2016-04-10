@@ -24,23 +24,24 @@ int main(void)
 	MX_GPIO_Init();
 	can_init(&hCAN, CAN);
 
-	queue_t *q_free_frames = queue_create(CAN_QUEUE_SIZE);
-	queue_t *q_from_host   = queue_create(CAN_QUEUE_SIZE);
+	queue_t *q_frame_pool = queue_create(CAN_QUEUE_SIZE);
+	queue_t *q_from_host  = queue_create(CAN_QUEUE_SIZE);
+	queue_t *q_to_host    = queue_create(CAN_QUEUE_SIZE);
 
 	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
-	for (int i=0; i<CAN_QUEUE_SIZE; i++) {
-		queue_push_back(q_free_frames, &msgbuf[i]);
+	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
+		queue_push_back(q_frame_pool, &msgbuf[i]);
 	}
 
 	USBD_Init(&hUSB, &FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
-	USBD_GS_CAN_Init(&hUSB, q_free_frames, q_from_host);
+	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host);
 	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
 	USBD_Start(&hUSB);
 
 
 	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
 
 	uint32_t t_next_send = 100;
@@ -48,13 +49,77 @@ int main(void)
 	while (1) {
 
 
-		if (queue_size(q_from_host)>0) {
-			if (USBD_GS_CAN_TxReady(&hUSB)) {
-				struct gs_host_frame *frame = queue_pop_front(q_from_host);
-				if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
-					queue_push_back(q_free_frames, frame);
+		if (queue_size(q_from_host)>0) { // send can message from host
+			CanTxMsgTypeDef tx_msg;
+			struct gs_host_frame *frame = queue_pop_front(q_from_host);
+
+			if (frame != 0) {
+				if ((frame->flags & CAN_EFF_FLAG) != 0) {
+					tx_msg.IDE = CAN_ID_EXT;
+					tx_msg.ExtId = frame->can_id & 0x1FFFFFFF;
 				} else {
-					queue_push_back(q_from_host, frame);
+					tx_msg.IDE = CAN_ID_STD;
+					tx_msg.StdId = frame->can_id & 0x7FF;
+				}
+
+				if ((frame->flags & CAN_RTR_FLAG) != 0) {
+					tx_msg.RTR = CAN_RTR_REMOTE;
+				}
+
+				tx_msg.DLC = MIN(8,frame->can_dlc);
+				memcpy(tx_msg.Data, frame->data, tx_msg.DLC);
+
+				if (can_send(&hCAN, &tx_msg, 0)) {
+					queue_push_back(q_to_host, frame); // send echo frame back to host
+				} else {
+					queue_push_back(q_from_host, frame); // retry later
+				}
+			}
+		}
+
+		if (USBD_GS_CAN_TxReady(&hUSB)) {
+			if (queue_size(q_to_host)>0) { // send received message or echo message to host
+				struct gs_host_frame *frame = queue_pop_front(q_to_host);
+
+				if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
+					queue_push_back(q_frame_pool, frame);
+				} else {
+					queue_push_back(q_to_host, frame);
+				}
+			}
+		}
+
+		if (can_is_rx_pending(&hCAN)) {
+			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			if (frame) {
+				CanRxMsgTypeDef rx_msg;
+				if (can_receive(&hCAN, &rx_msg, 0)) {
+
+					frame->echo_id = 0xFFFFFFFF; // not a echo frame
+
+					frame->can_dlc = MIN(8, rx_msg.DLC);
+					frame->channel = 0;
+					frame->flags = 0;
+					frame->reserved = 0;
+
+					if (rx_msg.IDE) {
+						frame->flags |= CAN_EFF_FLAG;
+						frame->can_id = rx_msg.ExtId;
+					} else {
+						frame->can_id = rx_msg.StdId;
+					}
+
+					if (rx_msg.RTR) {
+						frame->flags |= CAN_RTR_FLAG;
+					}
+
+					memcpy(frame->data, rx_msg.Data, frame->can_dlc);
+
+					queue_push_back(q_to_host, frame);
+
+
+				} else {
+					queue_push_back(q_frame_pool, frame);
 				}
 			}
 		}

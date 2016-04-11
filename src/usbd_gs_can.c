@@ -29,6 +29,7 @@ typedef struct {
 	queue_t *q_from_host;
 
 	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
+
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);

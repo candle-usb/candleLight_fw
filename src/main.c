@@ -54,7 +54,7 @@ int main(void)
 			struct gs_host_frame *frame = queue_pop_front(q_from_host);
 
 			if (frame != 0) {
-				if ((frame->flags & CAN_EFF_FLAG) != 0) {
+				if ((frame->can_id & CAN_EFF_FLAG) != 0) {
 					tx_msg.IDE = CAN_ID_EXT;
 					tx_msg.ExtId = frame->can_id & 0x1FFFFFFF;
 				} else {
@@ -62,14 +62,14 @@ int main(void)
 					tx_msg.StdId = frame->can_id & 0x7FF;
 				}
 
-				if ((frame->flags & CAN_RTR_FLAG) != 0) {
+				if ((frame->can_id & CAN_RTR_FLAG) != 0) {
 					tx_msg.RTR = CAN_RTR_REMOTE;
 				}
 
 				tx_msg.DLC = MIN(8,frame->can_dlc);
 				memcpy(tx_msg.Data, frame->data, tx_msg.DLC);
 
-				if (can_send(&hCAN, &tx_msg, 0)) {
+				if (can_send(&hCAN, &tx_msg, 10)) {
 					queue_push_back(q_to_host, frame); // send echo frame back to host
 				} else {
 					queue_push_front(q_from_host, frame); // retry later
@@ -103,14 +103,13 @@ int main(void)
 					frame->reserved = 0;
 
 					if (rx_msg.IDE) {
-						frame->flags |= CAN_EFF_FLAG;
-						frame->can_id = rx_msg.ExtId;
+						frame->can_id = rx_msg.ExtId | CAN_EFF_FLAG;
 					} else {
 						frame->can_id = rx_msg.StdId;
 					}
 
 					if (rx_msg.RTR) {
-						frame->flags |= CAN_RTR_FLAG;
+						frame->can_id |= CAN_RTR_FLAG;
 					}
 
 					memcpy(frame->data, rx_msg.Data, frame->can_dlc);

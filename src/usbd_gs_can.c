@@ -14,7 +14,6 @@
 
 typedef struct {
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
-	uint8_t ep_out_buf[CAN_DATA_MAX_PACKET_SIZE];
 	uint8_t ep_in_buf[CAN_DATA_MAX_PACKET_SIZE];
 
 	__IO uint32_t TxState;
@@ -27,6 +26,8 @@ typedef struct {
 	struct gs_host_config host_config;
 	queue_t *q_frame_pool;
 	queue_t *q_from_host;
+
+	struct gs_host_frame *from_host_buf;
 
 	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
 
@@ -139,8 +140,10 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	uint8_t ret = USBD_FAIL;
 
 	if (pdev->pClassData) {
+		USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+		hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
 		USBD_GS_CAN_PrepareReceive(pdev);
 		ret = USBD_OK;
 	} else {
@@ -319,12 +322,9 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= sizeof(struct gs_host_frame)) {
-		struct gs_host_frame *hf = queue_pop_front_i(hcan->q_frame_pool);
-		if (hf) {
-			memcpy(hf, hcan->ep_out_buf, sizeof(struct gs_host_frame));
-			queue_push_back_i(hcan->q_from_host, hf);
-			retval = USBD_OK;
-		}
+		queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
+		hcan->from_host_buf = queue_pop_front_i(hcan->q_frame_pool);
+		retval = USBD_OK;
 	}
 
 	USBD_GS_CAN_PrepareReceive(pdev);
@@ -340,7 +340,7 @@ static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 static uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, hcan->ep_out_buf, CAN_DATA_MAX_PACKET_SIZE);
+	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, hcan->from_host_buf, sizeof(struct gs_host_frame));
 }
 
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)

@@ -16,6 +16,22 @@ static void MX_GPIO_Init(void);
 CAN_HandleTypeDef hCAN;
 USBD_HandleTypeDef hUSB;
 
+queue_t *q_frame_pool;
+queue_t *q_from_host;
+queue_t *q_to_host;
+
+bool send_to_host_or_enqueue(struct gs_host_frame *frame)
+{
+	bool retval = false;
+	if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
+		queue_push_back(q_frame_pool, frame);
+		retval = true;
+	} else {
+		queue_push_back(q_to_host, frame);
+	}
+	return retval;
+}
+
 int main(void)
 {
 
@@ -24,9 +40,9 @@ int main(void)
 	MX_GPIO_Init();
 	can_init(&hCAN, CAN);
 
-	queue_t *q_frame_pool = queue_create(CAN_QUEUE_SIZE);
-	queue_t *q_from_host  = queue_create(CAN_QUEUE_SIZE);
-	queue_t *q_to_host    = queue_create(CAN_QUEUE_SIZE);
+	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
+	q_from_host  = queue_create(CAN_QUEUE_SIZE);
+	q_to_host    = queue_create(CAN_QUEUE_SIZE);
 
 	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
 	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
@@ -70,7 +86,7 @@ int main(void)
 				memcpy(tx_msg.Data, frame->data, tx_msg.DLC);
 
 				if (can_send(&hCAN, &tx_msg, 10)) {
-					queue_push_back(q_to_host, frame); // send echo frame back to host
+					send_to_host_or_enqueue(frame);
 				} else {
 					queue_push_front(q_from_host, frame); // retry later
 				}
@@ -114,8 +130,7 @@ int main(void)
 
 					memcpy(frame->data, rx_msg.Data, frame->can_dlc);
 
-					queue_push_back(q_to_host, frame);
-
+					send_to_host_or_enqueue(frame);
 
 				} else {
 					queue_push_back(q_frame_pool, frame);

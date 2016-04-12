@@ -14,7 +14,6 @@
 
 typedef struct {
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
-	uint8_t ep_in_buf[CAN_DATA_MAX_PACKET_SIZE];
 
 	__IO uint32_t TxState;
 
@@ -352,7 +351,7 @@ bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	if (USBD_GS_CAN_TxReady(pdev)) {
+	if (hcan->TxState == 0) {
 		hcan->TxState = 1;
 		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, buf, len);
 		return USBD_OK;

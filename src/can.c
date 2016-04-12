@@ -65,12 +65,6 @@ void can_disable(CAN_HandleTypeDef *hcan)
 	HAL_CAN_DeInit(hcan);
 }
 
-bool can_send(CAN_HandleTypeDef *hcan, CanTxMsgTypeDef *tx_msg, uint32_t timeout)
-{
-	hcan->pTxMsg = tx_msg;
-	return HAL_CAN_Transmit(hcan, timeout) == HAL_OK;
-}
-
 bool can_receive(CAN_HandleTypeDef *hcan, CanRxMsgTypeDef *rx_msg, uint32_t timeout)
 {
 	hcan->pRxMsg = rx_msg;
@@ -81,3 +75,68 @@ bool can_is_rx_pending(CAN_HandleTypeDef *hcan)
 {
 	return (__HAL_CAN_MSG_PENDING(hcan, CAN_FIFO0) > 0);
 }
+
+static CAN_TxMailBox_TypeDef *can_find_free_mailbox(CAN_HandleTypeDef *hcan)
+{
+	uint32_t tsr = hcan->Instance->TSR;
+	if ( tsr & CAN_TSR_TME0 ) {
+		return &hcan->Instance->sTxMailBox[0];
+	} else if ( tsr & CAN_TSR_TME1 ) {
+		return &hcan->Instance->sTxMailBox[1];
+	} else if ( tsr & CAN_TSR_TME2 ) {
+		return &hcan->Instance->sTxMailBox[2];
+	} else {
+		return 0;
+	}
+}
+
+bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame)
+{
+	bool retval;
+
+	__HAL_LOCK(hcan);
+
+	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(hcan);
+	if (mb != 0) {
+
+		/* first, clear transmission request */
+		mb->TIR &= CAN_TI0R_TXRQ;
+
+		if (frame->can_id & CAN_EFF_FLAG) { // extended id
+			mb->TIR = CAN_ID_EXT | (frame->can_id & 0x1FFFFFFF) << 3;
+		} else {
+			mb->TIR = (frame->can_id & 0x7FF) << 21;
+		}
+
+		if (frame->can_id & CAN_RTR_FLAG) {
+			mb->TIR |= CAN_RTR_REMOTE;
+		}
+
+		mb->TDTR &= 0xFFFFFFF0;
+		mb->TDTR |= frame->can_dlc & 0x0F;
+
+		mb->TDLR =
+			  ( frame->data[3] << 24 )
+			| ( frame->data[2] << 16 )
+			| ( frame->data[1] <<  8 )
+			| ( frame->data[0] <<  0 );
+
+		mb->TDHR =
+			  ( frame->data[7] << 24 )
+			| ( frame->data[6] << 16 )
+			| ( frame->data[5] <<  8 )
+			| ( frame->data[4] <<  0 );
+
+		/* request transmission */
+		mb->TIR |= CAN_TI0R_TXRQ;
+
+		retval = true;
+	} else {
+		retval = false;
+	}
+
+	__HAL_UNLOCK(hcan);
+
+	return retval;
+}
+

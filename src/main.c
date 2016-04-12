@@ -7,7 +7,7 @@
 #include <gs_usb.h>
 #include <can.h>
 
-#define CAN_QUEUE_SIZE 32
+#define CAN_QUEUE_SIZE 64
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -31,6 +31,7 @@ bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 	}
 	return retval;
 }
+
 
 int main(void)
 {
@@ -65,32 +66,15 @@ int main(void)
 	while (1) {
 
 
-		if (queue_size(q_from_host)>0) { // send can message from host
-			CanTxMsgTypeDef tx_msg;
-			struct gs_host_frame *frame = queue_pop_front(q_from_host);
+		struct gs_host_frame *frame = queue_pop_front(q_from_host);
+		if (frame != 0) { // send can message from host
 
-			if (frame != 0) {
-				if ((frame->can_id & CAN_EFF_FLAG) != 0) {
-					tx_msg.IDE = CAN_ID_EXT;
-					tx_msg.ExtId = frame->can_id & 0x1FFFFFFF;
-				} else {
-					tx_msg.IDE = CAN_ID_STD;
-					tx_msg.StdId = frame->can_id & 0x7FF;
-				}
-
-				if ((frame->can_id & CAN_RTR_FLAG) != 0) {
-					tx_msg.RTR = CAN_RTR_REMOTE;
-				}
-
-				tx_msg.DLC = MIN(8,frame->can_dlc);
-				memcpy(tx_msg.Data, frame->data, tx_msg.DLC);
-
-				if (can_send(&hCAN, &tx_msg, 10)) {
-					send_to_host_or_enqueue(frame);
-				} else {
-					queue_push_front(q_from_host, frame); // retry later
-				}
+			if (can_send(&hCAN, frame)) {
+				send_to_host_or_enqueue(frame);
+			} else {
+				queue_push_front(q_from_host, frame); // retry later
 			}
+
 		}
 
 		if (USBD_GS_CAN_TxReady(&hUSB)) {

@@ -91,35 +91,18 @@ int main(void)
 
 		if (can_is_rx_pending(&hCAN)) {
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
-			if (frame) {
-				CanRxMsgTypeDef rx_msg;
-				if (can_receive(&hCAN, &rx_msg, 0)) {
+			if ((frame != 0) && can_receive(&hCAN, frame)) {
 
-					frame->echo_id = 0xFFFFFFFF; // not a echo frame
+				frame->echo_id = 0xFFFFFFFF; // not a echo frame
+				frame->channel = 0;
+				frame->flags = 0;
+				frame->reserved = 0;
+				send_to_host_or_enqueue(frame);
 
-					frame->can_dlc = MIN(8, rx_msg.DLC);
-					frame->channel = 0;
-					frame->flags = 0;
-					frame->reserved = 0;
-
-					if (rx_msg.IDE) {
-						frame->can_id = rx_msg.ExtId | CAN_EFF_FLAG;
-					} else {
-						frame->can_id = rx_msg.StdId;
-					}
-
-					if (rx_msg.RTR) {
-						frame->can_id |= CAN_RTR_FLAG;
-					}
-
-					memcpy(frame->data, rx_msg.Data, frame->can_dlc);
-
-					send_to_host_or_enqueue(frame);
-
-				} else {
-					queue_push_back(q_frame_pool, frame);
-				}
+			} else {
+				queue_push_back(q_frame_pool, frame);
 			}
+
 		}
 
 		if (HAL_GetTick() >= t_next_send) {

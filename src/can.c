@@ -65,15 +65,48 @@ void can_disable(CAN_HandleTypeDef *hcan)
 	HAL_CAN_DeInit(hcan);
 }
 
-bool can_receive(CAN_HandleTypeDef *hcan, CanRxMsgTypeDef *rx_msg, uint32_t timeout)
-{
-	hcan->pRxMsg = rx_msg;
-	return HAL_CAN_Receive(hcan, CAN_FIFO0, timeout) == HAL_OK;
-}
-
 bool can_is_rx_pending(CAN_HandleTypeDef *hcan)
 {
-	return (__HAL_CAN_MSG_PENDING(hcan, CAN_FIFO0) > 0);
+	return ((hcan->Instance->RF0R & CAN_RF0R_FMP0)!=0);
+}
+
+bool can_receive(CAN_HandleTypeDef *hcan, struct gs_host_frame *rx_frame)
+{
+	bool retval = false;
+
+	__HAL_LOCK(hcan);
+	if (can_is_rx_pending(hcan)) {
+
+		CAN_FIFOMailBox_TypeDef *fifo = &hcan->Instance->sFIFOMailBox[0];
+
+		if (fifo->RIR &  CAN_RI0R_IDE) {
+			rx_frame->can_id =  CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);
+		} else {
+			rx_frame->can_id = (fifo->RIR >> 21) & 0x7FF;
+		}
+
+		if (fifo->RIR & CAN_RI0R_RTR)  {
+			rx_frame->can_id |= CAN_RTR_FLAG;
+		}
+
+		rx_frame->can_dlc = fifo->RDTR & CAN_RDT0R_DLC;
+
+		rx_frame->data[0] = (fifo->RDLR >>  0) & 0xFF;
+		rx_frame->data[1] = (fifo->RDLR >>  8) & 0xFF;
+		rx_frame->data[2] = (fifo->RDLR >> 16) & 0xFF;
+		rx_frame->data[3] = (fifo->RDLR >> 24) & 0xFF;
+		rx_frame->data[4] = (fifo->RDHR >>  0) & 0xFF;
+		rx_frame->data[5] = (fifo->RDHR >>  8) & 0xFF;
+		rx_frame->data[6] = (fifo->RDHR >> 16) & 0xFF;
+		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
+
+		hcan->Instance->RF0R |= CAN_RF0R_RFOM0; // release FIFO
+
+	    retval = true;
+	}
+	__HAL_UNLOCK(hcan);
+
+	return retval;
 }
 
 static CAN_TxMailBox_TypeDef *can_find_free_mailbox(CAN_HandleTypeDef *hcan)

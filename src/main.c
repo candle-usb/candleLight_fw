@@ -68,8 +68,6 @@ int main(void)
 
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
-			USBD_GS_CAN_PrepareReceive(&hUSB);
-
 			if (can_send(&hCAN, frame)) {
 				send_to_host_or_enqueue(frame);
 			} else {

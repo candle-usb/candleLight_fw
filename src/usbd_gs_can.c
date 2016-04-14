@@ -332,7 +332,7 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		}
 		retval = USBD_OK;
 	}
-	//USBD_GS_CAN_PrepareReceive(pdev);
+	USBD_GS_CAN_PrepareReceive(pdev);
     return retval;
 }
 

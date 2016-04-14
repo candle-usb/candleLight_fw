@@ -23,7 +23,7 @@ queue_t *q_to_host;
 bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 {
 	bool retval = false;
-	if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
+	if ( USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame)) == USBD_OK ) {
 		queue_push_back(q_frame_pool, frame);
 		retval = true;
 	} else {
@@ -68,6 +68,7 @@ int main(void)
 
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
+			USBD_GS_CAN_PrepareReceive(&hUSB);
 
 			if (can_send(&hCAN, frame)) {
 				send_to_host_or_enqueue(frame);

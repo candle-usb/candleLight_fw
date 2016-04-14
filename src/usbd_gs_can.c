@@ -30,6 +30,10 @@ typedef struct {
 
 	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
 
+	uint32_t out_requests;
+	uint32_t out_requests_fail;
+	uint32_t out_requests_no_buf;
+
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
@@ -39,8 +43,6 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev);
 static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len);
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
-
-static uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev);
 
 /* CAN interface class callbacks structure */
 USBD_ClassTypeDef USBD_GS_CAN = {
@@ -319,14 +321,18 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 
+	hcan->out_requests++;
+
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= sizeof(struct gs_host_frame)) {
 		queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
 		hcan->from_host_buf = queue_pop_front_i(hcan->q_frame_pool);
+		if (hcan->from_host_buf==0) {
+			// TODO handle buffers full condition - how?
+		}
 		retval = USBD_OK;
 	}
-
-	USBD_GS_CAN_PrepareReceive(pdev);
+	//USBD_GS_CAN_PrepareReceive(pdev);
     return retval;
 }
 
@@ -336,10 +342,10 @@ static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 	return USBD_GS_CAN_CfgDesc;
 }
 
-static uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
+inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, hcan->from_host_buf, sizeof(struct gs_host_frame));
+	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)hcan->from_host_buf, sizeof(struct gs_host_frame));
 }
 
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
@@ -358,5 +364,4 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 	} else {
 		return USBD_BUSY;
 	}
-
 }

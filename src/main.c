@@ -75,7 +75,7 @@ int main(void)
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
 				send_to_host_or_enqueue(frame);
-				led_indicate_trx(&hLED, led_1);
+				led_indicate_trx(&hLED, led_2);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
 			}
@@ -104,7 +104,7 @@ int main(void)
 				frame->reserved = 0;
 				send_to_host_or_enqueue(frame);
 
-				led_indicate_trx(&hLED, led_2);
+				led_indicate_trx(&hLED, led_1);
 
 			} else {
 				queue_push_back(q_frame_pool, frame);

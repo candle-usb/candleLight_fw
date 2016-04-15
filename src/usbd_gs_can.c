@@ -34,6 +34,8 @@ typedef struct {
 	uint32_t out_requests_fail;
 	uint32_t out_requests_no_buf;
 
+	led_data_t *leds;
+
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
@@ -142,7 +144,7 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 };
 
 
-uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host)
+uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds)
 {
 	uint8_t ret = USBD_FAIL;
 	USBD_GS_CAN_HandleTypeDef *hcan = calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef));
@@ -150,6 +152,7 @@ uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_
 	if(hcan != 0) {
 		hcan->q_frame_pool = q_frame_pool;
 		hcan->q_from_host = q_from_host;
+		hcan->leds = leds;
 		pdev->pClassData = hcan;
 		ret = USBD_OK;
 	} else {
@@ -222,6 +225,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				if (mode->mode == GS_CAN_MODE_RESET) {
 
 					can_disable(ch);
+					led_set_mode(hcan->leds, led_mode_off);
 
 				} else if (mode->mode == GS_CAN_MODE_START) {
 
@@ -232,6 +236,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 						// triple sampling not supported on bxCAN
 					);
 
+					led_set_mode(hcan->leds, led_mode_normal);
 				}
 			}
     		break;

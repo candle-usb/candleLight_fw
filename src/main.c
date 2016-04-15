@@ -6,6 +6,7 @@
 #include <queue.h>
 #include <gs_usb.h>
 #include <can.h>
+#include <led.h>
 
 #define CAN_QUEUE_SIZE 64
 
@@ -15,6 +16,7 @@ static void MX_GPIO_Init(void);
 
 CAN_HandleTypeDef hCAN;
 USBD_HandleTypeDef hUSB;
+led_data_t hLED;
 
 queue_t *q_frame_pool;
 queue_t *q_from_host;
@@ -39,7 +41,12 @@ int main(void)
 	HAL_Init();
 	SystemClock_Config();
 	MX_GPIO_Init();
+
+	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, false, LED2_GPIO_Port, LED2_Pin, false);
+	led_set_mode(&hLED, led_mode_off);
+
 	can_init(&hCAN, CAN);
+
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
 	q_from_host  = queue_create(CAN_QUEUE_SIZE);
@@ -52,7 +59,7 @@ int main(void)
 
 	USBD_Init(&hUSB, &FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
-	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host);
+	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host, &hLED);
 	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
 	USBD_Start(&hUSB);
 
@@ -61,8 +68,6 @@ int main(void)
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
 
-	uint32_t t_next_send = 100;
-
 	while (1) {
 
 
@@ -70,6 +75,7 @@ int main(void)
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
 				send_to_host_or_enqueue(frame);
+				led_indicate_trx(&hLED, led_1);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
 			}
@@ -98,18 +104,15 @@ int main(void)
 				frame->reserved = 0;
 				send_to_host_or_enqueue(frame);
 
+				led_indicate_trx(&hLED, led_2);
+
 			} else {
 				queue_push_back(q_frame_pool, frame);
 			}
 
 		}
 
-		if (HAL_GetTick() >= t_next_send) {
-			t_next_send = HAL_GetTick() + 500;
-			//USBD_GS_CAN_SendFrameToHost(&hUSB, -1, 0x100, 0, 0, 0, 0);
-			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
-		}
+		led_update(&hLED);
 
 	}
 

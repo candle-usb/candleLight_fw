@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <stdbool.h>
 #include "stm32f0xx_hal.h"
 #include <gs_usb.h>
@@ -13,3 +14,6 @@ bool can_receive(CAN_HandleTypeDef *hcan, struct gs_host_frame *rx_frame);
 bool can_is_rx_pending(CAN_HandleTypeDef *hcan);
 
 bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame);
+
+uint32_t can_get_error_status(CAN_HandleTypeDef *hcan);
+bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame);

@@ -173,3 +173,73 @@ bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame)
 	return retval;
 }
 
+uint32_t can_get_error_status(CAN_HandleTypeDef *hcan)
+{
+	return hcan->Instance->ESR;
+}
+
+bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame)
+{
+	frame->can_id  = CAN_ERR_FLAG;
+	frame->can_dlc = CAN_ERR_DLC;
+	frame->data[1] = CAN_ERR_CRTL_UNSPEC;
+	frame->data[2] = CAN_ERR_PROT_UNSPEC;
+	frame->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
+
+	if ((err & 0x04) != 0) { /* bus off flag */
+		frame->can_id |= CAN_ERR_BUSOFF;
+	}
+
+	uint8_t tx_error_cnt = (err>>16) & 0xFF;
+	if (tx_error_cnt >= 96) { /* tx error warning level reached */
+		frame->can_id  |= CAN_ERR_CRTL;
+		frame->data[1] |= CAN_ERR_CRTL_TX_WARNING;
+	}
+	if (tx_error_cnt > 127) { /* tx error passive level reached */
+		frame->can_id  |= CAN_ERR_CRTL;
+		frame->data[1] |= CAN_ERR_CRTL_TX_PASSIVE;
+	}
+
+	uint8_t rx_error_cnt = (err>>24) & 0xFF;
+	if (rx_error_cnt >= 96) { /* rx error warning level reached */
+		frame->can_id  |= CAN_ERR_CRTL;
+		frame->data[1] |= CAN_ERR_CRTL_RX_WARNING;
+	}
+	if (rx_error_cnt > 127) { /* rx error passive level reached */
+		frame->can_id  |= CAN_ERR_CRTL;
+		frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE;
+	}
+
+	uint8_t lec = (err>>4) & 0x07;
+	if (lec!=0) { /* protocol error */
+		switch (lec) {
+			case 0x01: /* stuff error */
+				frame->can_id |= CAN_ERR_PROT;
+				frame->data[2] |= CAN_ERR_PROT_STUFF;
+				break;
+			case 0x02: /* form error */
+				frame->can_id |= CAN_ERR_PROT;
+				frame->data[2] |= CAN_ERR_PROT_FORM;
+				break;
+			case 0x03: /* ack error */
+				frame->can_id |= CAN_ERR_ACK;
+				break;
+			case 0x04: /* bit recessive error */
+				frame->can_id |= CAN_ERR_PROT;
+				frame->data[2] |= CAN_ERR_PROT_BIT1;
+				break;
+			case 0x05: /* bit dominant error */
+				frame->can_id |= CAN_ERR_PROT;
+				frame->data[2] |= CAN_ERR_PROT_BIT0;
+				break;
+			case 0x06: /* CRC error */
+				frame->can_id |= CAN_ERR_PROT;
+				frame->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
+				break;
+			default:
+				break;
+		}
+	}
+
+	return true;
+}

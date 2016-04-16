@@ -36,6 +36,7 @@ bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 
 int main(void)
 {
+	uint32_t last_can_error_status = 0;
 
 	HAL_Init();
 	SystemClock_Config();
@@ -109,6 +110,20 @@ int main(void)
 				queue_push_back(q_frame_pool, frame);
 			}
 
+		}
+
+		uint32_t can_err = can_get_error_status(&hCAN);
+		if (can_err != last_can_error_status) {
+			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			if (frame != 0) {
+				if (can_parse_error_status(can_err, frame)) {
+					send_to_host_or_enqueue(frame);
+					last_can_error_status = can_err;
+				} else {
+					queue_push_back(q_frame_pool, frame);
+				}
+
+			}
 		}
 
 		led_update(&hLED);

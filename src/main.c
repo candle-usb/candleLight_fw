@@ -10,8 +10,6 @@
 #include <can.h>
 #include <led.h>
 
-#define CAN_QUEUE_SIZE 64
-
 void SystemClock_Config(void);
 
 

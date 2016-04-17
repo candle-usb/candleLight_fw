@@ -33,6 +33,6 @@ THE SOFTWARE.
 #define USBD_MAX_STR_DESC_SIZ      512
 #define USBD_SUPPORT_USER_STRING     1
 #define USBD_SELF_POWERED            0
-#define DEVICE_FS 		             0
+#define DEVICE_FS                    0
 
 #define USBD_ErrLog(...)

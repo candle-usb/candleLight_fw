@@ -1,9 +1,8 @@
-CHIP  ?= STM32F072xB
-BOARD ?= candleLight
+TOOLCHAIN ?= arm-none-eabi-
 
-CC = arm-none-eabi-gcc
-OBJCOPY = arm-none-eabi-objcopy
-SIZE = arm-none-eabi-size 
+CC = $(TOOLCHAIN)gcc
+OBJCOPY = $(TOOLCHAIN)objcopy
+SIZE = $(TOOLCHAIN)size 
 
 CFLAGS  = -c -std=gnu11 -mcpu=cortex-m0 -mthumb -Os 
 CFLAGS += -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants 
@@ -21,13 +20,22 @@ SRC += $(wildcard system/src/newlib/*.c)
 SRC += $(wildcard system/src/cortexm/*.c)
 SRC += $(wildcard system/src/cmsis/*.c)
 SRC += $(wildcard Middlewares/ST/STM32_USB_Device_Library/Core/Src/*.c)
-SRC += system/src/cmsis/startup_stm32f072xb.S
+OBJ = $(patsubst %.c,build/$(BOARD)/%.o,$(SRC))
+DEP = $(OBJ:%.o=%.d)
 
-OBJECTS = $(patsubst %.c,build/$(BOARD)/%.o,$(SRC))
+ASM_SRC  = system/src/cmsis/startup_stm32f072xb.S
+ASM_OBJ += $(patsubst %.S,build/$(BOARD)/%.asmo,$(ASM_SRC))
+DEP     += $(ASM_OBJ:%.asmo=%.d)
+
 ELF = build/$(BOARD)/gsusb_$(BOARD).elf
 BIN = bin/gsusb_$(BOARD).bin
 
 all: candleLight cantact
+
+.PHONY : clean
+clean:
+	$(MAKE) BOARD=candleLight board-clean
+	$(MAKE) BOARD=cantact board-clean
 
 candleLight:
 	$(MAKE) CHIP=STM32F072xB BOARD=candleLight bin
@@ -42,11 +50,22 @@ $(BIN): $(ELF)
 	$(OBJCOPY) -O binary $(ELF) $(BIN)
 	$(SIZE) --format=berkeley $(ELF) 
 	
-$(ELF): $(OBJECTS)
+$(ELF): $(OBJ) $(ASM_OBJ)
 	@mkdir -p $(dir $@)	
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(OBJ) $(ASM_OBJ) -o $@
+
+-include $(DEP)
 
 build/$(BOARD)/%.o : %.c
 	@echo $<
 	@mkdir -p $(dir $@)	
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -MMD -c $< -o $@
+
+build/$(BOARD)/%.asmo : %.S
+	@echo $<
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDES) -MMD -c $< -o $@
+
+.PHONY : board-clean
+board-clean :
+	-rm -f $(BIN) $(OBJ) $(ASM_OBJ) $(DEP)

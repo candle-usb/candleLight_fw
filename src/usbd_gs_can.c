@@ -25,7 +25,8 @@ THE SOFTWARE.
 */
 
 #include "usbd_gs_can.h"
-
+#include <stdlib.h>
+#include <string.h>
 #include "stm32f0xx_hal.h"
 #include "usbd_desc.h"
 #include "usbd_ctlreq.h"

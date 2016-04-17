@@ -151,15 +151,34 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 /* Microsoft OS String Descriptor */
 __ALIGN_BEGIN uint8_t USBD_GS_CAN_WINUSB_STR[] __ALIGN_END =
 {
-		0x12,                    /* length */
-		0x03,                    /* descriptor type == string */
-		0x4D, 0x00, 0x53, 0x00,  /* signature: "MSFT100" */
-		0x46, 0x00, 0x54, 0x00,
-		0x31, 0x00, 0x30, 0x00,
-		0x30, 0x00,
-		USBD_GS_CAN_VENDOR_CODE, /* vendor code */
-		0x00                     /* padding */
+	0x12,                    /* length */
+	0x03,                    /* descriptor type == string */
+	0x4D, 0x00, 0x53, 0x00,  /* signature: "MSFT100" */
+	0x46, 0x00, 0x54, 0x00,
+	0x31, 0x00, 0x30, 0x00,
+	0x30, 0x00,
+	USBD_GS_CAN_VENDOR_CODE, /* vendor code */
+	0x00                     /* padding */
 };
+
+/*  Microsoft Compatible ID Feature Descriptor  */
+static __ALIGN_BEGIN uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] __ALIGN_END = {
+	0x28, 0x00, 0x00, 0x00, /* length */
+	0x00, 0x01,             /* version 1.0 */
+	0x04, 0x00,             /* descr index (0x0004) */
+	0x01,                   /* number of sections */
+	0x00, 0x00, 0x00, 0x00, /* reserved */
+	0x00, 0x00, 0x00,
+	0x00,                   /* interface number */
+	0x01,                   /* reserved */
+	0x57, 0x49, 0x4E, 0x55, /* compatible ID ("WINUSB\0\0") */
+	0x53, 0x42, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, /* sub-compatible ID */
+	0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, /* reserved */
+	0x00, 0x00
+};
+
 
 // device info
 static const struct gs_device_config USBD_GS_CAN_dconf = {
@@ -433,3 +452,20 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 	}
 }
 
+bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	uint16_t len = 0;
+	uint8_t *pbuf;
+
+	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
+		switch (req->wIndex) {
+			case 0x0004:
+				pbuf = USBD_MS_COMP_ID_FEATURE_DESC;
+				len = sizeof(USBD_MS_COMP_ID_FEATURE_DESC);
+				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+				return true;
+		}
+	}
+
+	return false;
+}

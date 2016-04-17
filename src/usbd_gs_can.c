@@ -37,6 +37,7 @@ THE SOFTWARE.
 #define CAN_CMD_PACKET_SIZE      64  /* Control Endpoint Packet size */
 #define USB_CAN_CONFIG_DESC_SIZ  32
 #define NUM_CAN_CHANNEL           1
+#define USBD_GS_CAN_VENDOR_CODE  0x20
 
 typedef struct {
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
@@ -71,6 +72,8 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev);
 static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len);
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
+static uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length);
+
 
 /* CAN interface class callbacks structure */
 USBD_ClassTypeDef USBD_GS_CAN = {
@@ -88,6 +91,7 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 	USBD_GS_CAN_GetCfgDesc,
 	USBD_GS_CAN_GetCfgDesc,
 	NULL, // GetDeviceQualifierDescriptor
+	USBD_GS_CAN_GetStrDesc // GetUsrStrDescriptor
 };
 
 
@@ -144,6 +148,18 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 
 };
 
+/* Microsoft OS String Descriptor */
+__ALIGN_BEGIN uint8_t USBD_GS_CAN_WINUSB_STR[] __ALIGN_END =
+{
+		0x12,                    /* length */
+		0x03,                    /* descriptor type == string */
+		0x4D, 0x00, 0x53, 0x00,  /* signature: "MSFT100" */
+		0x46, 0x00, 0x54, 0x00,
+		0x31, 0x00, 0x30, 0x00,
+		0x30, 0x00,
+		USBD_GS_CAN_VENDOR_CODE, /* vendor code */
+		0x00                     /* padding */
+};
 
 // device info
 static const struct gs_device_config USBD_GS_CAN_dconf = {
@@ -403,3 +419,17 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 		return USBD_BUSY;
 	}
 }
+
+uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)
+{
+	UNUSED(pdev);
+	if (index==0xEE) {
+		*length = sizeof(USBD_GS_CAN_WINUSB_STR);
+		return USBD_GS_CAN_WINUSB_STR;
+	} else {
+		*length = 0;
+		USBD_CtlError(pdev, 0);
+		return 0;
+	}
+}
+

@@ -26,6 +26,30 @@ THE SOFTWARE.
 
 #include "can.h"
 
+void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
+{
+	if(hcan->Instance==CAN)
+	{
+		__HAL_RCC_CAN1_CLK_ENABLE();
+
+		GPIO_InitTypeDef itd;
+		itd.Pin = GPIO_PIN_8|GPIO_PIN_9;
+		itd.Mode = GPIO_MODE_AF_PP;
+		itd.Pull = GPIO_NOPULL;
+		itd.Speed = GPIO_SPEED_FREQ_HIGH;
+		itd.Alternate = GPIO_AF4_CAN;
+		HAL_GPIO_Init(GPIOB, &itd);
+	}
+}
+
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
+{
+	if(hcan->Instance==CAN) {
+		__HAL_RCC_CAN1_CLK_DISABLE();
+		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_9);
+	}
+}
+
 void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance)
 {
 	hcan->Instance = instance;

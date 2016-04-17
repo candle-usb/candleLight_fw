@@ -24,20 +24,23 @@ THE SOFTWARE.
 
 */
 
+#include <stdlib.h>
+
 #include "config.h"
 #include "stm32f0xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_core.h"
 #include "usbd_gs_can.h"
-#include <gpio.h>
-#include <queue.h>
-#include <gs_usb.h>
-#include <can.h>
-#include <led.h>
+#include "gpio.h"
+#include "queue.h"
+#include "gs_usb.h"
+#include "can.h"
+#include "led.h"
 
+void HAL_MspInit(void);
 void SystemClock_Config(void);
-
+static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 
 CAN_HandleTypeDef hCAN;
 USBD_HandleTypeDef hUSB;
@@ -46,19 +49,6 @@ led_data_t hLED;
 queue_t *q_frame_pool;
 queue_t *q_from_host;
 queue_t *q_to_host;
-
-bool send_to_host_or_enqueue(struct gs_host_frame *frame)
-{
-	bool retval = false;
-	if ( USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame)) == USBD_OK ) {
-		queue_push_back(q_frame_pool, frame);
-		retval = true;
-	} else {
-		queue_push_back(q_to_host, frame);
-	}
-	return retval;
-}
-
 
 int main(void)
 {
@@ -158,6 +148,12 @@ int main(void)
 
 }
 
+void HAL_MspInit(void)
+{
+	__HAL_RCC_SYSCFG_CLK_ENABLE();
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
 void SystemClock_Config(void)
 {
 	RCC_OscInitTypeDef RCC_OscInitStruct;
@@ -198,3 +194,16 @@ void SystemClock_Config(void)
 	/* SysTick_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
+
+bool send_to_host_or_enqueue(struct gs_host_frame *frame)
+{
+	bool retval = false;
+	if ( USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame)) == USBD_OK ) {
+		queue_push_back(q_frame_pool, frame);
+		retval = true;
+	} else {
+		queue_push_back(q_to_host, frame);
+	}
+	return retval;
+}
+

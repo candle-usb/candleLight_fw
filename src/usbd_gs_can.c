@@ -180,6 +180,52 @@ static __ALIGN_BEGIN uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] __ALIGN_END = {
 	0x00, 0x00
 };
 
+/* Microsoft Extended Properties Feature Descriptor */
+static __ALIGN_BEGIN uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] __ALIGN_END = {
+	0x92, 0x00, 0x00, 0x00, /* length */
+	0x00, 0x01,				/* version 1.0 */
+	0x05, 0x00,             /* descr index (0x0005) */
+	0x01, 0x00,             /* number of sections */
+	0x88, 0x00, 0x00, 0x00, /* property section size */
+	0x07, 0x00, 0x00, 0x00, /* property data type 7: Unicode REG_MULTI_SZ */
+	0x2a, 0x00,				/* property name length */
+
+	0x44, 0x00, 0x65, 0x00, /* property name "DeviceInterfaceGUIDs" */
+	0x76, 0x00, 0x69, 0x00,
+	0x63, 0x00, 0x65, 0x00,
+	0x49, 0x00, 0x6e, 0x00,
+	0x74, 0x00, 0x65, 0x00,
+	0x72, 0x00, 0x66, 0x00,
+	0x61, 0x00, 0x63, 0x00,
+	0x65, 0x00, 0x47, 0x00,
+	0x55, 0x00, 0x49, 0x00,
+	0x44, 0x00, 0x73, 0x00,
+	0x00, 0x00,
+
+	0x50, 0x00, 0x00, 0x00, /* property data length */
+
+	0x7b, 0x00, 0x63, 0x00, /* property name: "{c15b4308-04d3-11e6-b3ea-6057189e6443}\0\0" */
+	0x31, 0x00, 0x35, 0x00,
+	0x62, 0x00, 0x34, 0x00,
+	0x33, 0x00, 0x30, 0x00,
+	0x38, 0x00, 0x2d, 0x00,
+	0x30, 0x00, 0x34, 0x00,
+	0x64, 0x00, 0x33, 0x00,
+	0x2d, 0x00, 0x31, 0x00,
+	0x31, 0x00, 0x65, 0x00,
+	0x36, 0x00, 0x2d, 0x00,
+	0x62, 0x00, 0x33, 0x00,
+	0x65, 0x00, 0x61, 0x00,
+	0x2d, 0x00, 0x36, 0x00,
+	0x30, 0x00, 0x35, 0x00,
+	0x37, 0x00, 0x31, 0x00,
+	0x38, 0x00, 0x39, 0x00,
+	0x65, 0x00, 0x36, 0x00,
+	0x34, 0x00, 0x34, 0x00,
+	0x33, 0x00, 0x7d, 0x00,
+	0x00, 0x00, 0x00, 0x00
+};
+
 
 // device info
 static const struct gs_device_config USBD_GS_CAN_dconf = {
@@ -354,6 +400,39 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 	return USBD_OK;
 }
 
+bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	uint16_t len = 0;
+	uint8_t *pbuf;
+
+	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
+
+		switch (req->wIndex) {
+
+			case 0x0004:
+				pbuf = USBD_MS_COMP_ID_FEATURE_DESC;
+				len = sizeof(USBD_MS_COMP_ID_FEATURE_DESC);
+				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+				return true;
+
+			case 0x0005:
+				pbuf = USBD_MS_EXT_PROP_FEATURE_DESC;
+				len = sizeof(USBD_MS_EXT_PROP_FEATURE_DESC);
+				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+				return true;
+
+		}
+
+	}
+
+	return false;
+}
+
+bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	return USBD_GS_CAN_CustomDeviceRequest(pdev, req);
+}
+
 static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	static uint8_t ifalt = 0;
@@ -451,22 +530,4 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 		USBD_CtlError(pdev, 0);
 		return 0;
 	}
-}
-
-bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
-{
-	uint16_t len = 0;
-	uint8_t *pbuf;
-
-	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
-		switch (req->wIndex) {
-			case 0x0004:
-				pbuf = USBD_MS_COMP_ID_FEATURE_DESC;
-				len = sizeof(USBD_MS_COMP_ID_FEATURE_DESC);
-				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
-				return true;
-		}
-	}
-
-	return false;
 }

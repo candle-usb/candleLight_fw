@@ -58,6 +58,10 @@ void HAL_PCD_SetupStageCallback(PCD_HandleTypeDef *hpcd)
 		request_was_handled = USBD_GS_CAN_CustomDeviceRequest(pdev, &pdev->request);
 	}
 
+	if ((pdev->request.bmRequest & 0x1F) == USB_REQ_RECIPIENT_INTERFACE ) { // interface request
+		request_was_handled = USBD_GS_CAN_CustomInterfaceRequest(pdev, &pdev->request);
+	}
+
 	if (!request_was_handled) {
 		USBD_LL_SetupStage((USBD_HandleTypeDef*)hpcd->pData, (uint8_t *)hpcd->Setup);
 	}

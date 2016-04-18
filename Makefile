@@ -32,7 +32,8 @@ BIN = bin/gsusb_$(BOARD).bin
 
 all: candleLight cantact
 
-.PHONY : clean
+.PHONY : clean all
+
 clean:
 	$(MAKE) BOARD=candleLight board-clean
 	$(MAKE) BOARD=cantact board-clean

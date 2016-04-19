@@ -31,9 +31,6 @@ THE SOFTWARE.
 #include "stm32f0xx_hal.h"
 #include <gs_usb.h>
 
-void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan);
-void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
-
 void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance);
 void can_set_bittiming(CAN_HandleTypeDef *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
 void can_enable(CAN_HandleTypeDef *hcan, bool loop_back, bool listen_only, bool one_shot);

@@ -26,44 +26,23 @@ THE SOFTWARE.
 
 #include "can.h"
 
-void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
-{
-	if(hcan->Instance==CAN)
-	{
-		__HAL_RCC_CAN1_CLK_ENABLE();
-
-		GPIO_InitTypeDef itd;
-		itd.Pin = GPIO_PIN_8|GPIO_PIN_9;
-		itd.Mode = GPIO_MODE_AF_PP;
-		itd.Pull = GPIO_NOPULL;
-		itd.Speed = GPIO_SPEED_FREQ_HIGH;
-		itd.Alternate = GPIO_AF4_CAN;
-		HAL_GPIO_Init(GPIOB, &itd);
-	}
-}
-
-void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
-{
-	if(hcan->Instance==CAN) {
-		__HAL_RCC_CAN1_CLK_DISABLE();
-		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_9);
-	}
-}
-
 void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance)
 {
+	__HAL_RCC_CAN1_CLK_ENABLE();
+
+	GPIO_InitTypeDef itd;
+	itd.Pin = GPIO_PIN_8|GPIO_PIN_9;
+	itd.Mode = GPIO_MODE_AF_PP;
+	itd.Pull = GPIO_NOPULL;
+	itd.Speed = GPIO_SPEED_FREQ_HIGH;
+	itd.Alternate = GPIO_AF4_CAN;
+	HAL_GPIO_Init(GPIOB, &itd);
+
 	hcan->Instance = instance;
 	hcan->Init.Prescaler = 6-1;
-	hcan->Init.Mode = CAN_MODE_SILENT;
-	hcan->Init.SJW = CAN_SJW_1TQ;
 	hcan->Init.BS1 = CAN_BS1_13TQ;
 	hcan->Init.BS2 = CAN_BS2_2TQ;
-	hcan->Init.TTCM = DISABLE;
-	hcan->Init.ABOM = DISABLE;
-	hcan->Init.AWUM = DISABLE;
-	hcan->Init.NART = DISABLE;
-	hcan->Init.RFLM = DISABLE;
-	hcan->Init.TXFP = ENABLE;
+	hcan->Init.SJW = CAN_SJW_1TQ;
 }
 
 void can_set_bittiming(CAN_HandleTypeDef *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
@@ -85,49 +64,68 @@ void can_set_bittiming(CAN_HandleTypeDef *hcan, uint16_t brp, uint8_t phase_seg1
 
 void can_enable(CAN_HandleTypeDef *hcan, bool loop_back, bool listen_only, bool one_shot)
 {
-	hcan->Init.Mode = 0;
-	if (loop_back) {
-		hcan->Init.Mode |= CAN_MODE_LOOPBACK;
-	}
-	if (listen_only) {
-		hcan->Init.Mode |= CAN_MODE_SILENT;
-	}
+	CAN_TypeDef *can = hcan->Instance;
 
-	hcan->Init.NART = one_shot ? ENABLE : DISABLE;
-	HAL_CAN_Init(hcan);
+	uint32_t mcr = CAN_MCR_INRQ
+				 | CAN_MCR_ABOM
+			     | CAN_MCR_TXFP
+				 | (one_shot ? CAN_MCR_NART : 0);
 
-	CAN_FilterConfTypeDef fd;
-	fd.FilterNumber = 0;
-	fd.FilterMode = CAN_FILTERMODE_IDMASK;
-	fd.FilterScale = CAN_FILTERSCALE_32BIT;
-	fd.BankNumber = 0;
-	fd.FilterIdLow = 0;
-	fd.FilterIdHigh = 0;
-	fd.FilterMaskIdLow = 0;
-	fd.FilterMaskIdHigh = 0;
-	fd.FilterActivation = ENABLE;
-	fd.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	HAL_CAN_ConfigFilter(hcan, &fd);
+	uint32_t btr = hcan->Init.SJW
+  			     | hcan->Init.BS1
+			     | hcan->Init.BS2
+			     | (hcan->Init.Prescaler - 1)
+				 | (loop_back ? CAN_MODE_LOOPBACK : 0)
+				 | (listen_only ? CAN_MODE_SILENT : 0);
+
+
+	// Reset CAN peripheral
+	can->MCR |= CAN_MCR_RESET;
+	while((can->MCR & CAN_MCR_RESET) != 0); // reset bit is set to zero after reset
+	while((can->MSR & CAN_MSR_SLAK) == 0);  // should be in sleep mode after reset
+
+	can->MCR |= CAN_MCR_INRQ ;
+	while((can->MSR & CAN_MSR_INAK) != 0);
+
+	can->MCR = mcr;
+	can->BTR = btr;
+
+	can->MCR &= ~CAN_MCR_INRQ;
+	while((can->MSR & CAN_MSR_INAK) == 0);
+
+	uint32_t filter_bit = 0x00000001;
+	can->FMR |= CAN_FMR_FINIT;
+	can->FMR &= ~CAN_FMR_CAN2SB;
+	can->FA1R &= ~filter_bit;        // disable filter
+	can->FS1R |= filter_bit;         // set to single 32-bit filter mode
+	can->FM1R &= ~filter_bit;        // set filter mask mode for filter 0
+	can->sFilterRegister[0].FR1 = 0; // filter ID = 0
+	can->sFilterRegister[0].FR2 = 0; // filter Mask = 0
+	can->FFA1R &= ~filter_bit;       // assign filter 0 to FIFO 0
+	can->FA1R |= filter_bit;         // enable filter
+	can->FMR &= ~CAN_FMR_FINIT;
+
 }
 
 void can_disable(CAN_HandleTypeDef *hcan)
 {
-	HAL_CAN_DeInit(hcan);
+	CAN_TypeDef *can = hcan->Instance;
+	can->MCR |= CAN_MCR_INRQ ; // send can controller into initialization mode
 }
 
 bool can_is_rx_pending(CAN_HandleTypeDef *hcan)
 {
-	return ((hcan->Instance->RF0R & CAN_RF0R_FMP0)!=0);
+	CAN_TypeDef *can = hcan->Instance;
+	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
 bool can_receive(CAN_HandleTypeDef *hcan, struct gs_host_frame *rx_frame)
 {
-	bool retval = false;
+	CAN_TypeDef *can = hcan->Instance;
 
-	__HAL_LOCK(hcan);
 	if (can_is_rx_pending(hcan)) {
 
-		CAN_FIFOMailBox_TypeDef *fifo = &hcan->Instance->sFIFOMailBox[0];
+		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {
 			rx_frame->can_id =  CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);
@@ -150,24 +148,28 @@ bool can_receive(CAN_HandleTypeDef *hcan, struct gs_host_frame *rx_frame)
 		rx_frame->data[6] = (fifo->RDHR >> 16) & 0xFF;
 		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
 
-		hcan->Instance->RF0R |= CAN_RF0R_RFOM0; // release FIFO
+		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
 
-	    retval = true;
+	    return true;
+
+	} else {
+
+		return false;
+
 	}
-	__HAL_UNLOCK(hcan);
-
-	return retval;
 }
 
 static CAN_TxMailBox_TypeDef *can_find_free_mailbox(CAN_HandleTypeDef *hcan)
 {
-	uint32_t tsr = hcan->Instance->TSR;
+	CAN_TypeDef *can = hcan->Instance;
+
+	uint32_t tsr = can->TSR;
 	if ( tsr & CAN_TSR_TME0 ) {
-		return &hcan->Instance->sTxMailBox[0];
+		return &can->sTxMailBox[0];
 	} else if ( tsr & CAN_TSR_TME1 ) {
-		return &hcan->Instance->sTxMailBox[1];
+		return &can->sTxMailBox[1];
 	} else if ( tsr & CAN_TSR_TME2 ) {
-		return &hcan->Instance->sTxMailBox[2];
+		return &can->sTxMailBox[2];
 	} else {
 		return 0;
 	}
@@ -175,10 +177,6 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(CAN_HandleTypeDef *hcan)
 
 bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame)
 {
-	bool retval;
-
-	__HAL_LOCK(hcan);
-
 	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(hcan);
 	if (mb != 0) {
 
@@ -213,19 +211,16 @@ bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame)
 		/* request transmission */
 		mb->TIR |= CAN_TI0R_TXRQ;
 
-		retval = true;
+		return true;
 	} else {
-		retval = false;
+		return false;
 	}
-
-	__HAL_UNLOCK(hcan);
-
-	return retval;
 }
 
 uint32_t can_get_error_status(CAN_HandleTypeDef *hcan)
 {
-	return hcan->Instance->ESR;
+	CAN_TypeDef *can = hcan->Instance;
+	return can->ESR;
 }
 
 bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame)

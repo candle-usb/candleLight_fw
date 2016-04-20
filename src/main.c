@@ -42,7 +42,7 @@ void HAL_MspInit(void);
 void SystemClock_Config(void);
 static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 
-CAN_HandleTypeDef hCAN;
+can_data_t hCAN;
 USBD_HandleTypeDef hUSB;
 led_data_t hLED;
 

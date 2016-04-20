@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 #include "can.h"
 
-void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance)
+void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 {
 	__HAL_RCC_CAN1_CLK_ENABLE();
 
@@ -38,43 +38,43 @@ void can_init(CAN_HandleTypeDef *hcan, CAN_TypeDef *instance)
 	itd.Alternate = GPIO_AF4_CAN;
 	HAL_GPIO_Init(GPIOB, &itd);
 
-	hcan->Instance = instance;
-	hcan->Init.Prescaler = 6-1;
-	hcan->Init.BS1 = CAN_BS1_13TQ;
-	hcan->Init.BS2 = CAN_BS2_2TQ;
-	hcan->Init.SJW = CAN_SJW_1TQ;
+	hcan->instance   = instance;
+	hcan->brp        = 6;
+	hcan->phase_seg1 = 13;
+	hcan->phase_seg2 = 2;
+	hcan->sjw        = 1;
 }
 
-void can_set_bittiming(CAN_HandleTypeDef *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
+bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
 {
-	hcan->Init.Prescaler = brp & 0x3FF;
-
-	if ((phase_seg1>0) && (phase_seg1<17)) {
-		hcan->Init.BS1 = (phase_seg1-1)<<16;
-	}
-
-	if ((phase_seg2>0) && (phase_seg2<9)) {
-		hcan->Init.BS2 = (phase_seg2-1)<<20;
-	}
-
-	if ((sjw>0) && (sjw<5)) {
-		hcan->Init.SJW = (sjw-1)<<24;
+	if ( (brp>0) && (brp<=1024)
+	  && (phase_seg1>0) && (phase_seg1<=16)
+	  && (phase_seg2>0) && (phase_seg2<=8)
+	  && (sjw>0) && (sjw<=4)
+	) {
+		hcan->brp = brp & 0x3FF;
+		hcan->phase_seg1 = phase_seg1;
+		hcan->phase_seg2 = phase_seg2;
+		hcan->sjw = sjw;
+		return true;
+	} else {
+		return false;
 	}
 }
 
-void can_enable(CAN_HandleTypeDef *hcan, bool loop_back, bool listen_only, bool one_shot)
+void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot)
 {
-	CAN_TypeDef *can = hcan->Instance;
+	CAN_TypeDef *can = hcan->instance;
 
 	uint32_t mcr = CAN_MCR_INRQ
 				 | CAN_MCR_ABOM
 			     | CAN_MCR_TXFP
 				 | (one_shot ? CAN_MCR_NART : 0);
 
-	uint32_t btr = hcan->Init.SJW
-  			     | hcan->Init.BS1
-			     | hcan->Init.BS2
-			     | (hcan->Init.Prescaler - 1)
+	uint32_t btr = ((uint32_t)(hcan->sjw-1)) << 24
+  			     | ((uint32_t)(hcan->phase_seg1-1)) << 16
+			     | ((uint32_t)(hcan->phase_seg2-1)) << 20
+			     | (hcan->brp - 1)
 				 | (loop_back ? CAN_MODE_LOOPBACK : 0)
 				 | (listen_only ? CAN_MODE_SILENT : 0);
 
@@ -107,21 +107,21 @@ void can_enable(CAN_HandleTypeDef *hcan, bool loop_back, bool listen_only, bool 
 
 }
 
-void can_disable(CAN_HandleTypeDef *hcan)
+void can_disable(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->Instance;
+	CAN_TypeDef *can = hcan->instance;
 	can->MCR |= CAN_MCR_INRQ ; // send can controller into initialization mode
 }
 
-bool can_is_rx_pending(CAN_HandleTypeDef *hcan)
+bool can_is_rx_pending(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->Instance;
+	CAN_TypeDef *can = hcan->instance;
 	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
-bool can_receive(CAN_HandleTypeDef *hcan, struct gs_host_frame *rx_frame)
+bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 {
-	CAN_TypeDef *can = hcan->Instance;
+	CAN_TypeDef *can = hcan->instance;
 
 	if (can_is_rx_pending(hcan)) {
 
@@ -159,9 +159,9 @@ bool can_receive(CAN_HandleTypeDef *hcan, struct gs_host_frame *rx_frame)
 	}
 }
 
-static CAN_TxMailBox_TypeDef *can_find_free_mailbox(CAN_HandleTypeDef *hcan)
+static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->Instance;
+	CAN_TypeDef *can = hcan->instance;
 
 	uint32_t tsr = can->TSR;
 	if ( tsr & CAN_TSR_TME0 ) {
@@ -175,7 +175,7 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(CAN_HandleTypeDef *hcan)
 	}
 }
 
-bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame)
+bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 {
 	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(hcan);
 	if (mb != 0) {
@@ -217,9 +217,9 @@ bool can_send(CAN_HandleTypeDef *hcan, struct gs_host_frame *frame)
 	}
 }
 
-uint32_t can_get_error_status(CAN_HandleTypeDef *hcan)
+uint32_t can_get_error_status(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->Instance;
+	CAN_TypeDef *can = hcan->instance;
 	return can->ESR;
 }
 

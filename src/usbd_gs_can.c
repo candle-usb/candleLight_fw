@@ -56,7 +56,7 @@ typedef struct {
 
 	struct gs_host_frame *from_host_buf;
 
-	CAN_HandleTypeDef *channels[NUM_CAN_CHANNEL];
+	can_data_t *channels[NUM_CAN_CHANNEL];
 
 	uint32_t out_requests;
 	uint32_t out_requests_fail;
@@ -302,7 +302,7 @@ static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 }
 
 
-void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, CAN_HandleTypeDef* handle) {
+void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_t* handle) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	if ((hcan!=NULL) && (channel < NUM_CAN_CHANNEL)) {
 		hcan->channels[channel] = handle;
@@ -315,7 +315,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	struct gs_device_bittiming *timing;
 	struct gs_device_mode *mode;
-	CAN_HandleTypeDef *ch;
+	can_data_t *ch;
 
     switch (hcan->req_bRequest) {
 

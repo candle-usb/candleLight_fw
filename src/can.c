@@ -226,7 +226,7 @@ uint32_t can_get_error_status(can_data_t *hcan)
 bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame)
 {
 	frame->echo_id = 0xFFFFFFFF;
-	frame->can_id  = CAN_ERR_FLAG;
+	frame->can_id  = CAN_ERR_FLAG | CAN_ERR_CRTL;
 	frame->can_dlc = CAN_ERR_DLC;
 	frame->data[0] = CAN_ERR_LOSTARB_UNSPEC;
 	frame->data[1] = CAN_ERR_CRTL_UNSPEC;
@@ -237,28 +237,19 @@ bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame)
 	frame->data[6] = 0;
 	frame->data[7] = 0;
 
-	if ((err & 0x04) != 0) { /* bus off flag */
+	if ((err & CAN_ESR_BOFF) != 0) {
 		frame->can_id |= CAN_ERR_BUSOFF;
 	}
 
+	/*
 	uint8_t tx_error_cnt = (err>>16) & 0xFF;
-	if (tx_error_cnt >= 96) { /* tx error warning level reached */
-		frame->can_id  |= CAN_ERR_CRTL;
-		frame->data[1] |= CAN_ERR_CRTL_TX_WARNING;
-	}
-	if (tx_error_cnt > 127) { /* tx error passive level reached */
-		frame->can_id  |= CAN_ERR_CRTL;
-		frame->data[1] |= CAN_ERR_CRTL_TX_PASSIVE;
-	}
-
 	uint8_t rx_error_cnt = (err>>24) & 0xFF;
-	if (rx_error_cnt >= 96) { /* rx error warning level reached */
-		frame->can_id  |= CAN_ERR_CRTL;
-		frame->data[1] |= CAN_ERR_CRTL_RX_WARNING;
-	}
-	if (rx_error_cnt > 127) { /* rx error passive level reached */
-		frame->can_id  |= CAN_ERR_CRTL;
-		frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE;
+	*/
+
+	if (err & CAN_ESR_EPVF) {
+		frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
+	} else if (err & CAN_ESR_EWGF) {
+		frame->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
 	}
 
 	uint8_t lec = (err>>4) & 0x07;

@@ -85,13 +85,13 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	while((can->MSR & CAN_MSR_SLAK) == 0);  // should be in sleep mode after reset
 
 	can->MCR |= CAN_MCR_INRQ ;
-	while((can->MSR & CAN_MSR_INAK) != 0);
+	while((can->MSR & CAN_MSR_INAK) == 0);
 
 	can->MCR = mcr;
 	can->BTR = btr;
 
 	can->MCR &= ~CAN_MCR_INRQ;
-	while((can->MSR & CAN_MSR_INAK) == 0);
+	while((can->MSR & CAN_MSR_INAK) != 0);
 
 	uint32_t filter_bit = 0x00000001;
 	can->FMR |= CAN_FMR_FINIT;

@@ -225,11 +225,17 @@ uint32_t can_get_error_status(can_data_t *hcan)
 
 bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame)
 {
+	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;
 	frame->can_dlc = CAN_ERR_DLC;
+	frame->data[0] = CAN_ERR_LOSTARB_UNSPEC;
 	frame->data[1] = CAN_ERR_CRTL_UNSPEC;
 	frame->data[2] = CAN_ERR_PROT_UNSPEC;
 	frame->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
+	frame->data[4] = CAN_ERR_TRX_UNSPEC;
+	frame->data[5] = 0;
+	frame->data[6] = 0;
+	frame->data[7] = 0;
 
 	if ((err & 0x04) != 0) { /* bus off flag */
 		frame->can_id |= CAN_ERR_BUSOFF;

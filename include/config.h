@@ -34,6 +34,7 @@ THE SOFTWARE.
 #define USBD_MANUFACTURER_STRING     (uint8_t*) "bytewerk"
 #define USBD_CONFIGURATION_STRING_FS (uint8_t*) "gs_usb config"
 #define USBD_INTERFACE_STRING_FS     (uint8_t*) "gs_usb interface"
+#define DFU_INTERFACE_STRING_FS      (uint8_t*) "candleLight dfu interface"
 #define USBD_SERIALNUMBER_STRING_FS  (uint8_t*) "000000000001"
 
 #define BOARD_candleLight 1

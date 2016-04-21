@@ -25,6 +25,7 @@ THE SOFTWARE.
 */
 
 #include "usbd_gs_can.h"
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include "stm32f0xx_hal.h"
@@ -34,11 +35,13 @@ THE SOFTWARE.
 #include "gs_usb.h"
 #include "can.h"
 
-#define CAN_DATA_MAX_PACKET_SIZE 32  /* Endpoint IN & OUT Packet size */
-#define CAN_CMD_PACKET_SIZE      64  /* Control Endpoint Packet size */
-#define USB_CAN_CONFIG_DESC_SIZ  32
-#define NUM_CAN_CHANNEL           1
+#define CAN_DATA_MAX_PACKET_SIZE   32  /* Endpoint IN & OUT Packet size */
+#define CAN_CMD_PACKET_SIZE        64  /* Control Endpoint Packet size */
+#define USB_CAN_CONFIG_DESC_SIZ    50
+#define NUM_CAN_CHANNEL             1
 #define USBD_GS_CAN_VENDOR_CODE  0x20
+#define DFU_INTERFACE_NUM           1
+#define DFU_INTERFACE_STR_INDEX  0xE0
 
 typedef struct {
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
@@ -48,7 +51,6 @@ typedef struct {
 	uint8_t  req_bRequest;
 	uint16_t req_wLength;
 	uint16_t req_wValue;
-
 
 	struct gs_host_config host_config;
 	queue_t *q_frame_pool;
@@ -63,6 +65,7 @@ typedef struct {
 	uint32_t out_requests_no_buf;
 
 	led_data_t *leds;
+	bool dfu_detach_requested;
 
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
@@ -105,7 +108,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	USB_DESC_TYPE_CONFIGURATION,      /* bDescriptorType */
 	USB_CAN_CONFIG_DESC_SIZ,          /* wTotalLength */
 	0x00,
-	0x01,                             /* bNumInterfaces */
+	0x02,                             /* bNumInterfaces */
 	0x01,                             /* bConfigurationValue */
 	0x00,                             /* iConfiguration */
 	0x80,                             /* bmAttributes */
@@ -113,7 +116,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	/*---------------------------------------------------------------------------*/
 
 	/*---------------------------------------------------------------------------*/
-	/* Interface Descriptor */
+	/* GS_USB Interface Descriptor */
 	0x09,                             /* bLength */
 	USB_DESC_TYPE_INTERFACE,          /* bDescriptorType */
 	0x00,                             /* bInterfaceNumber */
@@ -146,6 +149,29 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	HIBYTE(CAN_DATA_MAX_PACKET_SIZE),
 	0x00,                             /* bInterval: */
 	/*---------------------------------------------------------------------------*/
+
+	/*---------------------------------------------------------------------------*/
+	/* DFU Interface Descriptor */
+	/*---------------------------------------------------------------------------*/
+	0x09,                             /* bLength */
+	USB_DESC_TYPE_INTERFACE,          /* bDescriptorType */
+	DFU_INTERFACE_NUM,                /* bInterfaceNumber */
+	0x00,                             /* bAlternateSetting */
+	0x00,                             /* bNumEndpoints */
+	0xFE,                             /* bInterfaceClass: Vendor Specific*/
+	0x01,                             /* bInterfaceSubClass */
+	0x01,                             /* bInterfaceProtocol */
+	DFU_INTERFACE_STR_INDEX,          /* iInterface */
+
+	/*---------------------------------------------------------------------------*/
+	/* Run-Time DFU Functional Descriptor */
+	/*---------------------------------------------------------------------------*/
+	0x09,                             /* bLength */
+	0x21,                             /* bDescriptorType: DFU FUNCTIONAL */
+	0x0F,                             /* bmAttributes: all features set */
+	0xFF, 0xFF,                       /* wDetachTimeOut */
+	0x00, 0xFF,                       /* wTransferSize */
+	0x01, 0x01,                       /* bcdDFUVersion: 1.1 */
 
 };
 
@@ -374,6 +400,15 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 
+	if (LOBYTE(req->wIndex) == DFU_INTERFACE_NUM) { // request for DFU interface
+		if (req->bRequest==0) { // DFU_DETACH request
+			hcan->dfu_detach_requested = true;
+		} else {
+			USBD_CtlError(pdev, req);
+			return USBD_OK;
+		}
+	}
+
 	switch (req->bRequest) {
 
 		case GS_USB_BREQ_HOST_FORMAT:
@@ -522,12 +557,17 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)
 {
 	UNUSED(pdev);
-	if (index==0xEE) {
-		*length = sizeof(USBD_GS_CAN_WINUSB_STR);
-		return USBD_GS_CAN_WINUSB_STR;
-	} else {
-		*length = 0;
-		USBD_CtlError(pdev, 0);
-		return 0;
+
+	switch (index) {
+		case DFU_INTERFACE_STR_INDEX:
+			USBD_GetString(DFU_INTERFACE_STRING_FS, USBD_StrDesc, length);
+			return USBD_StrDesc;
+		case 0xEE:
+			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
+			return USBD_GS_CAN_WINUSB_STR;
+		default:
+			*length = 0;
+			USBD_CtlError(pdev, 0);
+			return 0;
 	}
 }

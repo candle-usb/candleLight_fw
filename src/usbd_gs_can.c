@@ -48,9 +48,7 @@ typedef struct {
 
 	__IO uint32_t TxState;
 
-	uint8_t  req_bRequest;
-	uint16_t req_wLength;
-	uint16_t req_wValue;
+	USBD_SetupReqTypedef last_setup_request;
 
 	struct gs_host_config host_config;
 	queue_t *q_frame_pool;
@@ -160,7 +158,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	0x00,                             /* bNumEndpoints */
 	0xFE,                             /* bInterfaceClass: Vendor Specific*/
 	0x01,                             /* bInterfaceSubClass */
-	0x02,                             /* bInterfaceProtocol */
+	0x01,                             /* bInterfaceProtocol : Runtime mode */
 	DFU_INTERFACE_STR_INDEX,          /* iInterface */
 
 	/*---------------------------------------------------------------------------*/
@@ -343,7 +341,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	struct gs_device_mode *mode;
 	can_data_t *ch;
 
-    switch (hcan->req_bRequest) {
+	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+
+    switch (req->bRequest) {
 
     	case GS_USB_BREQ_HOST_FORMAT:
     		// TODO process host data (expect 0x0000beef in byte_order)
@@ -351,10 +351,10 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
     		break;
 
     	case GS_USB_BREQ_MODE:
-    		if (hcan->req_wValue < NUM_CAN_CHANNEL) {
+    		if (req->wValue < NUM_CAN_CHANNEL) {
 
     			mode = (struct gs_device_mode*)hcan->ep0_buf;
-    			ch = hcan->channels[hcan->req_wValue];
+    			ch = hcan->channels[req->wValue];
 
 				if (mode->mode == GS_CAN_MODE_RESET) {
 
@@ -377,9 +377,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
     	case GS_USB_BREQ_BITTIMING:
     		timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-    		if (hcan->req_wValue < NUM_CAN_CHANNEL) {
+    		if (req->wValue < NUM_CAN_CHANNEL) {
 				can_set_bittiming(
-					hcan->channels[hcan->req_wValue],
+					hcan->channels[req->wValue],
 					timing->brp,
 					timing->prop_seg + timing->phase_seg1,
 					timing->phase_seg2,
@@ -392,31 +392,42 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
     }
 
-	hcan->req_bRequest = 0xFF;
+	req->bRequest = 0xFF;
 	return USBD_OK;
 }
 
-static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-
-	if (LOBYTE(req->wIndex) == DFU_INTERFACE_NUM) { // request for DFU interface
-		if (req->bRequest==0) { // DFU_DETACH request
+	switch (req->bRequest) {
+		case 0: // DETACH request
 			hcan->dfu_detach_requested = true;
-		} else {
+			break;
+		case 3: // GET_STATIS request
+			hcan->ep0_buf[0] = 0x00; // bStatus: 0x00 == OK
+			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
+			hcan->ep0_buf[2] = 0x00;
+			hcan->ep0_buf[3] = 0x00;
+			hcan->ep0_buf[4] = 0x00; // bState: appIDLE
+			hcan->ep0_buf[5] = 0xFF; // status string descriptor index
+			USBD_CtlSendData(pdev, hcan->ep0_buf, 6);
+			break;
+		default:
 			USBD_CtlError(pdev, req);
-			return USBD_OK;
-		}
 	}
+	return USBD_OK;
+}
+
+static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 
 	switch (req->bRequest) {
 
 		case GS_USB_BREQ_HOST_FORMAT:
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_BITTIMING:
-			hcan->req_bRequest = req->bRequest;
-			hcan->req_wLength = req->wLength;
-			hcan->req_wValue = req->wValue;
+			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
 			break;
 
@@ -430,9 +441,21 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
 			break;
 
+		default:
+			USBD_CtlError(pdev, req);
 	}
 
 	return USBD_OK;
+}
+
+static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	switch (LOBYTE(req->wIndex)) {
+		case DFU_INTERFACE_NUM:
+			return USBD_GS_CAN_DFU_Request(pdev, req);
+		default:
+			return USBD_GS_CAN_Config_Request(pdev, req);
+	}
 }
 
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
@@ -474,6 +497,7 @@ static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef 
 
 	switch (req->bmRequest & USB_REQ_TYPE_MASK) {
 
+		case USB_REQ_TYPE_CLASS:
 		case USB_REQ_TYPE_VENDOR:
 			return USBD_GS_CAN_Vendor_Request(pdev, req);
 

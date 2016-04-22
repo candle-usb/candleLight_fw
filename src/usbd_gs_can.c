@@ -160,7 +160,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	0x00,                             /* bNumEndpoints */
 	0xFE,                             /* bInterfaceClass: Vendor Specific*/
 	0x01,                             /* bInterfaceSubClass */
-	0x01,                             /* bInterfaceProtocol */
+	0x02,                             /* bInterfaceProtocol */
 	DFU_INTERFACE_STR_INDEX,          /* iInterface */
 
 	/*---------------------------------------------------------------------------*/
@@ -168,10 +168,10 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	/*---------------------------------------------------------------------------*/
 	0x09,                             /* bLength */
 	0x21,                             /* bDescriptorType: DFU FUNCTIONAL */
-	0x0F,                             /* bmAttributes: all features set */
-	0xFF, 0xFF,                       /* wDetachTimeOut */
-	0x00, 0xFF,                       /* wTransferSize */
-	0x01, 0x01,                       /* bcdDFUVersion: 1.1 */
+	0x0B,                             /* bmAttributes: detach, upload, download */
+	0xFF, 0x00,                       /* wDetachTimeOut */
+	0x00, 0x08,                       /* wTransferSize */
+	0x1a, 0x01,                       /* bcdDFUVersion: 1.1a */
 
 };
 

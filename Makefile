@@ -4,15 +4,18 @@ CC = $(TOOLCHAIN)gcc
 OBJCOPY = $(TOOLCHAIN)objcopy
 SIZE = $(TOOLCHAIN)size 
 
-CFLAGS  = -c -std=gnu11 -mcpu=cortex-m0 -mthumb -Os 
+CFLAGS  = -c -std=gnu11 -mcpu=cortex-m0 -mthumb -Os
 CFLAGS += -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants 
-CFLAGS += -Wall -Wextra -g3 -D $(CHIP) -D BOARD=BOARD_$(BOARD)
+CFLAGS += -Wall -Wextra -g3 -D$(CHIP) -D BOARD=BOARD_$(BOARD)
 
 INCLUDES  = -I"include" 
 INCLUDES += -I"system/include" -I"system/include/cmsis" -I"system/include/stm32f0xx" -I"system/include/cmsis/device" 
 INCLUDES += -I"Middlewares/ST/STM32_USB_Device_Library/Core/Inc"
 
-LDFLAGS   = -T ldscripts/mem.ld -T ldscripts/libs.ld -T ldscripts/sections.ld -nostartfiles -Xlinker --gc-sections --specs=nano.specs
+LDFLAGS  = -mcpu=cortex-m0 -mthumb -O
+LDFLAGS += -Wall -Wextra -g3
+LDFLAGS += -T ldscripts/mem.ld -T ldscripts/libs.ld -T ldscripts/sections.ld 
+LDFLAGS += -nostartfiles -Xlinker --gc-sections --specs=nano.specs
 
 SRC  = $(wildcard src/*.c)
 SRC += $(wildcard system/src/stm32f0xx/*.c)
@@ -53,7 +56,7 @@ $(BIN): $(ELF)
 	
 $(ELF): $(OBJ) $(ASM_OBJ)
 	@mkdir -p $(dir $@)	
-	$(CC) $(LDFLAGS) $(OBJ) $(ASM_OBJ) -o $@
+	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(ASM_OBJ) 
 
 -include $(DEP)
 

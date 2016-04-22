@@ -595,3 +595,9 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 			return 0;
 	}
 }
+
+bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	return hcan->dfu_detach_requested;
+}

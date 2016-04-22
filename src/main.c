@@ -37,6 +37,7 @@ THE SOFTWARE.
 #include "gs_usb.h"
 #include "can.h"
 #include "led.h"
+#include "dfu.h"
 
 void HAL_MspInit(void);
 void SystemClock_Config(void);
@@ -143,6 +144,10 @@ int main(void)
 		}
 
 		led_update(&hLED);
+
+		if (USBD_GS_CAN_DfuDetachRequested(&hUSB)) {
+			dfu_run_bootloader();
+		}
 
 	}
 

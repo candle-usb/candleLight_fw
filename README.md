@@ -3,7 +3,7 @@
 This is a firmware for stm32f0-based USB-CAN adapters, notably:
 - candleLight: https://github.com/HubertD/candleLight
 - cantact: http://linklayer.github.io/cantact/
-- canable (cantact clone): https://protofusion.org/wordpress/2015/05/the-canable-a-small-usb-to-can-adapter/
+- canable (cantact clone): http://canable.io/
 
 It implements the interface of the mainline linux gs_usb kernel module and 
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.

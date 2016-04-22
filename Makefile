@@ -44,8 +44,17 @@ clean:
 candleLight:
 	$(MAKE) CHIP=STM32F072xB BOARD=candleLight bin
 
+flash-candleLight:
+	$(MAKE) CHIP=STM32F072xB BOARD=candleLight board-flash
+
 cantact:
 	$(MAKE) CHIP=STM32F072xB BOARD=cantact bin
+
+flash-cantact:
+	$(MAKE) CHIP=STM32F072xB BOARD=cantact board-flash
+
+board-flash: bin
+	sudo dfu-util -d 1d50:606f -a 0 -s 0x08000000 -D $(BIN)
 
 bin: $(BIN)
 

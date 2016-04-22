@@ -400,9 +400,11 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	switch (req->bRequest) {
+
 		case 0: // DETACH request
 			hcan->dfu_detach_requested = true;
 			break;
+
 		case 3: // GET_STATIS request
 			hcan->ep0_buf[0] = 0x00; // bStatus: 0x00 == OK
 			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
@@ -412,8 +414,10 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 			hcan->ep0_buf[5] = 0xFF; // status string descriptor index
 			USBD_CtlSendData(pdev, hcan->ep0_buf, 6);
 			break;
+
 		default:
 			USBD_CtlError(pdev, req);
+
 	}
 	return USBD_OK;
 }
@@ -450,11 +454,17 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 
 static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
-	switch (LOBYTE(req->wIndex)) {
-		case DFU_INTERFACE_NUM:
-			return USBD_GS_CAN_DFU_Request(pdev, req);
-		default:
-			return USBD_GS_CAN_Config_Request(pdev, req);
+	uint8_t req_rcpt = req->bmRequest & 0x1F;
+	uint8_t req_type = (req->bmRequest >> 5) & 0x03;
+
+	if (
+		(req_type == 0x01) // class request
+	 && (req_rcpt == 0x01) // recipient: interface
+	 && (req->wIndex == DFU_INTERFACE_NUM)
+	 ) {
+		return USBD_GS_CAN_DFU_Request(pdev, req);
+	} else {
+		return USBD_GS_CAN_Config_Request(pdev, req);
 	}
 }
 

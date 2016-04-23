@@ -121,8 +121,8 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 	0x00,                             /* bAlternateSetting */
 	0x02,                             /* bNumEndpoints */
 	0xFF,                             /* bInterfaceClass: Vendor Specific*/
-	0x00,                             /* bInterfaceSubClass */
-	0x00,                             /* bInterfaceProtocol */
+	0xFF,                             /* bInterfaceSubClass: Vendor Specific */
+	0xFF,                             /* bInterfaceProtocol: Vendor Specific */
 	0x00,                             /* iInterface */
 	/*---------------------------------------------------------------------------*/
 

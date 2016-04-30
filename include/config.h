@@ -34,14 +34,14 @@ THE SOFTWARE.
 #define USBD_MANUFACTURER_STRING     (uint8_t*) "bytewerk"
 #define USBD_CONFIGURATION_STRING_FS (uint8_t*) "gs_usb config"
 #define USBD_INTERFACE_STRING_FS     (uint8_t*) "gs_usb interface"
-#define DFU_INTERFACE_STRING_FS      (uint8_t*) "candleLight dfu interface"
+#define DFU_INTERFACE_STRING_FS      (uint8_t*) "candleLight firmware upgrade interface"
 #define USBD_SERIALNUMBER_STRING_FS  (uint8_t*) "000000000001"
 
 #define BOARD_candleLight 1
 #define BOARD_cantact     2
 
 #if BOARD == BOARD_candleLight
-	#define USBD_PRODUCT_STRING_FS (uint8_t*) "candleLight gs_usb"
+	#define USBD_PRODUCT_STRING_FS (uint8_t*) "candleLight USB to CAN adapter"
 
 	#define CAN_S_Pin GPIO_PIN_13
 	#define CAN_S_GPIO_Port GPIOC

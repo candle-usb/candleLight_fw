@@ -492,10 +492,13 @@ bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqType
 				return true;
 
 			case 0x0005:
-				pbuf = USBD_MS_EXT_PROP_FEATURE_DESC;
-				len = sizeof(USBD_MS_EXT_PROP_FEATURE_DESC);
-				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
-				return true;
+				if (req->wValue==0) { // only return our GUID for interface #0
+					pbuf = USBD_MS_EXT_PROP_FEATURE_DESC;
+					len = sizeof(USBD_MS_EXT_PROP_FEATURE_DESC);
+					USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+					return true;
+				}
+				break;
 
 		}
 

@@ -38,6 +38,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "led.h"
 #include "dfu.h"
+#include "timer.h"
 
 void HAL_MspInit(void);
 void SystemClock_Config(void);
@@ -62,6 +63,8 @@ int main(void)
 
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, false, LED2_GPIO_Port, LED2_Pin, false);
 	led_set_mode(&hLED, led_mode_off);
+
+	timer_init();
 
 	can_init(&hCAN, CAN);
 

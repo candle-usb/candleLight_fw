@@ -38,7 +38,7 @@ void timer_init()
 	TIM2->CCMR1 = 0;
 	TIM2->CCMR2 = 0;
 	TIM2->CCER = 0;
-	TIM2->PSC = 480-1; // run @48MHz/480 = 100kHz
+	TIM2->PSC = 48-1; // run @48MHz/480 = 1MHz = 1us
 	TIM2->ARR = 0xFFFFFFFF;
 	TIM2->CR1 |= TIM_CR1_CEN;
 	TIM2->EGR = TIM_EGR_UG;

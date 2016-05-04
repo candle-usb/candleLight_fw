@@ -124,7 +124,6 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 	CAN_TypeDef *can = hcan->instance;
 
 	if (can_is_rx_pending(hcan)) {
-
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {

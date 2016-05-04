@@ -66,7 +66,7 @@ typedef struct {
 	led_data_t *leds;
 	bool dfu_detach_requested;
 
-	bool send_timestamps;
+	bool timestamps_enabled;
 	uint32_t sof_timestamp_us;
 
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
@@ -341,6 +341,7 @@ static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	hcan->sof_timestamp_us = timer_get();
+	return USBD_OK;
 }
 
 void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_t* handle) {
@@ -463,7 +464,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			break;
 
 		case CANDLELIGHT_TIMESTAMP_ENABLE:
-    		hcan->send_timestamps = req->wValue != 0;
+    		hcan->timestamps_enabled = req->wValue != 0;
     		break;
 
 		case CANDLELIGHT_TIMESTAMP_GET:
@@ -576,7 +577,7 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	hcan->out_requests++;
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
-	if (rxlen >= sizeof(struct gs_host_frame)) {
+	if (rxlen >= (sizeof(struct gs_host_frame)-4)) {
 		queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
 		hcan->from_host_buf = queue_pop_front_i(hcan->q_frame_pool);
 		if (hcan->from_host_buf==0) {
@@ -616,6 +617,14 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 	} else {
 		return USBD_BUSY;
 	}
+}
+
+uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	size_t len = sizeof(struct gs_host_frame);
+	if (!hcan->timestamps_enabled) { len -= 4; }
+	return USBD_GS_CAN_Transmit(pdev, (uint8_t*)frame, len);
 }
 
 uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)

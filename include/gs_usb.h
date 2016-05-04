@@ -212,6 +212,9 @@ struct gs_host_frame {
 	u8 reserved;
 
 	u8 data[8];
+
+	u32 timestamp_us;
+
 } __packed;
 
 struct gs_tx_context {

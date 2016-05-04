@@ -94,6 +94,7 @@ int main(void)
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
+				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
 				led_indicate_trx(&hLED, led_2);
 			} else {
@@ -105,8 +106,7 @@ int main(void)
 		if (USBD_GS_CAN_TxReady(&hUSB)) {
 			if (queue_size(q_to_host)>0) { // send received message or echo message to host
 				struct gs_host_frame *frame = queue_pop_front(q_to_host);
-
-				if (USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame))==USBD_OK) {
+				if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 					queue_push_back(q_frame_pool, frame);
 				} else {
 					queue_push_front(q_to_host, frame);
@@ -118,6 +118,7 @@ int main(void)
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if ((frame != 0) && can_receive(&hCAN, frame)) {
 
+				frame->timestamp_us = timer_get();
 				frame->echo_id = 0xFFFFFFFF; // not a echo frame
 				frame->channel = 0;
 				frame->flags = 0;
@@ -136,6 +137,7 @@ int main(void)
 		if (can_err != last_can_error_status) {
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0) {
+				frame->timestamp_us = timer_get();
 				if (can_parse_error_status(can_err, frame)) {
 					send_to_host_or_enqueue(frame);
 					last_can_error_status = can_err;
@@ -206,7 +208,7 @@ void SystemClock_Config(void)
 bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 {
 	bool retval = false;
-	if ( USBD_GS_CAN_Transmit(&hUSB, (uint8_t*)frame, sizeof(struct gs_host_frame)) == USBD_OK ) {
+	if ( USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK ) {
 		queue_push_back(q_frame_pool, frame);
 		retval = true;
 	} else {

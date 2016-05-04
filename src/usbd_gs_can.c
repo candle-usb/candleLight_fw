@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include "usbd_ioreq.h"
 #include "gs_usb.h"
 #include "can.h"
+#include "timer.h"
 
 #define CAN_DATA_MAX_PACKET_SIZE   32  /* Endpoint IN & OUT Packet size */
 #define CAN_CMD_PACKET_SIZE        64  /* Control Endpoint Packet size */
@@ -65,6 +66,9 @@ typedef struct {
 	led_data_t *leds;
 	bool dfu_detach_requested;
 
+	bool send_timestamps;
+	uint32_t sof_timestamp_us;
+
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
@@ -75,7 +79,7 @@ static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len);
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
 static uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length);
-
+static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev);
 
 /* CAN interface class callbacks structure */
 USBD_ClassTypeDef USBD_GS_CAN = {
@@ -86,7 +90,7 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 	USBD_GS_CAN_EP0_RxReady,
 	USBD_GS_CAN_DataIn,
 	USBD_GS_CAN_DataOut,
-	NULL, // SOF
+	USBD_GS_CAN_SOF,
 	NULL, // IsoInComplete
 	NULL, // IsoOutComplete
 	USBD_GS_CAN_GetCfgDesc,
@@ -333,6 +337,11 @@ static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	return USBD_OK;
 }
 
+static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	hcan->sof_timestamp_us = timer_get();
+}
 
 void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_t* handle) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
@@ -452,6 +461,16 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			memcpy(hcan->ep0_buf, &USBD_GS_CAN_btconst, sizeof(USBD_GS_CAN_btconst));
 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
 			break;
+
+		case CANDLELIGHT_TIMESTAMP_ENABLE:
+    		hcan->send_timestamps = req->wValue != 0;
+    		break;
+
+		case CANDLELIGHT_TIMESTAMP_GET:
+			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
+			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
+    		break;
+
 
 		default:
 			USBD_CtlError(pdev, req);

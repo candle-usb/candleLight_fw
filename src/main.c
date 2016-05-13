@@ -25,6 +25,7 @@ THE SOFTWARE.
 */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "config.h"
 #include "stm32f0xx_hal.h"
@@ -43,6 +44,7 @@ THE SOFTWARE.
 void HAL_MspInit(void);
 void SystemClock_Config(void);
 static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
+static void send_to_host();
 
 can_data_t hCAN;
 USBD_HandleTypeDef hUSB;
@@ -104,14 +106,7 @@ int main(void)
 		}
 
 		if (USBD_GS_CAN_TxReady(&hUSB)) {
-			if (queue_size(q_to_host)>0) { // send received message or echo message to host
-				struct gs_host_frame *frame = queue_pop_front(q_to_host);
-				if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
-					queue_push_back(q_frame_pool, frame);
-				} else {
-					queue_push_front(q_to_host, frame);
-				}
-			}
+			send_to_host();
 		}
 
 		if (can_is_rx_pending(&hCAN)) {
@@ -207,13 +202,57 @@ void SystemClock_Config(void)
 
 bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 {
-	bool retval = false;
-	if ( USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK ) {
-		queue_push_back(q_frame_pool, frame);
-		retval = true;
-	} else {
+	if (USBD_GS_CAN_GetProtocolVersion(&hUSB) == 2) {
+
 		queue_push_back(q_to_host, frame);
+		return true;
+
+	} else {
+
+		bool retval = false;
+		if ( USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK ) {
+			queue_push_back(q_frame_pool, frame);
+			retval = true;
+		} else {
+			queue_push_back(q_to_host, frame);
+		}
+		return retval;
+
 	}
-	return retval;
 }
 
+void send_to_host()
+{
+	uint8_t buf[5*sizeof(struct gs_host_frame)];
+	struct gs_host_frame *frame;
+
+	unsigned num_msgs = queue_size(q_to_host);
+
+	if (num_msgs>0) { // send received message or echo message to host
+
+		if (USBD_GS_CAN_GetProtocolVersion(&hUSB) == 2) {
+
+			if (num_msgs>1) {
+				num_msgs = 1;
+			}
+
+			for (unsigned i=0; i<num_msgs; i++) {
+				frame = queue_pop_front(q_to_host);
+				memcpy(&buf[i*sizeof(struct gs_host_frame)], frame, sizeof(struct gs_host_frame));
+				queue_push_back(q_frame_pool, frame);
+			}
+
+			USBD_GS_CAN_Transmit(&hUSB, buf, num_msgs * sizeof(struct gs_host_frame));
+
+		} else {
+
+			struct gs_host_frame *frame = queue_pop_front(q_to_host);
+			if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
+				queue_push_back(q_frame_pool, frame);
+			} else {
+				queue_push_front(q_to_host, frame);
+			}
+
+		}
+	}
+}

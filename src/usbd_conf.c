@@ -116,17 +116,17 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 
 	/*
 	* PMA layout
-	*  0x00 -  0x18 (24 bytes) metadata?
-	*  0x18 -  0x58 (64 bytes) EP0 OUT
-	*  0x58 -  0x98 (64 bytes) EP0 IN
-	*  0x98 -  0xD8 (64 bytes) EP1 IN
-	*  0xD8 - 0x118 (64 bytes) EP1 OUT (buffer 1)
-	* 0x118 - 0x158 (64 bytes) EP1 OUT (buffer 2)
+	*  0x00 -  0x17 (24 bytes) metadata?
+	*  0x18 -  0x57 (64 bytes) EP0 OUT
+	*  0x58 -  0x97 (64 bytes) EP0 IN
+	*  0x98 -  0xD7 (64 bytes) EP1 IN
+	*  0xD8 - 0x157 (128 bytes) EP1 OUT (buffer 1)
+	* 0x158 - 0x1D7 (128 bytes) EP1 OUT (buffer 2)
 	*/
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x00 , PCD_SNG_BUF, 24);
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x80 , PCD_SNG_BUF, 0x58);
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x81 , PCD_SNG_BUF, 0x98);
-	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x02 , PCD_DBL_BUF, 0x00D80118);
+	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x02 , PCD_DBL_BUF, 0x00D80158);
 
 	return USBD_OK;
 }

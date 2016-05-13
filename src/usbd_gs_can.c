@@ -269,13 +269,13 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 	0, // reserved 2
 	0, // reserved 3
 	0, // interface count (0=1, 1=2..)
-	1, // software version
+	2, // software version
 	1  // hardware version
 };
 
 // bit timing constraints
 static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
-	GS_CAN_FEATURE_LISTEN_ONLY | GS_CAN_FEATURE_LOOP_BACK, // supported features
+	GS_CAN_FEATURE_LISTEN_ONLY | GS_CAN_FEATURE_LOOP_BACK | GS_CAN_FEATURE_HW_TIMESTAMP, // supported features
 	48000000, // can timing base clock
 	1, // tseg1 min
 	16, // tseg1 max
@@ -380,6 +380,8 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					led_set_mode(hcan->leds, led_mode_off);
 
 				} else if (mode->mode == GS_CAN_MODE_START) {
+
+					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
 
 					can_enable(ch,
 						(mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
@@ -619,6 +621,16 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 	}
 }
 
+uint8_t USBD_GS_CAN_GetProtocolVersion(USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	if (hcan->timestamps_enabled) {
+		return 2;
+	} else {
+		return 1;
+	}
+}
+
 uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
@@ -650,3 +662,4 @@ bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	return hcan->dfu_detach_requested;
 }
+

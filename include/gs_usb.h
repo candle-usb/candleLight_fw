@@ -38,10 +38,14 @@ THE SOFTWARE.
 #define GS_CAN_MODE_LOOP_BACK            (1<<1)
 #define GS_CAN_MODE_TRIPLE_SAMPLE        (1<<2)
 #define GS_CAN_MODE_ONE_SHOT             (1<<3)
-#define GS_CAN_FEATURE_LISTEN_ONLY      (1<<0)
-#define GS_CAN_FEATURE_LOOP_BACK        (1<<1)
-#define GS_CAN_FEATURE_TRIPLE_SAMPLE    (1<<2)
-#define GS_CAN_FEATURE_ONE_SHOT         (1<<3)
+#define GS_CAN_MODE_HW_TIMESTAMP         (1<<16)
+
+#define GS_CAN_FEATURE_LISTEN_ONLY       (1<<0)
+#define GS_CAN_FEATURE_LOOP_BACK         (1<<1)
+#define GS_CAN_FEATURE_TRIPLE_SAMPLE     (1<<2)
+#define GS_CAN_FEATURE_ONE_SHOT          (1<<3)
+#define GS_CAN_FEATURE_HW_TIMESTAMP      (1<<16)
+
 #define GS_CAN_FLAG_OVERFLOW 1
 
 #define CAN_EFF_FLAG 0x80000000U /* EFF/SFF is set in the MSB */

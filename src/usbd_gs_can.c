@@ -465,11 +465,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
 			break;
 
-		case CANDLELIGHT_TIMESTAMP_ENABLE:
-    		hcan->timestamps_enabled = req->wValue != 0;
-    		break;
-
-		case CANDLELIGHT_TIMESTAMP_GET:
+		case GS_USB_BREQ_TIMESTAMP:
 			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
 			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
     		break;

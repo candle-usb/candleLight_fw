@@ -69,6 +69,7 @@ int main(void)
 	timer_init();
 
 	can_init(&hCAN, CAN);
+	can_disable(&hCAN);
 
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);

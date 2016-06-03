@@ -113,6 +113,12 @@ void can_disable(can_data_t *hcan)
 	can->MCR |= CAN_MCR_INRQ ; // send can controller into initialization mode
 }
 
+bool can_is_enabled(can_data_t *hcan)
+{
+	CAN_TypeDef *can = hcan->instance;
+	return (can->MCR & CAN_MCR_INRQ) == 0;
+}
+
 bool can_is_rx_pending(can_data_t *hcan)
 {
 	CAN_TypeDef *can = hcan->instance;

@@ -275,7 +275,8 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 
 // bit timing constraints
 static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
-	GS_CAN_FEATURE_LISTEN_ONLY | GS_CAN_FEATURE_LOOP_BACK | GS_CAN_FEATURE_HW_TIMESTAMP, // supported features
+	GS_CAN_FEATURE_LISTEN_ONLY | GS_CAN_FEATURE_LOOP_BACK
+	| GS_CAN_FEATURE_HW_TIMESTAMP | GS_CAN_FEATURE_IDENTIFY, // supported features
 	48000000, // can timing base clock
 	1, // tseg1 min
 	16, // tseg1 max
@@ -351,6 +352,12 @@ void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_
 	}
 }
 
+static led_seq_step_t led_identify_seq[] = {
+		{ .state = 0x01, .time_in_10ms = 10 },
+		{ .state = 0x02, .time_in_10ms = 10 },
+		{ .state = 0x00, .time_in_10ms = 0 }
+};
+
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
@@ -358,6 +365,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	struct gs_device_bittiming *timing;
 	struct gs_device_mode *mode;
 	can_data_t *ch;
+	uint32_t do_identify;
 
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
@@ -366,6 +374,16 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
     	case GS_USB_BREQ_HOST_FORMAT:
     		// TODO process host data (expect 0x0000beef in byte_order)
     		memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
+    		break;
+
+    	case GS_USB_BREQ_IDENTIFY:
+    		memcpy(&do_identify, hcan->ep0_buf, sizeof(do_identify));
+    		if (do_identify) {
+    			led_run_sequence(hcan->leds, led_identify_seq, -1);
+    		} else {
+    			ch = hcan->channels[req->wValue];
+        		led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+    		}
     		break;
 
     	case GS_USB_BREQ_MODE:
@@ -451,6 +469,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_HOST_FORMAT:
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_BITTIMING:
+		case GS_USB_BREQ_IDENTIFY:
 			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
 			break;

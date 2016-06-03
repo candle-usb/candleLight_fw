@@ -49,11 +49,31 @@ void led_set_mode(led_data_t *leds,led_mode_t mode)
 	led_update(leds);
 }
 
-void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence)
+static void led_set(led_state_t *led, bool state)
+{
+	if (!led->is_active_high) {
+		state = !state;
+	}
+	HAL_GPIO_WritePin(led->port, led->pin, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
+{
+	led_seq_step_t *step = &leds->sequence[step_num];
+	leds->sequence_step = step_num;
+	led_set(&leds->led_state[0], step->state & 0x01);
+	led_set(&leds->led_state[1], step->state & 0x02);
+	leds->t_sequence_next = HAL_GetTick() + 10*step->time_in_10ms;
+	return 10 * step->time_in_10ms;
+}
+
+void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat)
 {
 	leds->last_mode = leds->mode;
 	leds->mode = led_mode_sequence;
 	leds->sequence = sequence;
+	leds->seq_num_repeat = num_repeat;
+	led_set_sequence_step(leds, 0);
 	led_update(leds);
 }
 
@@ -70,18 +90,45 @@ void led_indicate_trx(led_data_t *leds, led_num_t num)
 	led_update(leds);
 }
 
-static void led_set(led_state_t *led, bool state)
-{
-	if (!led->is_active_high) {
-		state = !state;
-	}
-	HAL_GPIO_WritePin(led->port, led->pin, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
 static void led_update_normal_mode(led_state_t *led)
 {
 	uint32_t now = HAL_GetTick();
 	led_set(led, led->off_until < now);
+}
+
+static void led_update_sequence(led_data_t *leds)
+{
+
+	if (leds->sequence == NULL) {
+		return;
+	}
+
+	uint32_t now = HAL_GetTick();
+	if (now > leds->t_sequence_next) {
+
+		uint32_t t = led_set_sequence_step(leds, ++leds->sequence_step);
+
+		if (t > 0) { // the saga continues
+
+			leds->t_sequence_next = now + t;
+
+		} else { // end of sequence
+
+			if (leds->seq_num_repeat != 0) {
+
+				if (leds->seq_num_repeat > 0) {
+					leds->seq_num_repeat--;
+				}
+
+				led_set_sequence_step(leds, 0);
+
+			} else {
+				leds->sequence = NULL;
+			}
+
+		}
+	}
+
 }
 
 void led_update(led_data_t *leds)
@@ -96,6 +143,10 @@ void led_update(led_data_t *leds)
 		case led_mode_normal:
 			led_update_normal_mode(&leds->led_state[0]);
 			led_update_normal_mode(&leds->led_state[1]);
+			break;
+
+		case led_mode_sequence:
+			led_update_sequence(leds);
 			break;
 
 		default:

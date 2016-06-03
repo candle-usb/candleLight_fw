@@ -62,6 +62,7 @@ typedef struct {
 	led_seq_step_t *sequence;
 	uint32_t sequence_step;
 	uint32_t t_sequence_next;
+	int32_t seq_num_repeat;
 
 	led_state_t led_state[2];
 } led_data_t;
@@ -73,6 +74,6 @@ void led_init(
 	void* led2_port, uint8_t led2_pin, bool led2_active_high
 );
 void led_set_mode(led_data_t *leds,led_mode_t mode);
-void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence);
+void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat);
 void led_indicate_trx(led_data_t *leds, led_num_t num);
 void led_update(led_data_t *leds);

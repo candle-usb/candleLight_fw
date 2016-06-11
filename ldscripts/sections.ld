@@ -53,6 +53,12 @@ ENTRY(_start)
 
 SECTIONS
 {
+	/* user data flash */
+	.user_data : ALIGN(4)
+	{
+		*(.user_data)
+	} > DATA
+	
     /*
      * For Cortex-M devices, the beginning of the startup code is stored in
      * the .isr_vector section, which goes to FLASH. 

@@ -40,6 +40,7 @@ THE SOFTWARE.
 #include "led.h"
 #include "dfu.h"
 #include "timer.h"
+#include "flash.h"
 
 void HAL_MspInit(void);
 void SystemClock_Config(void);
@@ -60,6 +61,8 @@ int main(void)
 
 	HAL_Init();
 	SystemClock_Config();
+
+	flash_load();
 
 	gpio_init();
 

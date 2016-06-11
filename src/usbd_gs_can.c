@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include "gs_usb.h"
 #include "can.h"
 #include "timer.h"
+#include "flash.h"
 
 #define CAN_DATA_MAX_PACKET_SIZE   32  /* Endpoint IN & OUT Packet size */
 #define CAN_CMD_PACKET_SIZE        64  /* Control Endpoint Packet size */
@@ -275,8 +276,11 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 
 // bit timing constraints
 static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
-	GS_CAN_FEATURE_LISTEN_ONLY | GS_CAN_FEATURE_LOOP_BACK
-	| GS_CAN_FEATURE_HW_TIMESTAMP | GS_CAN_FEATURE_IDENTIFY, // supported features
+	GS_CAN_FEATURE_LISTEN_ONLY  // supported features
+	| GS_CAN_FEATURE_LOOP_BACK
+	| GS_CAN_FEATURE_HW_TIMESTAMP
+	| GS_CAN_FEATURE_IDENTIFY
+	| GS_CAN_FEATURE_USER_ID,
 	48000000, // can timing base clock
 	1, // tseg1 min
 	16, // tseg1 max
@@ -365,7 +369,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	struct gs_device_bittiming *timing;
 	struct gs_device_mode *mode;
 	can_data_t *ch;
-	uint32_t do_identify;
+	uint32_t param_u32;
 
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
@@ -377,12 +381,19 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
     		break;
 
     	case GS_USB_BREQ_IDENTIFY:
-    		memcpy(&do_identify, hcan->ep0_buf, sizeof(do_identify));
-    		if (do_identify) {
+    		memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+    		if (param_u32) {
     			led_run_sequence(hcan->leds, led_identify_seq, -1);
     		} else {
-    			ch = hcan->channels[req->wValue];
+    			ch = hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
         		led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+    		}
+    		break;
+
+    	case GS_USB_BREQ_SET_USER_ID:
+    		memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+    		if (flash_set_user_id(req->wValue, param_u32)) {
+    			flash_flush();
     		}
     		break;
 
@@ -463,6 +474,7 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	uint32_t d32;
 
 	switch (req->bRequest) {
 
@@ -470,6 +482,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_BITTIMING:
 		case GS_USB_BREQ_IDENTIFY:
+		case GS_USB_BREQ_SET_USER_ID:
 			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
 			break;
@@ -488,6 +501,16 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
 			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
     		break;
+
+		case GS_USB_BREQ_GET_USER_ID:
+			if (req->wValue < NUM_CAN_CHANNEL) {
+				d32 = flash_get_user_id(req->wValue);
+				memcpy(hcan->ep0_buf, &d32, sizeof(d32));
+				USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(d32));
+			} else {
+				USBD_CtlError(pdev, req);
+			}
+			break;
 
 
 		default:

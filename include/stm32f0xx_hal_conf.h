@@ -5,7 +5,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -40,7 +40,6 @@
  extern "C" {
 #endif
 
-
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 
@@ -49,28 +48,29 @@
   * @brief This is the list of modules to be used in the HAL driver 
   */
 #define HAL_MODULE_ENABLED  
-//#define HAL_ADC_MODULE_ENABLED   
+/*#define HAL_ADC_MODULE_ENABLED   */
+/*#define HAL_CRYP_MODULE_ENABLED   */
 #define HAL_CAN_MODULE_ENABLED
-//#define HAL_CEC_MODULE_ENABLED   
-//#define HAL_COMP_MODULE_ENABLED   
-//#define HAL_CRC_MODULE_ENABLED   
-//#define HAL_CRYP_MODULE_ENABLED   
-//#define HAL_TSC_MODULE_ENABLED   
-//#define HAL_DAC_MODULE_ENABLED   
-//#define HAL_I2S_MODULE_ENABLED   
-//#define HAL_IWDG_MODULE_ENABLED   
-//#define HAL_LCD_MODULE_ENABLED   
-//#define HAL_LPTIM_MODULE_ENABLED   
-//#define HAL_RNG_MODULE_ENABLED   
-//#define HAL_RTC_MODULE_ENABLED   
-//#define HAL_SPI_MODULE_ENABLED   
-//#define HAL_TIM_MODULE_ENABLED   
-//#define HAL_UART_MODULE_ENABLED   
-//#define HAL_USART_MODULE_ENABLED   
-//#define HAL_IRDA_MODULE_ENABLED   
-//#define HAL_SMARTCARD_MODULE_ENABLED   
-//#define HAL_SMBUS_MODULE_ENABLED   
-//#define HAL_WWDG_MODULE_ENABLED   
+/*#define HAL_CEC_MODULE_ENABLED   */
+/*#define HAL_COMP_MODULE_ENABLED   */
+/*#define HAL_CRC_MODULE_ENABLED   */
+/*#define HAL_CRYP_MODULE_ENABLED   */
+/*#define HAL_TSC_MODULE_ENABLED   */
+/*#define HAL_DAC_MODULE_ENABLED   */
+/*#define HAL_I2S_MODULE_ENABLED   */
+/*#define HAL_IWDG_MODULE_ENABLED   */
+/*#define HAL_LCD_MODULE_ENABLED   */
+/*#define HAL_LPTIM_MODULE_ENABLED   */
+/*#define HAL_RNG_MODULE_ENABLED   */
+/*#define HAL_RTC_MODULE_ENABLED   */
+/*#define HAL_SPI_MODULE_ENABLED   */
+/*#define HAL_TIM_MODULE_ENABLED   */
+/*#define HAL_UART_MODULE_ENABLED   */
+/*#define HAL_USART_MODULE_ENABLED   */
+/*#define HAL_IRDA_MODULE_ENABLED   */
+/*#define HAL_SMARTCARD_MODULE_ENABLED   */
+/*#define HAL_SMBUS_MODULE_ENABLED   */
+/*#define HAL_WWDG_MODULE_ENABLED   */
 #define HAL_PCD_MODULE_ENABLED
 #define HAL_CORTEX_MODULE_ENABLED
 #define HAL_DMA_MODULE_ENABLED
@@ -173,6 +173,15 @@
   *        HAL drivers code
   */
 /* #define USE_FULL_ASSERT   1 */
+
+/* ################## SPI peripheral configuration ########################## */
+
+/* CRC FEATURE: Use to activate CRC feature inside HAL SPI Driver
+* Activated: CRC code is present inside driver
+* Deactivated: CRC code cleaned from driver
+*/
+
+#define USE_SPI_CRC                     0U
 
 /* Includes ------------------------------------------------------------------*/
 /**

@@ -26,7 +26,7 @@ SRC += $(wildcard Middlewares/ST/STM32_USB_Device_Library/Core/Src/*.c)
 OBJ = $(patsubst %.c,build/$(BOARD)/%.o,$(SRC))
 DEP = $(OBJ:%.o=%.d)
 
-ASM_SRC  = system/src/cmsis/startup_stm32f072xb.S
+ASM_SRC  = system/src/cmsis/startup_stm32f042x6.S
 ASM_OBJ += $(patsubst %.S,build/$(BOARD)/%.asmo,$(ASM_SRC))
 DEP     += $(ASM_OBJ:%.asmo=%.d)
 
@@ -42,10 +42,10 @@ clean:
 	$(MAKE) BOARD=cantact board-clean
 
 candleLight:
-	$(MAKE) CHIP=STM32F072xB BOARD=candleLight bin
+	$(MAKE) CHIP=STM32F042x6 BOARD=candleLight bin
 
 flash-candleLight:
-	$(MAKE) CHIP=STM32F072xB BOARD=candleLight board-flash
+	$(MAKE) CHIP=STM32F042x6 BOARD=candleLight board-flash
 
 cantact:
 	$(MAKE) CHIP=STM32F072xB BOARD=cantact bin

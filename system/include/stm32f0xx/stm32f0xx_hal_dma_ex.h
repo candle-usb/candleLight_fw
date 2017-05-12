@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f0xx_hal_dma_ex.h
   * @author  MCD Application Team
-  * @version V1.3.1
-  * @date    29-January-2016
+  * @version V1.5.0
+  * @date    04-November-2016
   * @brief   Header file of DMA HAL Extension module.
   ******************************************************************************
   * @attention
@@ -564,6 +564,20 @@
    DMA_FLAG_TE7)
 
 /**
+  * @brief  Return the current DMA Channel Global interrupt flag.
+  * @param  __HANDLE__: DMA handle
+  * @retval The specified transfer error flag index.
+  */
+#define __HAL_DMA_GET_GI_FLAG_INDEX(__HANDLE__)\
+(((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel1))? DMA_FLAG_GL1 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel2))? DMA_FLAG_GL2 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel3))? DMA_FLAG_GL3 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel4))? DMA_FLAG_GL4 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel5))? DMA_FLAG_GL5 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel6))? DMA_FLAG_GL6 :\
+   DMA_FLAG_GL7)
+
+/**
   * @brief  Get the DMA Channel pending flags.
   * @param  __HANDLE__: DMA handle
   * @param  __FLAG__: Get the specified flag.
@@ -649,6 +663,25 @@
    DMA_FLAG_TE5)
 
 /**
+  * @brief  Return the current DMA Channel Global interrupt flag.
+  * @param  __HANDLE__: DMA handle
+  * @retval The specified transfer error flag index.
+  */
+#define __HAL_DMA_GET_GI_FLAG_INDEX(__HANDLE__)\
+(((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel1))? DMA_FLAG_GL1 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel2))? DMA_FLAG_GL2 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel3))? DMA_FLAG_GL3 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel4))? DMA_FLAG_GL4 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel5))? DMA_FLAG_GL5 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel6))? DMA_FLAG_GL6 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel7))? DMA_FLAG_GL7 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA2_Channel1))? DMA_FLAG_GL1 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA2_Channel2))? DMA_FLAG_GL2 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA2_Channel3))? DMA_FLAG_GL3 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA2_Channel4))? DMA_FLAG_GL4 :\
+   DMA_FLAG_GL5)
+
+/**
   * @brief  Get the DMA Channel pending flags.
   * @param  __HANDLE__: DMA handle
   * @param  __FLAG__: Get the specified flag.
@@ -717,6 +750,18 @@
    DMA_FLAG_TE5)
 
 /**
+  * @brief  Return the current DMA Channel Global interrupt flag.
+  * @param  __HANDLE__: DMA handle
+  * @retval The specified transfer error flag index.
+  */
+#define __HAL_DMA_GET_GI_FLAG_INDEX(__HANDLE__)\
+(((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel1))? DMA_FLAG_GL1 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel2))? DMA_FLAG_GL2 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel3))? DMA_FLAG_GL3 :\
+ ((uint32_t)((__HANDLE__)->Instance) == ((uint32_t)DMA1_Channel4))? DMA_FLAG_GL4 :\
+   DMA_FLAG_GL5)
+
+/**
   * @brief  Get the DMA Channel pending flags.
   * @param  __HANDLE__: DMA handle
   * @param  __FLAG__: Get the specified flag.
@@ -749,15 +794,15 @@
 #if defined(STM32F091xC) || defined(STM32F098xx) || defined(STM32F030xC)
 #define __HAL_DMA1_REMAP(__REQUEST__)                                                              \
          do { assert_param(IS_HAL_DMA1_REMAP(__REQUEST__));                                             \
-              DMA1->CSELR &= ~((uint32_t)0x0F << (uint32_t)(((__REQUEST__) >> 28) * 4)); \
-              DMA1->CSELR |= (uint32_t)((__REQUEST__) & 0x0FFFFFFF);                                     \
+              DMA1->CSELR &= ~(0x0FU << (uint32_t)(((__REQUEST__) >> 28U) * 4U)); \
+              DMA1->CSELR |= (uint32_t)((__REQUEST__) & 0x0FFFFFFFU);                                     \
   }while(0)
 
 #if defined(STM32F091xC) || defined(STM32F098xx)
 #define __HAL_DMA2_REMAP(__REQUEST__)                                                              \
          do { assert_param(IS_HAL_DMA2_REMAP(__REQUEST__));                                             \
-              DMA2->CSELR &= ~((uint32_t)0x0F << (uint32_t)(((__REQUEST__) >> 28) * 4)); \
-              DMA2->CSELR |= (uint32_t)((__REQUEST__) & 0x0FFFFFFF);                                     \
+              DMA2->CSELR &= ~(0x0FU << (uint32_t)(((__REQUEST__) >> 28U) * 4U)); \
+              DMA2->CSELR |= (uint32_t)((__REQUEST__) & 0x0FFFFFFFU);                                     \
          }while(0)
 #endif /* STM32F091xC || STM32F098xx */
 

@@ -28,27 +28,64 @@ THE SOFTWARE.
 #include <stdint.h>
 #include "stm32f0xx_hal.h"
 
-#define SYSMEM_RESET_VECTOR            0x1fffC804
 #define RESET_TO_BOOTLOADER_MAGIC_CODE 0xDEADBEEF
-#define BOOTLOADER_STACK_POINTER       0x20002250
 
-uint32_t dfu_reset_to_bootloader_magic;
+#define SYSMEM_STM32F042 0x1FFFC400
+#define SYSMEM_STM32F072 0x1FFFC800
 
-void __initialize_hardware_early(void)
-{
-	if (dfu_reset_to_bootloader_magic == RESET_TO_BOOTLOADER_MAGIC_CODE) {
-		void (*bootloader)(void) = (void (*)(void)) (*((uint32_t *) SYSMEM_RESET_VECTOR)); // system memory reset vector
-		dfu_reset_to_bootloader_magic = 0;
-		__set_MSP(BOOTLOADER_STACK_POINTER);
-		bootloader();
-		while (42);
-	} else {
-		SystemInit();
-	}
-}
+static uint32_t dfu_reset_to_bootloader_magic;
+
+static void dfu_hack_boot_pin_f042();
+static void dfu_jump_to_bootloader();
 
 void dfu_run_bootloader()
 {
 	dfu_reset_to_bootloader_magic = RESET_TO_BOOTLOADER_MAGIC_CODE;
 	NVIC_SystemReset();
+}
+
+void __initialize_hardware_early(void)
+{
+	if (dfu_reset_to_bootloader_magic == RESET_TO_BOOTLOADER_MAGIC_CODE)
+	{
+		switch (HAL_GetDEVID())
+		{
+
+			case 0x445: // STM32F04x
+				dfu_hack_boot_pin_f042();
+				dfu_jump_to_bootloader(SYSMEM_STM32F042);
+				break;
+
+			case 0x448: // STM32F07x
+				dfu_jump_to_bootloader(SYSMEM_STM32F072);
+				break;
+
+		}
+	}
+
+	SystemInit();
+}
+
+static void dfu_hack_boot_pin_f042()
+{
+	__HAL_RCC_GPIOF_CLK_ENABLE();
+	GPIO_InitTypeDef GPIO_InitStruct;
+	GPIO_InitStruct.Pin = GPIO_PIN_11;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_11, 1);
+}
+
+static void dfu_jump_to_bootloader(uint32_t sysmem_base)
+{
+	void (*bootloader)(void) = (void (*)(void)) (*((uint32_t *) (sysmem_base + 4)));
+
+	__set_MSP(*(__IO uint32_t*) sysmem_base);
+	bootloader();
+
+	while (42)
+	{
+	}
 }

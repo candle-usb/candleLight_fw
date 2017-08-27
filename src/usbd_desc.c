@@ -113,8 +113,15 @@ uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *le
 
 uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
+	char buf[25];
+
 	UNUSED(speed);
-	USBD_GetString(USBD_SERIALNUMBER_STRING_FS, USBD_StrDesc, length);
+
+	hex32(buf     , *(uint32_t*)(UID_BASE    ));
+	hex32(buf +  8, *(uint32_t*)(UID_BASE + 4));
+	hex32(buf + 16, *(uint32_t*)(UID_BASE + 8));
+
+	USBD_GetString(buf, USBD_StrDesc, length);
 	return USBD_StrDesc;
 }
 

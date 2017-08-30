@@ -26,5 +26,8 @@ THE SOFTWARE.
 
 #pragma once
 
+#include <stdint.h>
+
 int disable_irq(void);
 void enable_irq(int primask);
+void hex32(char *out, uint32_t val);

@@ -37,14 +37,6 @@ THE SOFTWARE.
 #include "timer.h"
 #include "flash.h"
 
-#define CAN_DATA_MAX_PACKET_SIZE   32  /* Endpoint IN & OUT Packet size */
-#define CAN_CMD_PACKET_SIZE        64  /* Control Endpoint Packet size */
-#define USB_CAN_CONFIG_DESC_SIZ    50
-#define NUM_CAN_CHANNEL             1
-#define USBD_GS_CAN_VENDOR_CODE  0x20
-#define DFU_INTERFACE_NUM           1
-#define DFU_INTERFACE_STR_INDEX  0xE0
-
 typedef struct {
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
 
@@ -56,7 +48,7 @@ typedef struct {
 	queue_t *q_frame_pool;
 	queue_t *q_from_host;
 
-	struct gs_host_frame *from_host_buf;
+        struct gs_host_frame *from_host_buf;
 
 	can_data_t *channels[NUM_CAN_CHANNEL];
 
@@ -69,6 +61,8 @@ typedef struct {
 
 	bool timestamps_enabled;
 	uint32_t sof_timestamp_us;
+
+        bool pad_pkts_to_max_pkt_size;
 
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
@@ -280,7 +274,8 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 	| GS_CAN_FEATURE_LOOP_BACK
 	| GS_CAN_FEATURE_HW_TIMESTAMP
 	| GS_CAN_FEATURE_IDENTIFY
-	| GS_CAN_FEATURE_USER_ID,
+	| GS_CAN_FEATURE_USER_ID
+	| GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE,
 	48000000, // can timing base clock
 	1, // tseg1 min
 	16, // tseg1 max
@@ -303,6 +298,8 @@ uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_
 		hcan->q_from_host = q_from_host;
 		hcan->leds = leds;
 		pdev->pClassData = hcan;
+		hcan->from_host_buf = NULL;
+
 		ret = USBD_OK;
 	} else {
 		pdev->pClassData = 0;
@@ -319,10 +316,10 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	uint8_t ret = USBD_FAIL;
 
 	if (pdev->pClassData) {
-		USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	  USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
-		hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+                hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
 		USBD_GS_CAN_PrepareReceive(pdev);
 		ret = USBD_OK;
 	} else {
@@ -411,6 +408,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				} else if (mode->mode == GS_CAN_MODE_START) {
 
 					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
+					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
 
 					can_enable(ch,
 						(mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
@@ -618,12 +616,17 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= (sizeof(struct gs_host_frame)-4)) {
-		queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
-		hcan->from_host_buf = queue_pop_front_i(hcan->q_frame_pool);
-		if (hcan->from_host_buf==0) {
-			// TODO handle buffers full condition - how?
+	        struct gs_host_frame *frame = queue_pop_front_i(hcan->q_frame_pool);
+		if(frame){
+		        queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
+		        hcan->from_host_buf = frame;
+		  
+		        retval = USBD_OK;
 		}
-		retval = USBD_OK;
+		else{
+		// Discard current packet from host if we have no place
+		// to put the next one
+		}
 	}
 	USBD_GS_CAN_PrepareReceive(pdev);
     return retval;
@@ -638,7 +641,7 @@ static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)hcan->from_host_buf, sizeof(struct gs_host_frame));
+	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)hcan->from_host_buf, sizeof(*hcan->from_host_buf));
 }
 
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
@@ -669,12 +672,38 @@ uint8_t USBD_GS_CAN_GetProtocolVersion(USBD_HandleTypeDef *pdev)
 	}
 }
 
-uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
+uint8_t USBD_GS_CAN_GetPadPacketsToMaxPacketSize(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	return hcan->pad_pkts_to_max_pkt_size;
+}
+
+uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
+{
+        uint8_t buf[CAN_DATA_MAX_PACKET_SIZE],*send_addr;
+  
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	size_t len = sizeof(struct gs_host_frame);
-	if (!hcan->timestamps_enabled) { len -= 4; }
-	return USBD_GS_CAN_Transmit(pdev, (uint8_t*)frame, len);
+
+	if (!hcan->timestamps_enabled)
+	  len -= 4;
+
+	send_addr = (uint8_t *)frame;
+	
+	if(hcan->pad_pkts_to_max_pkt_size){
+	        // When talking to WinUSB it seems to help a lot if the
+		// size of packet you send equals the max packet size.
+	        // In this mode, fill packets out to max packet size and
+	        // then send.
+		memcpy(buf, frame, len);
+
+		// zero rest of buffer
+		memset(buf + len, 0, sizeof(buf) - len);
+		send_addr = buf;
+		len = sizeof(buf);
+	}
+   
+	return USBD_GS_CAN_Transmit(pdev, send_addr, len);
 }
 
 uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)

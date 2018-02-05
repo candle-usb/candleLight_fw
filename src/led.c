@@ -54,6 +54,7 @@ static void led_set(led_state_t *led, bool state)
 	if (!led->is_active_high) {
 		state = !state;
 	}
+
 	HAL_GPIO_WritePin(led->port, led->pin, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 

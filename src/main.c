@@ -69,9 +69,12 @@ int main(void)
 
 	gpio_init();
 
+#if BOARD == BOARD_canable
+	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, true, LED2_GPIO_Port, LED2_Pin, true);
+#else
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, false, LED2_GPIO_Port, LED2_Pin, false);
+#endif
 	led_set_mode(&hLED, led_mode_off);
-
 	timer_init();
 
 	can_init(&hCAN, CAN);
@@ -101,8 +104,8 @@ int main(void)
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
-				// Echo sent frame back to host
-				frame->timestamp_us = timer_get();
+			        // Echo sent frame back to host
+			        frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
 				
 				led_indicate_trx(&hLED, led_2);
@@ -120,22 +123,22 @@ int main(void)
 			if (frame != 0)
 			{
 				if (can_receive(&hCAN, frame)) {
-					received_count++;
+             			received_count++;
 
-					frame->timestamp_us = timer_get();
-					frame->echo_id = 0xFFFFFFFF; // not a echo frame
-					frame->channel = 0;
-					frame->flags = 0;
-					frame->reserved = 0;
+				frame->timestamp_us = timer_get();
+				frame->echo_id = 0xFFFFFFFF; // not a echo frame
+				frame->channel = 0;
+				frame->flags = 0;
+				frame->reserved = 0;
 
-					send_to_host_or_enqueue(frame);
+				send_to_host_or_enqueue(frame);
 
-					led_indicate_trx(&hLED, led_1);
+				led_indicate_trx(&hLED, led_1);
 				}
 				else
 				{
-					queue_push_back(q_frame_pool, frame);
-				}
+				queue_push_back(q_frame_pool, frame);
+			}
 			}
 		}
 
@@ -230,15 +233,15 @@ bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 
 void send_to_host()
 {
-	struct gs_host_frame *frame = queue_pop_front(q_to_host);
+        struct gs_host_frame *frame = queue_pop_front(q_to_host);
 
 	if(!frame)
 	  return;
 	
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
-		queue_push_back(q_frame_pool, frame);
+	        queue_push_back(q_frame_pool, frame);
 	} else {
-		queue_push_front(q_to_host, frame);
+	        queue_push_front(q_to_host, frame);
 	}
 }
 

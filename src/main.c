@@ -69,9 +69,12 @@ int main(void)
 
 	gpio_init();
 
+#if BOARD == BOARD_canable
+	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, true, LED2_GPIO_Port, LED2_Pin, true);
+#else
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, false, LED2_GPIO_Port, LED2_Pin, false);
+#endif
 	led_set_mode(&hLED, led_mode_off);
-
 	timer_init();
 
 	can_init(&hCAN, CAN);

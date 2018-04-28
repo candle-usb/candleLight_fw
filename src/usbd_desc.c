@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include "usbd_core.h"
 #include "usbd_desc.h"
+#include "util.h"
 #include "config.h"
 
 uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);

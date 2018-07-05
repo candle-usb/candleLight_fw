@@ -16,6 +16,8 @@ Here is a fixed version that should also work for older kernels:
 
 The Firmware also implements WCID USB descriptors and thus can be used on recent Windows versions without installing a driver.
 
+Building requres arm-none-eabi-gcc toolchain (sudo apt-get install gcc-arm-none-eabi) 
+
 Flashing candleLight on linux: (source: [https://wiki.linklayer.com/index.php/CandleLightFirmware](https://wiki.linklayer.com/index.php/CandleLightFirmware))
 - Flashing requires the dfu-util tool. On Ubuntu, this can be installed with `sudo apt install dfu-util`.
 - Download the current binary release: gsusb_cantact_8b2b2b4.bin

@@ -66,19 +66,19 @@ board-flash: bin
 bin: $(BIN)
 
 $(BIN): $(ELF)
-	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)	
 	$(OBJCOPY) -O binary $(ELF) $(BIN)
-	$(SIZE) --format=berkeley $(ELF)
-
+	$(SIZE) --format=berkeley $(ELF) 
+	
 $(ELF): $(OBJ) $(ASM_OBJ)
-	@mkdir -p $(dir $@)
-	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(ASM_OBJ)
+	@mkdir -p $(dir $@)	
+	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(ASM_OBJ) 
 
 -include $(DEP)
 
 build/$(BOARD)/%.o : %.c
 	@echo $<
-	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)	
 	$(CC) $(CFLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 build/$(BOARD)/%.asmo : %.S

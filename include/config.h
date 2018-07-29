@@ -36,8 +36,9 @@ THE SOFTWARE.
 #define USBD_INTERFACE_STRING_FS     (uint8_t*) "gs_usb interface"
 #define DFU_INTERFACE_STRING_FS      (uint8_t*) "candleLight firmware upgrade interface"
 
-#define BOARD_candleLight 1
-#define BOARD_cantact     2
+#define BOARD_candleLight 	1
+#define BOARD_cantact     	2
+#define BOARD_nucleo_F072RB 3
 
 #if BOARD == BOARD_candleLight
 	#define USBD_PRODUCT_STRING_FS (uint8_t*) "candleLight USB to CAN adapter"
@@ -66,6 +67,19 @@ THE SOFTWARE.
 
 	#define LED2_GPIO_Port GPIOB
 	#define LED2_Pin GPIO_PIN_1
+	#define LED2_Mode GPIO_MODE_OUTPUT_PP
+
+#elif BOARD == BOARD_nucleo_F072RB
+	#define USBD_MANUFACTURER_STRING    (uint8_t*) "ST"
+	#define USBD_PRODUCT_STRING_FS 		(uint8_t*) "NUCLEO-F072RB gs_usb"
+	// SILENT pin not connected
+
+	#define LED1_GPIO_Port GPIOA
+	#define LED1_Pin GPIO_PIN_5
+	#define LED1_Mode GPIO_MODE_OUTPUT_PP
+
+	#define LED2_GPIO_Port GPIOA
+	#define LED2_Pin GPIO_PIN_6
 	#define LED2_Mode GPIO_MODE_OUTPUT_PP
 
 #else

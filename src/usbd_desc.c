@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include "usbd_core.h"
 #include "usbd_desc.h"
+#include "util.h"
 #include "config.h"
 
 uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
@@ -113,15 +114,15 @@ uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *le
 
 uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
-	char buf[25];
-
 	UNUSED(speed);
+
+	char buf[25];
 
 	hex32(buf     , *(uint32_t*)(UID_BASE    ));
 	hex32(buf +  8, *(uint32_t*)(UID_BASE + 4));
 	hex32(buf + 16, *(uint32_t*)(UID_BASE + 8));
 
-	USBD_GetString(buf, USBD_StrDesc, length);
+	USBD_GetString((uint8_t*)buf, USBD_StrDesc, length);
 	return USBD_StrDesc;
 }
 

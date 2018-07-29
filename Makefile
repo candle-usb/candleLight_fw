@@ -33,13 +33,14 @@ DEP     += $(ASM_OBJ:%.asmo=%.d)
 ELF = build/$(BOARD)/gsusb_$(BOARD).elf
 BIN = bin/gsusb_$(BOARD).bin
 
-all: candleLight cantact
+all: candleLight cantact nucleo_F072RB
 
 .PHONY : clean all
 
 clean:
 	$(MAKE) BOARD=candleLight board-clean
 	$(MAKE) BOARD=cantact board-clean
+	$(MAKE) BOARD=nucleo_F072RB board-clean
 
 candleLight:
 	$(MAKE) CHIP=STM32F042x6 BOARD=candleLight bin
@@ -52,6 +53,12 @@ cantact:
 
 flash-cantact:
 	$(MAKE) CHIP=STM32F072xB BOARD=cantact board-flash
+
+nucleo_F072RB:
+	$(MAKE) CHIP=STM32F072xB BOARD=nucleo_F072RB bin
+
+flash-nucleo_F072RB:
+	$(MAKE) CHIP=STM32F072xB BOARD=nucleo_F072RB board-flash
 
 board-flash: bin
 	sudo dfu-util -d 1d50:606f -a 0 -s 0x08000000 -D $(BIN)

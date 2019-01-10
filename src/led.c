@@ -31,8 +31,8 @@ THE SOFTWARE.
 
 void led_init(
 	led_data_t *leds,
-	void* led1_port, uint8_t led1_pin, bool led1_active_high,
-	void* led2_port, uint8_t led2_pin, bool led2_active_high
+	void* led1_port, uint16_t led1_pin, bool led1_active_high,
+	void* led2_port, uint16_t led2_pin, bool led2_active_high
 ) {
 	memset(leds, 0, sizeof(led_data_t));
 	leds->led_state[0].port = led1_port;

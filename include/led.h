@@ -49,7 +49,7 @@ typedef struct {
 
 typedef struct {
 	void* port;
-	uint8_t pin;
+	uint16_t pin;
 	bool is_active_high;
 	uint32_t on_until;
 	uint32_t off_until;
@@ -70,8 +70,8 @@ typedef struct {
 
 void led_init(
 	led_data_t *leds,
-	void* led1_port, uint8_t led1_pin, bool led1_active_high,
-	void* led2_port, uint8_t led2_pin, bool led2_active_high
+	void* led1_port, uint16_t led1_pin, bool led1_active_high,
+	void* led2_port, uint16_t led2_pin, bool led2_active_high
 );
 void led_set_mode(led_data_t *leds,led_mode_t mode);
 void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat);

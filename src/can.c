@@ -25,6 +25,7 @@ THE SOFTWARE.
 */
 
 #include "can.h"
+#include "config.h"
 
 void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 {
@@ -104,11 +105,18 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FFA1R &= ~filter_bit;       // assign filter 0 to FIFO 0
 	can->FA1R |= filter_bit;         // enable filter
 	can->FMR &= ~CAN_FMR_FINIT;
+
+#ifdef nCANSTBY_Pin
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_SET);
+#endif
 }
 
 void can_disable(can_data_t *hcan)
 {
 	CAN_TypeDef *can = hcan->instance;
+#ifdef nCANSTBY_Pin
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
+#endif
 	can->MCR |= CAN_MCR_INRQ ; // send can controller into initialization mode
 }
 

@@ -39,6 +39,7 @@ THE SOFTWARE.
 #define BOARD_canable     3
 #define BOARD_usb2can     4
 #define BOARD_canalyze     5
+#define BOARD_cannette    6
 
 #if BOARD == BOARD_candleLight
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "candleLight USB to CAN adapter"
@@ -133,6 +134,32 @@ THE SOFTWARE.
 	#define LED2_Pin GPIO_PIN_1	/* red */
 	#define LED2_Mode GPIO_MODE_OUTPUT_PP
 	#define LED2_Active_High 1
+
+#elif BOARD == BOARD_cannette
+	#define USBD_PRODUCT_STRING_FS			(uint8_t*) "cannette gs_usb"
+	#define USBD_MANUFACTURER_STRING		(uint8_t*) "chacaltech"
+	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "cannette firmware upgrade interface"
+
+	// SILENT pin not connected
+
+	#define LED1_GPIO_Port GPIOA
+	#define LED1_Pin GPIO_PIN_9	/* RX: green */
+	#define LED1_Mode GPIO_MODE_OUTPUT_OD
+	#define LED1_Active_High 0
+
+	#define LED2_GPIO_Port GPIOA
+	#define LED2_Pin GPIO_PIN_8	/* TX: red */
+	#define LED2_Mode GPIO_MODE_OUTPUT_OD
+	#define LED2_Active_High 0
+
+	#define nCANSTBY_Port GPIOC
+	#define nCANSTBY_Pin GPIO_PIN_14	/* control xceiver standby, active low */
+
+	#define nSI86EN_Port GPIOC
+	#define nSI86EN_Pin GPIO_PIN_13		/* enable power to Si86xx isolater, active low */
+
+	#define DCDCEN_Port GPIOC
+	#define DCDCEN_Pin GPIO_PIN_15		/* activate DCDC converter, active high */
 #else
 	#error please define BOARD
 #endif

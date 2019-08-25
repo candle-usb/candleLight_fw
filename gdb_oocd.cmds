@@ -1,0 +1,3 @@
+set remotetimeout 5
+target extended-remote | openocd -f openocd.cfg -c "gdb_port pipe; log_output oocd.log"
+break main

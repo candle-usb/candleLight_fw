@@ -68,13 +68,13 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 
 	uint32_t mcr = CAN_MCR_INRQ
 				 | CAN_MCR_ABOM
-			     | CAN_MCR_TXFP
+				 | CAN_MCR_TXFP
 				 | (one_shot ? CAN_MCR_NART : 0);
 
 	uint32_t btr = ((uint32_t)(hcan->sjw-1)) << 24
-  			     | ((uint32_t)(hcan->phase_seg1-1)) << 16
-			     | ((uint32_t)(hcan->phase_seg2-1)) << 20
-			     | (hcan->brp - 1)
+				 | ((uint32_t)(hcan->phase_seg1-1)) << 16
+				 | ((uint32_t)(hcan->phase_seg2-1)) << 20
+				 | (hcan->brp - 1)
 				 | (loop_back ? CAN_MODE_LOOPBACK : 0)
 				 | (listen_only ? CAN_MODE_SILENT : 0);
 
@@ -104,7 +104,6 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FFA1R &= ~filter_bit;       // assign filter 0 to FIFO 0
 	can->FA1R |= filter_bit;         // enable filter
 	can->FMR &= ~CAN_FMR_FINIT;
-
 }
 
 void can_disable(can_data_t *hcan)
@@ -133,7 +132,7 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {
-			rx_frame->can_id =  CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);
+			rx_frame->can_id = CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);
 		} else {
 			rx_frame->can_id = (fifo->RIR >> 21) & 0x7FF;
 		}
@@ -155,12 +154,9 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 
 		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
 
-	    return true;
-
+		return true;
 	} else {
-
 		return false;
-
 	}
 }
 

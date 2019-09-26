@@ -83,7 +83,7 @@ void HAL_PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
 }
 
 void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
-{ 
+{
 	USBD_LL_SetSpeed((USBD_HandleTypeDef*)hpcd->pData, USBD_SPEED_FULL);
 	USBD_LL_Reset((USBD_HandleTypeDef*)hpcd->pData);
 }
@@ -99,7 +99,7 @@ void HAL_PCD_ResumeCallback(PCD_HandleTypeDef *hpcd)
 }
 
 USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
-{ 
+{
 	/* Init USB_IP */
 	/* Link The driver to the stack */
 	hpcd_USB_FS.pData = pdev;

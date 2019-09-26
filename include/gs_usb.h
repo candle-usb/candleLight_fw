@@ -42,7 +42,7 @@ THE SOFTWARE.
 
 #define GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE    (1<<7)
 
-#define GS_CAN_FEATURE_LISTEN_ONLY       	(1<<0)
+#define GS_CAN_FEATURE_LISTEN_ONLY              (1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK                (1<<1)
 #define GS_CAN_FEATURE_TRIPLE_SAMPLE            (1<<2)
 #define GS_CAN_FEATURE_ONE_SHOT                 (1<<3)
@@ -73,7 +73,7 @@ THE SOFTWARE.
 
 /* arbitration lost in bit ... / data[0] */
 #define CAN_ERR_LOSTARB_UNSPEC   0x00 /* unspecified */
-				      /* else bit number in bitstream */
+					  /* else bit number in bitstream */
 
 /* error status of CAN-controller / data[1] */
 #define CAN_ERR_CRTL_UNSPEC      0x00 /* unspecified */
@@ -83,8 +83,8 @@ THE SOFTWARE.
 #define CAN_ERR_CRTL_TX_WARNING  0x08 /* reached warning level for TX errors */
 #define CAN_ERR_CRTL_RX_PASSIVE  0x10 /* reached error passive status RX */
 #define CAN_ERR_CRTL_TX_PASSIVE  0x20 /* reached error passive status TX */
-				      /* (at least one error counter exceeds */
-				      /* the protocol-defined level of 127)  */
+					  /* (at least one error counter exceeds */
+					  /* the protocol-defined level of 127)  */
 #define CAN_ERR_CRTL_ACTIVE      0x40 /* recovered to error active state */
 
 /* error in CAN protocol (type) / data[2] */

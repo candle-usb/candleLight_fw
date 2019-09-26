@@ -30,4 +30,3 @@ THE SOFTWARE.
 
 extern USBD_DescriptorsTypeDef FS_Desc;
 extern uint8_t USBD_StrDesc[USBD_MAX_STR_DESC_SIZ];
-

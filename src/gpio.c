@@ -65,5 +65,4 @@ void gpio_init()
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
-
 }

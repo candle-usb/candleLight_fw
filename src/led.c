@@ -98,7 +98,6 @@ static void led_update_normal_mode(led_state_t *led)
 
 static void led_update_sequence(led_data_t *leds)
 {
-
 	if (leds->sequence == NULL) {
 		return;
 	}
@@ -125,10 +124,8 @@ static void led_update_sequence(led_data_t *leds)
 			} else {
 				leds->sequence = NULL;
 			}
-
 		}
 	}
-
 }
 
 void led_update(led_data_t *leds)
@@ -153,6 +150,4 @@ void led_update(led_data_t *leds)
 			led_set(&leds->led_state[0], false);
 			led_set(&leds->led_state[1], true);
 	}
-
 }
-

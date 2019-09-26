@@ -47,7 +47,6 @@ void flash_load()
 bool flash_set_user_id(uint8_t channel, uint32_t user_id)
 {
 	if (channel<NUM_CHANNEL) {
-
 		if (flash_data_ram.user_id[channel] != user_id) {
 			flash_data_ram.user_id[channel] = user_id;
 			flash_flush();
@@ -70,7 +69,6 @@ uint32_t flash_get_user_id(uint8_t channel)
 
 void flash_flush()
 {
-
 	FLASH_EraseInitTypeDef erase_pages;
 	erase_pages.PageAddress = (uint32_t)&flash_data_rom;
 	erase_pages.NbPages = 1;

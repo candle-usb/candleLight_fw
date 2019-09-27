@@ -153,7 +153,7 @@ void can_drv_enable(struct can_channel *channel)
 	const uint32_t feature = channel->feature;
 	CAN_TypeDef *can = channel->instance;
 
-	uint32_t mcr = CAN_MCR_INRQ | CAN_MCR_ABOM | CAN_MCR_TXFP;
+	uint32_t mcr = CAN_MCR_INRQ | CAN_MCR_TXFP;
 
 	if (feature & GS_CAN_FEATURE_ONE_SHOT) {
 		mcr |= CAN_MCR_NART;
@@ -384,4 +384,10 @@ void can_drv_handle_state_change(const struct can_channel __maybe_unused *channe
 	if (tx_state <= rx_state) {
 		frame->classic_can->data[1] |= gs_can_rx_state_to_frame(rx_state);
 	}
+}
+
+void can_drv_handle_bus_off_recovery(struct can_channel *channel)
+{
+	can_drv_disable(channel);
+	can_drv_enable(channel);
 }

@@ -56,9 +56,6 @@ queue_t *q_frame_pool = NULL;
 queue_t *q_from_host = NULL;
 queue_t *q_to_host = NULL;
 
-uint32_t received_count=0;
-
-
 int main(void)
 {
 	uint32_t last_can_error_status = 0;
@@ -134,7 +131,6 @@ int main(void)
 			if (frame != 0)
 			{
 				if (can_receive(&hCAN, frame)) {
-					received_count++;
 
 					frame->timestamp_us = timer_get();
 					frame->echo_id = 0xFFFFFFFF; // not a echo frame

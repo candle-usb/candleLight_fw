@@ -674,12 +674,6 @@ uint8_t USBD_GS_CAN_GetProtocolVersion(USBD_HandleTypeDef *pdev)
 	}
 }
 
-uint8_t USBD_GS_CAN_GetPadPacketsToMaxPacketSize(USBD_HandleTypeDef *pdev)
-{
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return hcan->pad_pkts_to_max_pkt_size;
-}
-
 uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
 {
 	uint8_t buf[CAN_DATA_MAX_PACKET_SIZE],*send_addr;

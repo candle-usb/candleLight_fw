@@ -94,7 +94,13 @@ void led_indicate_trx(led_data_t *leds, led_num_t num)
 static void led_update_normal_mode(led_state_t *led)
 {
 	uint32_t now = HAL_GetTick();
-	led_set(led, led->off_until < now);
+	if (led->off_until < now) {
+		if (led->on_until < now) {
+			led_set(led, 0);
+		} else {
+			led_set(led, 1);
+		}
+	}
 }
 
 static void led_update_sequence(led_data_t *leds)

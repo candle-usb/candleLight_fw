@@ -1,7 +1,8 @@
+/.vscode/
+/build/
 *.o
 *.d
 *.bin
 *.asmo
 *.elf
 *~
-

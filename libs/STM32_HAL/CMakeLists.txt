@@ -17,16 +17,6 @@ set(SOURCES
     src/stm32f0xx/stm32f0xx_hal_tim_ex.c
     src/stm32f0xx/stm32f0xx_ll_usb.c
 
-    src/newlib/assert.c
-    src/newlib/_exit.c
-    src/newlib/_sbrk.c
-    src/newlib/_startup.c
-    src/newlib/_syscalls.c
-
-    src/cortexm/exception_handlers.c
-    src/cortexm/_initialize_hardware.c
-    src/cortexm/_reset_hardware.c
-
     src/cmsis/system_stm32f0xx.c
 )
 
@@ -38,12 +28,12 @@ set(INCLUDE_DIRS
     config/
 )
 
-add_library(STM32_HAL_STM32F042x6 OBJECT ${SOURCES} src/cmsis/startup_stm32f042x6.s)
+add_library(STM32_HAL_STM32F042x6 OBJECT ${SOURCES})
     target_include_directories(STM32_HAL_STM32F042x6 PUBLIC ${INCLUDE_DIRS})
     target_compile_options(STM32_HAL_STM32F042x6 PRIVATE -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F042x6 PUBLIC STM32F042x6)
 
-add_library(STM32_HAL_STM32F072xB OBJECT ${SOURCES} src/cmsis/startup_stm32f072xb.s)
+add_library(STM32_HAL_STM32F072xB OBJECT ${SOURCES})
     target_include_directories(STM32_HAL_STM32F072xB PUBLIC ${INCLUDE_DIRS})
     target_compile_options(STM32_HAL_STM32F072xB PRIVATE -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F072xB PUBLIC STM32F072xB)

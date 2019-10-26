@@ -4,22 +4,24 @@ project(candleLightFirmware C ASM)
 add_compile_options(
     -std=gnu11
     -mcpu=cortex-m0 -mthumb
-    -Wall -Wextra -Werror -Wno-deprecated
+    -Wall -Wextra -Werror
     -fmessage-length=0
     -fsigned-char
     -ffunction-sections -fdata-sections
     -ffreestanding
     -fno-move-loop-invariants
     -Os -g3
+    --specs=nano.specs
+    --specs=nosys.specs
 )
 
 add_link_options(
     -mcpu=cortex-m0 -mthumb -O
     -Wall -Wextra -g3
-    -nostartfiles -Xlinker --gc-sections --specs=nano.specs
-    -T ${CMAKE_SOURCE_DIR}/ldscripts/ldscript.ld
+    -Xlinker --gc-sections 
+    --specs=nano.specs
+    --specs=nosys.specs
 )
-
 
 add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
@@ -43,6 +45,7 @@ set(
         include/timer.h src/timer.c
         include/util.h src/util.c
 
+        src/startup.c
         src/main.c
         src/interrupts.c
 )

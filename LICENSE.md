@@ -29,5 +29,6 @@ The HAL is distributed under a non-restrictive BSD (Berkeley Software
 Distribution) license.
 
 ## STM32 USB Library
-Code from the STM32 USB library is licensed under ST Micro's [Liberty V2
-License](http://www.st.com/software_license_agreement_liberty_v2)
+Code from the STM32 USB library is licensed 
+under ST STMicroelectronics 
+[Ultimate Liberty license SLA0044] (www.st.com/SLA0044)

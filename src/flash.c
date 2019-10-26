@@ -72,7 +72,7 @@ void flash_flush()
 	FLASH_EraseInitTypeDef erase_pages;
 	erase_pages.PageAddress = (uint32_t)&flash_data_rom;
 	erase_pages.NbPages = 1;
-	erase_pages.TypeErase = TYPEERASE_PAGES;
+	erase_pages.TypeErase = FLASH_TYPEERASE_PAGES;
 
 	uint32_t error;
 

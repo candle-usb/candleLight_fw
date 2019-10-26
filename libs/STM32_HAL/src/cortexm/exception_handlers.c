@@ -7,7 +7,6 @@
 
 #include "cortexm/ExceptionHandlers.h"
 #include "cmsis_device.h"
-#include "arm/semihosting.h"
 #include "diag/Trace.h"
 #include <string.h>
 
@@ -139,6 +138,7 @@ dumpExceptionStack (ExceptionStackFrame* frame, uint32_t lr)
 #if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 
 #if defined(OS_USE_SEMIHOSTING) || defined(OS_USE_TRACE_SEMIHOSTING_STDOUT) || defined(OS_USE_TRACE_SEMIHOSTING_DEBUG)
+#include "arm/semihosting.h"
 
 int
 isSemihosting (ExceptionStackFrame* frame, uint16_t opCode);

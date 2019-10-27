@@ -76,13 +76,14 @@ void flash_flush()
 	erase_pages.NbPages = 1;
 	erase_pages.TypeErase = FLASH_TYPEERASE_PAGES;
 
-	uint32_t error;
-
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_SR_PGERR);
+
+	uint32_t error = 0;
 	HAL_FLASHEx_Erase(&erase_pages, &error);
 	if (error==0xFFFFFFFF) { // erase finished successfully
 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)&flash_data_rom.user_id[0], flash_data_ram.user_id[0]);
 	}
+	
 	HAL_FLASH_Lock();
 }

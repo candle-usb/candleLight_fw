@@ -11,6 +11,7 @@ add_compile_options(
     -ffreestanding
     -fno-move-loop-invariants
     -Os -g3
+    -flto -ffat-lto-objects
     --specs=nano.specs
     --specs=nosys.specs
 )

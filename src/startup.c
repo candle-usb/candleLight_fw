@@ -19,12 +19,12 @@ extern const copy_table_t __copy_table_end__;
 extern const zero_table_t __zero_table_start__;
 extern const zero_table_t __zero_table_end__;
 
-void SystemInit();
+void __initialize_hardware_early();
 void _start() __attribute__((noreturn));
 
 void Reset_Handler()
 {
-    SystemInit();
+    __initialize_hardware_early();
 
     for (copy_table_t const* table = &__copy_table_start__; table < &__copy_table_end__; ++table) 
     {

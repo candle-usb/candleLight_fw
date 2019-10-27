@@ -65,12 +65,12 @@ set(INCLUDE_DIRS
     config/
 )
 
-add_library(STM32_HAL_STM32F042x6 OBJECT ${SOURCES})
+add_library(STM32_HAL_STM32F042x6 STATIC ${SOURCES})
     target_include_directories(STM32_HAL_STM32F042x6 PUBLIC ${INCLUDE_DIRS})
     target_compile_options(STM32_HAL_STM32F042x6 PRIVATE -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F042x6 PUBLIC STM32F042x6)
 
-add_library(STM32_HAL_STM32F072xB OBJECT ${SOURCES})
+add_library(STM32_HAL_STM32F072xB STATIC ${SOURCES})
     target_include_directories(STM32_HAL_STM32F072xB PUBLIC ${INCLUDE_DIRS})
     target_compile_options(STM32_HAL_STM32F072xB PRIVATE -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F072xB PUBLIC STM32F072xB)

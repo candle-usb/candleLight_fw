@@ -17,7 +17,7 @@ add_compile_options(
 )
 
 add_link_options(
-    -mcpu=cortex-m0 -mthumb -O
+    -mcpu=cortex-m0 -mthumb
     -Wall -Wextra -g3
     -Xlinker --gc-sections 
     --specs=nano.specs

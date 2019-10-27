@@ -42,9 +42,9 @@ void queue_destroy(queue_t *q)
 
 unsigned queue_size(queue_t *q)
 {
-	int primask = disable_irq();
+	bool was_irq_enabled = disable_irq();
 	unsigned retval = q->size;
-	enable_irq(primask);
+	if (was_irq_enabled) enable_irq();
 	return retval;
 }
 
@@ -56,7 +56,7 @@ bool queue_is_empty(queue_t *q)
 bool queue_push_back(queue_t *q, void *el)
 {
 	bool retval = false;
-	int primask = disable_irq();
+	bool was_irq_enabled = disable_irq();
 
 	if (q->size < q->max_elements) {
 		unsigned pos = (q->first + q->size) % q->max_elements;
@@ -65,14 +65,14 @@ bool queue_push_back(queue_t *q, void *el)
 		retval = true;
 	}
 
-	enable_irq(primask);
+	if (was_irq_enabled) enable_irq();
 	return retval;
 }
 
 bool queue_push_front(queue_t *q, void *el)
 {
 	bool retval = false;
-	int primask = disable_irq();
+	bool was_irq_enabled = disable_irq();
 	if (q->size < q->max_elements) {
 		if (q->first==0) {
 			q->first = q->max_elements - 1;
@@ -83,20 +83,20 @@ bool queue_push_front(queue_t *q, void *el)
 		q->size += 1;
 		retval = true;
 	}
-	enable_irq(primask);
+	if (was_irq_enabled) enable_irq();
 	return retval;
 }
 
 void *queue_pop_front(queue_t *q)
 {
-	int primask = disable_irq();
+	bool was_irq_enabled = disable_irq();
 	void *el = 0;
 	if (q->size > 0) {
 		el = q->buf[q->first];
 		q->first = (q->first + 1) % q->max_elements;
 		q->size -= 1;
 	}
-	enable_irq(primask);
+	if (was_irq_enabled) enable_irq();
 	return el;
 }
 

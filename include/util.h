@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Hubert Denkmair
+Copyright (c) 2016, 2019 Hubert Denkmair
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,26 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <cmsis_device.h>
 
-int disable_irq(void);
-void enable_irq(int primask);
 void hex32(char *out, uint32_t val);
+
+static inline bool is_irq_enabled(void)
+{
+	return (__get_PRIMASK() & 1u) == 0u; // interrupts not prevented
+}
+
+static inline bool disable_irq(void) 
+{
+	bool was_enabled = is_irq_enabled();
+	__disable_irq();
+	return was_enabled;
+}
+
+static inline void enable_irq() 
+{
+	__enable_irq();
+    __ISB();
+}
+

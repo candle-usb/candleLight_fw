@@ -45,13 +45,34 @@ set(
         src/interrupts.c
 )
 
+function(make_bin_file target)
+    add_custom_command(
+        TARGET ${target} POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_OBJCOPY} -O binary ${target} ${target}.bin
+    )
+endfunction()
+
+function(show_object_size target)
+    string(REPLACE "objcopy" "size" CMAKE_OBJSIZE "${CMAKE_OBJCOPY}")
+    add_custom_command(
+        TARGET ${target} POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_OBJSIZE} ${target}
+    )
+endfunction()
+
 add_executable(candleLight_fw ${SOURCE_FILES})
     target_include_directories(candleLight_fw PRIVATE include/)
     target_compile_definitions(candleLight_fw PRIVATE BOARD=BOARD_candleLight)
     target_link_libraries(candleLight_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
+    make_bin_file(candleLight_fw)
+    show_object_size(candleLight_fw)
 
 add_executable(cantact_fw ${SOURCE_FILES})
     target_include_directories(cantact_fw PRIVATE include/)
     target_compile_definitions(cantact_fw PRIVATE BOARD=BOARD_cantact)
     target_link_libraries(cantact_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
+    make_bin_file(cantact_fw)
+    show_object_size(cantact_fw)
     

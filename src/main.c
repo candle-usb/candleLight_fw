@@ -101,8 +101,8 @@ int main(void)
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
-			        // Echo sent frame back to host
-			        frame->timestamp_us = timer_get();
+				// Echo sent frame back to host
+				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
 				
 				led_indicate_trx(&hLED, led_2);

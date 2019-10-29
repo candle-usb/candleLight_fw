@@ -34,7 +34,7 @@ inline int disable_irq(void) {
 }
 
 inline void enable_irq(int primask) {
-    if (primask)
+    if (!primask)
         asm volatile("cpsie i\n");
 }
 

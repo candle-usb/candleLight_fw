@@ -118,7 +118,7 @@ int main(void)
 		if (can_is_rx_pending(&hCAN)) {
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if ((frame != 0) && can_receive(&hCAN, frame)) {
-             			received_count++;
+				received_count++;
 
 				frame->timestamp_us = timer_get();
 				frame->echo_id = 0xFFFFFFFF; // not a echo frame
@@ -129,11 +129,7 @@ int main(void)
 				send_to_host_or_enqueue(frame);
 
 				led_indicate_trx(&hLED, led_1);
-
-			} else {
-				queue_push_back(q_frame_pool, frame);
 			}
-
 		}
 
 		uint32_t can_err = can_get_error_status(&hCAN);
@@ -227,15 +223,15 @@ bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 
 void send_to_host()
 {
-        struct gs_host_frame *frame = queue_pop_front(q_to_host);
+	struct gs_host_frame *frame = queue_pop_front(q_to_host);
 
 	if(!frame)
 	  return;
 	
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
-	        queue_push_back(q_frame_pool, frame);
+		queue_push_back(q_frame_pool, frame);
 	} else {
-	        queue_push_front(q_to_host, frame);
+		queue_push_front(q_to_host, frame);
 	}
 }
 

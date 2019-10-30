@@ -105,7 +105,7 @@ set(INCLUDE_DIRS
 add_library(STM32_HAL_STM32F042x6 OBJECT ${SOURCES} src/cmsis/startup_stm32f042x6.S)
     target_include_directories(STM32_HAL_STM32F042x6 PUBLIC ${INCLUDE_DIRS})
     target_compile_options(STM32_HAL_STM32F042x6 PRIVATE -Wno-unused-parameter)
-    target_compile_definitions(STM32_HAL_STM32F042x6 PUBLIC STM32F072xB)
+    target_compile_definitions(STM32_HAL_STM32F042x6 PUBLIC STM32F042x6)
 
 add_library(STM32_HAL_STM32F072xB OBJECT ${SOURCES} src/cmsis/startup_stm32f072xb.S)
     target_include_directories(STM32_HAL_STM32F072xB PUBLIC ${INCLUDE_DIRS})

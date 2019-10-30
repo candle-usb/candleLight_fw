@@ -20,6 +20,7 @@ add_link_options(
     -T ${CMAKE_SOURCE_DIR}/ldscripts/ldscript.ld 
 )
 
+
 add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
 
@@ -62,12 +63,19 @@ function(show_object_size target)
     )
 endfunction()
 
+function(add_flash_target target)
+	add_custom_target(
+		flash-${target} dfu-util -d 1d50:606f -a 0 -R -s 0x08000000 -D ${target}.bin
+	)
+endfunction()
+
 add_executable(candleLight_fw ${SOURCE_FILES})
     target_include_directories(candleLight_fw PRIVATE include/)
     target_compile_definitions(candleLight_fw PRIVATE BOARD=BOARD_candleLight)
     target_link_libraries(candleLight_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
     make_bin_file(candleLight_fw)
     show_object_size(candleLight_fw)
+    add_flash_target(candleLight_fw)
 
 add_executable(cantact_fw ${SOURCE_FILES})
     target_include_directories(cantact_fw PRIVATE include/)
@@ -75,4 +83,4 @@ add_executable(cantact_fw ${SOURCE_FILES})
     target_link_libraries(cantact_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
     make_bin_file(cantact_fw)
     show_object_size(cantact_fw)
-    
+    add_flash_target(cantact_fw)

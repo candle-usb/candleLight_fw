@@ -24,6 +24,7 @@ add_link_options(
     --specs=nosys.specs
 )
 
+
 add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
 
@@ -67,6 +68,12 @@ function(show_object_size target)
     )
 endfunction()
 
+function(add_flash_target target)
+	add_custom_target(
+		flash-${target} dfu-util -d 1d50:606f -a 0 -R -s 0x08000000 -D ${target}.bin
+	)
+endfunction()
+
 add_executable(candleLight_fw ${SOURCE_FILES})
     target_include_directories(candleLight_fw PRIVATE include/)
     target_compile_definitions(candleLight_fw PRIVATE BOARD=BOARD_candleLight)
@@ -74,6 +81,7 @@ add_executable(candleLight_fw ${SOURCE_FILES})
     target_link_options(candleLight_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F042X6.ld)
     make_bin_file(candleLight_fw)
     show_object_size(candleLight_fw)
+    add_flash_target(candleLight_fw)
 
 add_executable(cantact_fw ${SOURCE_FILES})
     target_include_directories(cantact_fw PRIVATE include/)
@@ -82,3 +90,4 @@ add_executable(cantact_fw ${SOURCE_FILES})
     target_link_options(cantact_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
     make_bin_file(cantact_fw)
     show_object_size(cantact_fw)
+    add_flash_target(cantact_fw)

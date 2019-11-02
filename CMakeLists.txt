@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(candleLightFirmware)
+project(candleLightFirmware C ASM)
 
 add_compile_options(
     -std=gnu11

@@ -1,9 +1,8 @@
-/*
- * Default linker script for Cortex-M (it includes specifics for STM32F[34]xx).
- * 
- * To make use of the multi-region initialisations, define
- * OS_INCLUDE_STARTUP_INIT_MULTIPLE_RAM_SECTIONS for the _startup.c file.
- */
+MEMORY
+{
+  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 32K
+  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 6K
+}
 
 /*
  * The '__stack' definition is required by crt0, do not remove it.
@@ -103,20 +102,13 @@ SECTIONS
         LONG(LOADADDR(.data));
         LONG(ADDR(.data));
         LONG(ADDR(.data)+SIZEOF(.data));
-        
-        LONG(LOADADDR(.data_CCMRAM));
-        LONG(ADDR(.data_CCMRAM));
-        LONG(ADDR(.data_CCMRAM)+SIZEOF(.data_CCMRAM));
-        
+                
         __data_regions_array_end = .;
         
         __bss_regions_array_start = .;
         
         LONG(ADDR(.bss));
         LONG(ADDR(.bss)+SIZEOF(.bss));
-        
-        LONG(ADDR(.bss_CCMRAM));
-        LONG(ADDR(.bss_CCMRAM)+SIZEOF(.bss_CCMRAM));
         
         __bss_regions_array_end = .;
 
@@ -234,24 +226,6 @@ SECTIONS
     _etext = .;
     __etext = .;
     
-    /* MEMORY_ARRAY */
-    /*
-    .ROarraySection :
-    {
-     	*(.ROarraySection .ROarraySection.*)                          
-    } >MEMORY_ARRAY
-    */
-
-	/*
-	 * The secondary initialised data section.
-	 */
-    .data_CCMRAM : ALIGN(4)
-    {
-       FILL(0xFF)
-       *(.data.CCMRAM .data.CCMRAM.*)
-       . = ALIGN(4) ;
-    } > CCMRAM AT>FLASH
-
 	/* 
      * This address is used by the startup code to 
      * initialise the .data section.
@@ -290,12 +264,6 @@ SECTIONS
      * the "section `.bss' type changed to PROGBITS" warning
      */
      
-    /* The secondary uninitialised data section. */
-	.bss_CCMRAM (NOLOAD) : ALIGN(4)
-	{
-		*(.bss.CCMRAM .bss.CCMRAM.*)
-	} > CCMRAM
-
     /* The primary uninitialised data section. */
     .bss (NOLOAD) : ALIGN(4)
     {
@@ -311,11 +279,6 @@ SECTIONS
         __bss_end__ = .;        /* standard newlib definition */
         _ebss = . ;             /* STM specific definition */
     } >RAM
-
-    .noinit_CCMRAM (NOLOAD) : ALIGN(4)
-    {
-        *(.noinit.CCMRAM .noinit.CCMRAM.*)         
-    } > CCMRAM
     
     .noinit (NOLOAD) : ALIGN(4)
     {
@@ -343,58 +306,7 @@ SECTIONS
     {
         . = . + _Minimum_Stack_Size ;
     } >RAM
-    
-    /*
-     * The FLASH Bank1.
-     * The C or assembly source must explicitly place the code 
-     * or data there using the "section" attribute.
-     */
-    .b1text : ALIGN(4)
-    {
-        *(.b1text)                   /* remaining code */
-        *(.b1rodata)                 /* read-only data (constants) */
-        *(.b1rodata.*)
-    } >FLASHB1
-    
-    /*
-     * The EXTMEM.
-     * The C or assembly source must explicitly place the code or data there
-     * using the "section" attribute.
-     */
-
-    /* EXTMEM Bank0 */
-    .eb0text : ALIGN(4)
-    {
-        *(.eb0text)                   /* remaining code */
-        *(.eb0rodata)                 /* read-only data (constants) */
-        *(.eb0rodata.*)
-    } >EXTMEMB0
-    
-    /* EXTMEM Bank1 */
-    .eb1text : ALIGN(4)
-    {
-        *(.eb1text)                   /* remaining code */
-        *(.eb1rodata)                 /* read-only data (constants) */
-        *(.eb1rodata.*)
-    } >EXTMEMB1
-    
-    /* EXTMEM Bank2 */
-    .eb2text : ALIGN(4)
-    {
-        *(.eb2text)                   /* remaining code */
-        *(.eb2rodata)                 /* read-only data (constants) */
-        *(.eb2rodata.*)
-    } >EXTMEMB2
-    
-    /* EXTMEM Bank0 */
-    .eb3text : ALIGN(4)
-    {
-        *(.eb3text)                   /* remaining code */
-        *(.eb3rodata)                 /* read-only data (constants) */
-        *(.eb3rodata.*)
-    } >EXTMEMB3
-   
-
+        
     /* After that there are only debugging sections. */
     
     /* This can remove the debugging information from the standard libraries */    

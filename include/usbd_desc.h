@@ -28,6 +28,6 @@ THE SOFTWARE.
 
 #include "usbd_def.h"
 
-extern USBD_DescriptorsTypeDef FS_Desc;
+extern const USBD_DescriptorsTypeDef FS_Desc;
 extern uint8_t USBD_DescBuf[USBD_DESC_BUF_SIZE];
 

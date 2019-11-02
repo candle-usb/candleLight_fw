@@ -97,7 +97,7 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 
 
 /* Configuration Descriptor */
-__ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
+static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
 {
 	/*---------------------------------------------------------------------------*/
 	/* Configuration Descriptor */
@@ -173,7 +173,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 };
 
 /* Microsoft OS String Descriptor */
-__ALIGN_BEGIN uint8_t USBD_GS_CAN_WINUSB_STR[] __ALIGN_END =
+static const uint8_t USBD_GS_CAN_WINUSB_STR[] =
 {
 	0x12,                    /* length */
 	0x03,                    /* descriptor type == string */
@@ -186,7 +186,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_WINUSB_STR[] __ALIGN_END =
 };
 
 /*  Microsoft Compatible ID Feature Descriptor  */
-static __ALIGN_BEGIN uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] __ALIGN_END = {
+static const uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] = {
 	0x40, 0x00, 0x00, 0x00, /* length */
 	0x00, 0x01,             /* version 1.0 */
 	0x04, 0x00,             /* descr index (0x0004) */
@@ -212,7 +212,7 @@ static __ALIGN_BEGIN uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] __ALIGN_END = {
 };
 
 /* Microsoft Extended Properties Feature Descriptor */
-static __ALIGN_BEGIN uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] __ALIGN_END = {
+static const uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] = {
 	0x92, 0x00, 0x00, 0x00, /* length */
 	0x00, 0x01,				/* version 1.0 */
 	0x05, 0x00,             /* descr index (0x0005) */
@@ -536,24 +536,19 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
-	uint16_t len = 0;
-	uint8_t *pbuf;
-
 	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
 
 		switch (req->wIndex) {
 
 			case 0x0004:
-				pbuf = USBD_MS_COMP_ID_FEATURE_DESC;
-				len = sizeof(USBD_MS_COMP_ID_FEATURE_DESC);
-				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+				memcpy(USBD_DescBuf, USBD_MS_COMP_ID_FEATURE_DESC, sizeof(USBD_MS_COMP_ID_FEATURE_DESC));
+				USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
 				return true;
 
 			case 0x0005:
 				if (req->wValue==0) { // only return our GUID for interface #0
-					pbuf = USBD_MS_EXT_PROP_FEATURE_DESC;
-					len = sizeof(USBD_MS_EXT_PROP_FEATURE_DESC);
-					USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+					memcpy(USBD_DescBuf, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+					USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength));
 					return true;
 				}
 				break;
@@ -635,7 +630,8 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 {
 	*len = sizeof(USBD_GS_CAN_CfgDesc);
-	return USBD_GS_CAN_CfgDesc;
+	memcpy(USBD_DescBuf, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
+	return USBD_DescBuf;
 }
 
 inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
@@ -716,7 +712,8 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 			return USBD_DescBuf;
 		case 0xEE:
 			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
-			return USBD_GS_CAN_WINUSB_STR;
+			memcpy(USBD_DescBuf, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+			return USBD_DescBuf;
 		default:
 			*length = 0;
 			USBD_CtlError(pdev, 0);

@@ -4,7 +4,7 @@ project(candleLightFirmware C ASM)
 add_compile_options(
     -std=gnu11
     -mcpu=cortex-m0 -mthumb 
-    -Wall -Wextra -Werror
+    -Wall -Wextra -Werror -Wno-deprecated
     -fmessage-length=0 
     -fsigned-char 
     -ffunction-sections -fdata-sections 

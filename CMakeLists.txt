@@ -101,11 +101,17 @@ set(TGT072_LIST "candleLight")
 
 
 foreach (TGTNAME IN LISTS TGT042_LIST)
-	add_f042_target(${TGTNAME})
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
+	if (BUILD_${TGTNAME})
+		add_f042_target(${TGTNAME})
+	endif()
 endforeach()
 
 foreach (TGTNAME IN LISTS TGT072_LIST)
-	add_f072_target(${TGTNAME})
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
+	if (BUILD_${TGTNAME})
+		add_f072_target(${TGTNAME})
+	endif()
 endforeach()
 
 message("*******************")

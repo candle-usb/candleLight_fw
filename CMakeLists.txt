@@ -3,12 +3,12 @@ project(candleLightFirmware C ASM)
 
 add_compile_options(
     -std=gnu11
-    -mcpu=cortex-m0 -mthumb 
+    -mcpu=cortex-m0 -mthumb
     -Wall -Wextra -Werror -Wno-deprecated
-    -fmessage-length=0 
-    -fsigned-char 
-    -ffunction-sections -fdata-sections 
-    -ffreestanding 
+    -fmessage-length=0
+    -fsigned-char
+    -ffunction-sections -fdata-sections
+    -ffreestanding
     -fno-move-loop-invariants
     -Os -g3
 )
@@ -17,7 +17,7 @@ add_link_options(
     -mcpu=cortex-m0 -mthumb -O
     -Wall -Wextra -g3
     -nostartfiles -Xlinker --gc-sections --specs=nano.specs
-    -T ${CMAKE_SOURCE_DIR}/ldscripts/ldscript.ld 
+    -T ${CMAKE_SOURCE_DIR}/ldscripts/ldscript.ld
 )
 
 

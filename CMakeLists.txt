@@ -46,6 +46,8 @@ set(
         src/interrupts.c
 )
 
+
+####### some helpers to generate targets
 function(make_bin_file target)
     add_custom_command(
         TARGET ${target} POST_BUILD
@@ -69,18 +71,43 @@ function(add_flash_target target)
 	)
 endfunction()
 
-add_executable(candleLight_fw ${SOURCE_FILES})
-    target_include_directories(candleLight_fw PRIVATE include/)
-    target_compile_definitions(candleLight_fw PRIVATE BOARD=BOARD_candleLight)
-    target_link_libraries(candleLight_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
-    make_bin_file(candleLight_fw)
-    show_object_size(candleLight_fw)
-    add_flash_target(candleLight_fw)
+######### commands for adding each target have a lot in common: make helper func.
+# Split into two categories, F042-based and F072-based.
 
-add_executable(cantact_fw ${SOURCE_FILES})
-    target_include_directories(cantact_fw PRIVATE include/)
-    target_compile_definitions(cantact_fw PRIVATE BOARD=BOARD_cantact)
-    target_link_libraries(cantact_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
-    make_bin_file(cantact_fw)
-    show_object_size(cantact_fw)
-    add_flash_target(cantact_fw)
+function(add_f042_target TGTNAME)
+	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
+    target_include_directories(${TGTNAME}_fw PRIVATE include/)
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+    target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
+    make_bin_file(${TGTNAME}_fw)
+    show_object_size(${TGTNAME}_fw)
+    add_flash_target(${TGTNAME}_fw)
+endfunction()
+
+function(add_f072_target TGTNAME)
+	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
+    target_include_directories(${TGTNAME}_fw PRIVATE include/)
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+    target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
+    make_bin_file(${TGTNAME}_fw)
+    show_object_size(${TGTNAME}_fw)
+    add_flash_target(${TGTNAME}_fw)
+endfunction()
+
+########## generate list of targets.
+# the "_fw" part is appended automatically
+set(TGT042_LIST "cantact" "canable" "usb2can")
+set(TGT072_LIST "candleLight")
+
+
+foreach (TGTNAME IN LISTS TGT042_LIST)
+	add_f042_target(${TGTNAME})
+endforeach()
+
+foreach (TGTNAME IN LISTS TGT072_LIST)
+	add_f072_target(${TGTNAME})
+endforeach()
+
+message("*******************")
+message("You may now:\n\t-compile all targets ('make')\n\t-compile a single target (e.g. 'make cantact_fw'")
+message("\t-flash a device (e.g. 'make flash-cantact_fw'")

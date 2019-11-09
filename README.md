@@ -5,9 +5,12 @@ This is a firmware for stm32f0-based USB-CAN adapters, notably:
 - cantact: http://linklayer.github.io/cantact/
 - canable (cantact clone): http://canable.io/
 - USB2CAN: https://github.com/roboterclubaachen/usb2can
+- CANAlyze: https://kkuchera.github.io/canalyze/
 
-It implements the interface of the mainline linux gs_usb kernel module and 
+It implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
+
+## Known issues
 
 Be aware that there is a bug in the gs_usb module in linux<4.5 that can crash the kernel on device removal.
 
@@ -16,7 +19,15 @@ Here is a fixed version that should also work for older kernels:
 
 The Firmware also implements WCID USB descriptors and thus can be used on recent Windows versions without installing a driver.
 
-Building requres arm-none-eabi-gcc toolchain (sudo apt-get install gcc-arm-none-eabi) 
+## Building
+
+Building requres arm-none-eabi-gcc toolchain.
+
+```shell
+sudo apt-get install gcc-arm-none-eabi
+```
+
+## Flashing
 
 Flashing candleLight on linux: (source: [https://wiki.linklayer.com/index.php/CandleLightFirmware](https://wiki.linklayer.com/index.php/CandleLightFirmware))
 - Flashing requires the dfu-util tool. On Ubuntu, this can be installed with `sudo apt install dfu-util`.

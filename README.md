@@ -25,6 +25,8 @@ Building requres arm-none-eabi-gcc toolchain.
 
 ```shell
 sudo apt-get install gcc-arm-none-eabi
+cmake . -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
+make canalyze_fw
 ```
 
 ## Flashing

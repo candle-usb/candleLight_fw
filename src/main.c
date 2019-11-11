@@ -69,11 +69,7 @@ int main(void)
 
 	gpio_init();
 
-#if BOARD == BOARD_canable
-	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, true, LED2_GPIO_Port, LED2_Pin, true);
-#else
-	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, false, LED2_GPIO_Port, LED2_Pin, false);
-#endif
+	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();
 
@@ -107,7 +103,7 @@ int main(void)
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
-				
+
 				led_indicate_trx(&hLED, led_2);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
@@ -237,7 +233,7 @@ void send_to_host()
 
 	if(!frame)
 	  return;
-	
+
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 		queue_push_back(q_frame_pool, frame);
 	} else {

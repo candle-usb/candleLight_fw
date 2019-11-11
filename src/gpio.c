@@ -44,10 +44,10 @@ void gpio_init()
 	HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
 #endif
 
-#ifdef LED1_Active_Low
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
-#else
+#if (LED1_Active_High == 1)
 	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+#else
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 #endif
 	GPIO_InitStruct.Pin = LED1_Pin;
 	GPIO_InitStruct.Mode = LED1_Mode;
@@ -55,10 +55,10 @@ void gpio_init()
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LED1_GPIO_Port, &GPIO_InitStruct);
 
-#ifdef LED2_Active_Low
-	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-#else
+#if (LED2_Active_High == 1)
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+#else
+	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
 #endif
 	GPIO_InitStruct.Pin = LED2_Pin;
 	GPIO_InitStruct.Mode = LED2_Mode;

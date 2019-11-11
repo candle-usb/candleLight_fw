@@ -21,7 +21,7 @@ The Firmware also implements WCID USB descriptors and thus can be used on recent
 
 ## Building
 
-Building requres arm-none-eabi-gcc toolchain.
+Building requires arm-none-eabi-gcc toolchain.
 
 ```shell
 sudo apt-get install gcc-arm-none-eabi

@@ -25,7 +25,9 @@ Building requires arm-none-eabi-gcc toolchain.
 
 ```shell
 sudo apt-get install gcc-arm-none-eabi
-cmake . -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
+mkdir build
+cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
 make canalyze_fw # one of candleLight_fw / usb2can_fw / cantact_fw / canalyze_fw / canable_fw
 ```
 

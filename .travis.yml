@@ -1,0 +1,37 @@
+dist: bionic
+language: generic
+
+install:
+  - wget https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5-Linux-x86_64.sh
+    && chmod +x cmake-3.14.5-Linux-x86_64.sh
+  - mkdir -p /opt/cmake-3.14.5 && ./cmake-3.14.5-Linux-x86_64.sh --skip-license --prefix=/opt/cmake-3.14.5
+  - PATH=/opt/cmake-3.14.5/bin:$PATH
+  - wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/8-2019q3/RC1.1/gcc-arm-none-eabi-8-2019-q3-update-linux.tar.bz2
+  - tar xf gcc-arm-none-eabi-8-2019-q3-update-linux.tar.bz2 -C /opt
+  - mkdir build && cd build
+  - cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
+  - make
+
+before_deploy:
+  - tar czvf canable_fw_${TRAVIS_TAG}.tar.gz canable_fw*
+  - tar czvf canalyze_fw_${TRAVIS_TAG}.tar.gz canalyze_fw*
+  - tar czvf candleLight_fw_${TRAVIS_TAG}.tar.gz candleLight_fw*
+  - tar czvf cantact_fw_${TRAVIS_TAG}.tar.gz cantact_fw*
+  - tar czvf usb2can_fw_${TRAVIS_TAG}.tar.gz usb2can_fw*
+
+deploy:
+  provider: releases
+  api_key:
+    secure: AT1uidXpjwngg/4hZfenrqHt6LBygobL2c/P95KZYOPCXSngaPznfeb7K6ByiJ1a7JVk0jwK2NCV1CqqHPXkkJPGjEq78hWkEYfi6xa9rN+aHR4vqNeah0nFqEr/wwCoMndHG6iYvOZF3TwCfCh+/xzdwpRQvZ7tvZEhtra2Xbwgp5JlRNC76beI4e5uZ6zCs1SwRpEH/Ckfje5706sTvqikNrBADSNikSUNhyGjq76DuzU2zf0Cq5MYktahBEC4cu93ny8ZAsm0q9BeNYJeFIGC/fMFgmVbC7B1DPsCnVhx8dUq5ib4Lx+lkDyTquRgPEzg3n2ApjIO+q6dQFHrWK+/5P/B5JFahjeT5zsjgv9l0t9KeXqQeRCaQiBS4kKnipjMll81HlsqllgXaIdG+JHZEglRVFOgMzHs40IHSwGom6X1661SFsAkaD5F25smqpEogbRYoypfsFpu3ge6LJGAjOp9a/JAdlzdoE+vQLzThN0+6jVNkobAKX4r7opWiRg27Tda4vFU2dSB9Ui++q9CQPE4RriFnAxmZ0SLx+Jf47n79TFAk3rpt4VBqXnPhF8pSPIKupmwYemMss0JZdjAB2qN/zJgtHUsiPovsjx/yxH/mndJ2jaGCXvsGWlmxTdeDhChbfdjMTy/gguq4xuG2KmH+P6W51ReKDNXbIQ=
+  edge: true
+  file:
+    - canable_fw_${TRAVIS_TAG}.tar.gz
+    - canalyze_fw_${TRAVIS_TAG}.tar.gz
+    - candleLight_fw_${TRAVIS_TAG}.tar.gz
+    - cantact_fw_${TRAVIS_TAG}.tar.gz
+    - usb2can_fw_${TRAVIS_TAG}.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: candle-usb/candleLight_fw
+    branch: master

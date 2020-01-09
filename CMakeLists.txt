@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 project(candleLightFirmware C ASM)
 
 add_compile_options(
@@ -96,7 +96,7 @@ endfunction()
 
 ########## generate list of targets.
 # the "_fw" part is appended automatically
-set(TGT042_LIST "cantact" "canalyze" canable" "usb2can")
+set(TGT042_LIST "cantact" "canalyze" "canable" "usb2can")
 set(TGT072_LIST "candleLight")
 
 

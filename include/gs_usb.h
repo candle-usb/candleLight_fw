@@ -29,7 +29,7 @@ THE SOFTWARE.
 #define u32 uint32_t
 #define u8 uint8_t
 
-#define GSUSB_ENDPOINT_IN          0x81
+#define GSUSB_ENDPOINT_IN          0x01
 #define GSUSB_ENDPOINT_OUT         0x02
 
 

@@ -1,7 +1,7 @@
 # candleLight_gsusb
 [![Build Status](https://travis-ci.org/candle-usb/candleLight_fw.svg?branch=master)](https://travis-ci.org/candle-usb/candleLight_fw)
 
-This is a firmware for stm32f0-based USB-CAN adapters, notably:
+This is a firmware for stm32f0x2-based USB-CAN adapters, notably:
 - candleLight: https://github.com/HubertD/candleLight
 - cantact: http://linklayer.github.io/cantact/
 - canable (cantact clone): http://canable.io/

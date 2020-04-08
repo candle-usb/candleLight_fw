@@ -1,12 +1,12 @@
 # candleLight_gsusb
 [![Build Status](https://travis-ci.org/candle-usb/candleLight_fw.svg?branch=master)](https://travis-ci.org/candle-usb/candleLight_fw)
 
-This is a firmware for stm32f0x2-based USB-CAN adapters, notably:
-- candleLight: https://github.com/HubertD/candleLight
-- cantact: http://linklayer.github.io/cantact/
-- canable (cantact clone): http://canable.io/
-- USB2CAN: https://github.com/roboterclubaachen/usb2can
-- CANAlyze: https://kkuchera.github.io/canalyze/
+This is a firmware for STM32F042x6/STM32F072xB-based USB-CAN adapters, notably:
+- candleLight: https://github.com/HubertD/candleLight (STM32F072xB)
+- cantact: http://linklayer.github.io/cantact/ (STM32F042x6)
+- canable (cantact clone): http://canable.io/ (STM32F042x6)
+- USB2CAN: https://github.com/roboterclubaachen/usb2can (STM32F042x6)
+- CANAlyze: https://kkuchera.github.io/canalyze/ (STM32F042x6)
 
 It implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.

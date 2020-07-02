@@ -90,6 +90,7 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
 
 void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
 {
+	USBD_GS_CAN_SuspendCallback((USBD_HandleTypeDef*)hpcd->pData);
 	USBD_LL_Suspend((USBD_HandleTypeDef*)hpcd->pData);
 }
 

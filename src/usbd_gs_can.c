@@ -349,6 +349,24 @@ void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_
 	}
 }
 
+// Handle USB suspend event
+void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
+{
+	// Disable CAN and go off bus on USB suspend
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+
+	if(hcan != NULL)
+	{
+		for(uint32_t i=0; i<NUM_CAN_CHANNEL; i++)
+			if(hcan->channels[i] != NULL)
+				can_disable(hcan->channels[i]);
+	}
+
+	if(hcan != NULL && hcan->leds != NULL)
+		led_set_mode(hcan->leds, led_mode_off);
+}
+
+
 static led_seq_step_t led_identify_seq[] = {
 	{ .state = 0x01, .time_in_10ms = 10 },
 	{ .state = 0x02, .time_in_10ms = 10 },

@@ -70,6 +70,17 @@ int main(void)
 	gpio_init();
 
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
+
+#if BOARD == BOARD_canable
+    for(uint8_t i=0; i<10; i++)
+    {
+        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+        HAL_Delay(50);
+        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    }
+#endif
+
+
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();
 

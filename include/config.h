@@ -77,7 +77,7 @@ THE SOFTWARE.
 #elif BOARD == BOARD_canable
 	#define USBD_PRODUCT_STRING_FS			(uint8_t*) "canable gs_usb"
 	#define USBD_MANUFACTURER_STRING		(uint8_t*) "canable.io"
-	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "canble firmware upgrade interface"
+	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "canable firmware upgrade interface"
 
 	// SILENT pin not connected
 
@@ -89,7 +89,7 @@ THE SOFTWARE.
 	#define LED2_GPIO_Port GPIOB
 	#define LED2_Pin GPIO_PIN_1	/* blue */
 	#define LED2_Mode GPIO_MODE_OUTPUT_PP
-	#define LED2_Active_High 1
+	#define LED2_Active_High 0
 
 #elif BOARD == BOARD_usb2can
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "USB2CAN RCA gs_usb"

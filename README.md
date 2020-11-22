@@ -53,3 +53,8 @@ Flashing candleLight on linux: (source: [https://wiki.linklayer.com/index.php/Ca
 - Otherwise, invoke dfu-util manually with: `sudo dfu-util --dfuse-address -d 0483:df11 -c 1 -i 0 -a 0 -s 0x08000000 -D CORRECT_FIRWARE.bin` where CORRECT_FIRWARE is the name of the desired .bin.
 - Disconnect the USB connector, un-short the BOOT pins, and reconnect. The device is now flashed!
 - If dfu-util fails due to permission issues on Linux, you may need additional udev rules. Consult your distro's documentation and see `70-candle-usb.rules` provided here.
+
+
+## Links to related projects
+* [Cangaroo](https://github.com/HubertD/cangaroo) open source can bus analyzer software
+* [Candle.NET](https://github.com/elliotwoods/Candle.NET) .NET wrapper for the candle API

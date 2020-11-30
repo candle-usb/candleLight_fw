@@ -145,20 +145,21 @@ int main(void)
 					queue_push_back(q_frame_pool, frame);
 				}
 			}
-		}
-
-		uint32_t can_err = can_get_error_status(&hCAN);
-		if (can_err != last_can_error_status) {
+			// If there are frames to receive, don't report any error frames. The
+			// best we can localize the errors to is "after the last successfully
+			// received frame", so wait until we get there. LEC will hold some error
+			// to report even if multiple pass by.
+		} else {
+			uint32_t can_err = can_get_error_status(&hCAN);
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0) {
 				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(can_err, frame)) {
+				if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
 					send_to_host_or_enqueue(frame);
 					last_can_error_status = can_err;
 				} else {
 					queue_push_back(q_frame_pool, frame);
 				}
-
 			}
 		}
 

@@ -51,4 +51,4 @@ bool can_is_rx_pending(can_data_t *hcan);
 bool can_send(can_data_t *hcan, struct gs_host_frame *frame);
 
 uint32_t can_get_error_status(can_data_t *hcan);
-bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame);
+bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame);

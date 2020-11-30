@@ -220,20 +220,8 @@ void SystemClock_Config(void)
 
 bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 {
-	if (USBD_GS_CAN_GetProtocolVersion(&hUSB) == 2) {
-		queue_push_back(q_to_host, frame);
-		return true;
-
-	} else {
-		bool retval = false;
-		if ( USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK ) {
-			queue_push_back(q_frame_pool, frame);
-			retval = true;
-		} else {
-			queue_push_back(q_to_host, frame);
-		}
-		return retval;
-	}
+	queue_push_back(q_to_host, frame);
+	return true;
 }
 
 void send_to_host()

@@ -26,16 +26,34 @@ THE SOFTWARE.
 
 #include <util.h>
 
-inline int disable_irq(void) {
+// ARM's
+// "Application Note 321 ARM Cortex-M Programming Guide to Memory Barrier Instructions"
+// (from https://developer.arm.com/documentation/dai0321/latest) says that
+// the ISBs are actually necessary on Cortex-M0 to avoid a 2-instruction
+// delay in the effect of enabling and disabling interrupts.
+// That probably doesn't matter here, but it's hard to say what the compiler
+// will put in those 2 instructions so it's safer to leave it. The DSB isn't
+// necessary on Cortex-M0, but it's architecturally required so we'l
+// include it to be safe.
+//
+// The "memory" and "cc" clobbers tell GCC to avoid moving memory loads or
+// stores across the instructions. This is important when an interrupt and the
+// code calling disable_irq/enable_irq share memory. The fact that these are
+// non-inlined functions probably forces GCC to flush everything to memory
+// anyways, but trying to outsmart the compiler is a bad strategy (you never
+// know when somebody will turn on LTO or something).
+
+int disable_irq(void) {
 	int primask;
-	asm volatile("mrs %0, PRIMASK\n"
-				"cpsid i\n" : "=r"(primask));
+	asm volatile("dsb sy\nisb sy\nmrs %0, PRIMASK\n"
+				"cpsid i\ndsb sy\nisb sy\n" : "=r"(primask) :: "memory", "cc");
 	return primask & 1;
 }
 
-inline void enable_irq(int primask) {
+void enable_irq(int primask) {
 	if (!primask)
-		asm volatile("cpsie i\n");
+		asm volatile("dsb sy\nisb sy\ncpsie i\n"
+				"dsb sy\nisb sy\n" ::: "memory", "cc");
 }
 
 void hex32(char *out, uint32_t val)

@@ -52,10 +52,6 @@ typedef struct {
 
 	can_data_t *channels[NUM_CAN_CHANNEL];
 
-	uint32_t out_requests;
-	uint32_t out_requests_fail;
-	uint32_t out_requests_no_buf;
-
 	led_data_t *leds;
 	bool dfu_detach_requested;
 
@@ -286,6 +282,15 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 	1, // brp increment;
 };
 
+/* It's unclear from the documentation, but it appears that the USB library is
+ * not safely reentrant. It attempts to signal errors via return values if it is
+ * reentered, but that code is not interrupt-safe and the error values are
+ * silently ignored within the library in several cases. We'll just disable
+ * interrupts at all entry points to be safe. Note that the callbacks are all
+ * called from within the libary itself, either within the interrupt handler or
+ * within other calls, which means the USB interrupt is already disabled and we
+ * don't have any other interrupts to worry about. */
+
 uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds)
 {
 	uint8_t ret = USBD_FAIL;
@@ -448,7 +453,7 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 			hcan->dfu_detach_requested = true;
 			break;
 
-		case 3: // GET_STATIS request
+		case 3: // GET_STATUS request
 			hcan->ep0_buf[0] = 0x00; // bStatus: 0x00 == OK
 			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
 			hcan->ep0_buf[2] = 0x00;
@@ -601,30 +606,28 @@ static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	return USBD_OK;
 }
 
+// Note that the return value is completely ignored by the stack.
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
-
-	uint8_t retval = USBD_FAIL;
-
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 
-	hcan->out_requests++;
-
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
-	if (rxlen >= (sizeof(struct gs_host_frame)-4)) {
-		struct gs_host_frame *frame = queue_pop_front_i(hcan->q_frame_pool);
-		if(frame){
-			queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
-			hcan->from_host_buf = frame;
-
-			retval = USBD_OK;
-		}
-		else{
-			// Discard current packet from host if we have no place
-			// to put the next one
-		}
+	if (rxlen < (sizeof(struct gs_host_frame)-4)) {
+		// Invalid frame length, just ignore it and receive into the same buffer
+		// again next time.
+		USBD_GS_CAN_PrepareReceive(pdev);
+		return USBD_OK;
 	}
-	USBD_GS_CAN_PrepareReceive(pdev);
-	return retval;
+
+	queue_push_back(hcan->q_from_host, hcan->from_host_buf);
+	hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+	if (hcan->from_host_buf) {
+		USBD_GS_CAN_PrepareReceive(pdev);
+	} else {
+		// gs_can has no way to drop packets. If we just drop this one, gs_can
+		// will fill up its queue of packets awaiting ACKs and then hang. Instead,
+		// wait to call PrepareReceive until we have a frame to receive into.
+	}
+	return USBD_OK;
 }
 
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
@@ -642,7 +645,16 @@ inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return hcan->TxState == 0;
+	int primask = disable_irq();
+	if (!hcan->from_host_buf) {
+		hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+		if (hcan->from_host_buf) {
+			USBD_GS_CAN_PrepareReceive(pdev);
+		}
+	}
+	bool result = hcan->TxState == 0;
+	enable_irq(primask);
+	return result;
 }
 
 uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
@@ -680,6 +692,7 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	size_t len = sizeof(struct gs_host_frame);
 
+	int primask = disable_irq();
 	if (!hcan->timestamps_enabled)
 		len -= 4;
 
@@ -698,7 +711,9 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 		len = sizeof(buf);
 	}
 
-	return USBD_GS_CAN_Transmit(pdev, send_addr, len);
+	uint8_t result = USBD_GS_CAN_Transmit(pdev, send_addr, len);
+	enable_irq(primask);
+	return result;
 }
 
 uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)

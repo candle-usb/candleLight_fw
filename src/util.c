@@ -33,7 +33,7 @@ THE SOFTWARE.
 // delay in the effect of enabling and disabling interrupts.
 // That probably doesn't matter here, but it's hard to say what the compiler
 // will put in those 2 instructions so it's safer to leave it. The DSB isn't
-// necessary on Cortex-M0, but it's architecturally required so we'l
+// necessary on Cortex-M0, but it's architecturally required so we'll
 // include it to be safe.
 //
 // The "memory" and "cc" clobbers tell GCC to avoid moving memory loads or

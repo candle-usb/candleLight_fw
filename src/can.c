@@ -290,10 +290,10 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 		should_send = true;
 	}
 	/* If either error counter increased by 15. */
-	if (((int)last_tx_error_cnt + 15) < tx_error_cnt) {
+	if (((int)last_tx_error_cnt + CAN_ERRCOUNT_THRESHOLD) < tx_error_cnt) {
 		should_send = true;
 	}
-	if (((int)last_rx_error_cnt + 15) < rx_error_cnt) {
+	if (((int)last_rx_error_cnt + CAN_ERRCOUNT_THRESHOLD) < rx_error_cnt) {
 		should_send = true;
 	}
 

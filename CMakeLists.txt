@@ -4,22 +4,25 @@ project(candleLightFirmware C ASM)
 add_compile_options(
     -std=gnu11
     -mcpu=cortex-m0 -mthumb
-    -Wall -Wextra -Werror -Wno-deprecated
+    -Wall -Wextra -Werror
     -fmessage-length=0
     -fsigned-char
     -ffunction-sections -fdata-sections
     -ffreestanding
     -fno-move-loop-invariants
     -Os -g3
+    -flto -ffat-lto-objects
+    --specs=nano.specs
+    --specs=nosys.specs
 )
 
 add_link_options(
-    -mcpu=cortex-m0 -mthumb -O
+    -mcpu=cortex-m0 -mthumb
     -Wall -Wextra -g3
-    -nostartfiles -Xlinker --gc-sections --specs=nano.specs
-    -T ${CMAKE_SOURCE_DIR}/ldscripts/ldscript.ld
+    -Xlinker --gc-sections 
+    --specs=nano.specs
+    --specs=nosys.specs
 )
-
 
 add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
@@ -43,6 +46,7 @@ set(
         include/timer.h src/timer.c
         include/util.h src/util.c
 
+        src/startup.c
         src/main.c
         src/interrupts.c
 )
@@ -100,6 +104,7 @@ function(add_f042_target TGTNAME)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
     target_include_directories(${TGTNAME}_fw PRIVATE include/)
     target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F042X6.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
     make_bin_file(${TGTNAME}_fw)
     dfu_flash(${TGTNAME}_fw)
@@ -110,6 +115,7 @@ function(add_f072_target TGTNAME)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
     target_include_directories(${TGTNAME}_fw PRIVATE include/)
     target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
     make_bin_file(${TGTNAME}_fw)
     dfu_flash(${TGTNAME}_fw)

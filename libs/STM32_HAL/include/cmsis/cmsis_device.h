@@ -1,6 +1,7 @@
-#ifndef _CMSIS_H_
-#define _CMSIS_H_
+#ifdef STM32F042x6
+#include <cmsis/device/stm32f042x6.h>
+#endif
 
-#include "stm32f0xx.h"
-
-#endif // _CMSIS_H_
+#ifdef STM32F072xB
+#include <cmsis/device/stm32f072xb.h>
+#endif

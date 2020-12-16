@@ -95,7 +95,7 @@ int main(void)
 		queue_push_back(q_frame_pool, &msgbuf[i]);
 	}
 
-	USBD_Init(&hUSB, &FS_Desc, DEVICE_FS);
+	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host, &hLED);
 	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
@@ -112,7 +112,7 @@ int main(void)
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
-
+				
 				led_indicate_trx(&hLED, led_2);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
@@ -145,20 +145,21 @@ int main(void)
 					queue_push_back(q_frame_pool, frame);
 				}
 			}
-		}
-
-		uint32_t can_err = can_get_error_status(&hCAN);
-		if (can_err != last_can_error_status) {
+			// If there are frames to receive, don't report any error frames. The
+			// best we can localize the errors to is "after the last successfully
+			// received frame", so wait until we get there. LEC will hold some error
+			// to report even if multiple pass by.
+		} else {
+			uint32_t can_err = can_get_error_status(&hCAN);
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0) {
 				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(can_err, frame)) {
+				if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
 					send_to_host_or_enqueue(frame);
 					last_can_error_status = can_err;
 				} else {
 					queue_push_back(q_frame_pool, frame);
 				}
-
 			}
 		}
 
@@ -220,20 +221,8 @@ void SystemClock_Config(void)
 
 bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 {
-	if (USBD_GS_CAN_GetProtocolVersion(&hUSB) == 2) {
-		queue_push_back(q_to_host, frame);
-		return true;
-
-	} else {
-		bool retval = false;
-		if ( USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK ) {
-			queue_push_back(q_frame_pool, frame);
-			retval = true;
-		} else {
-			queue_push_back(q_to_host, frame);
-		}
-		return retval;
-	}
+	queue_push_back(q_to_host, frame);
+	return true;
 }
 
 void send_to_host()
@@ -242,7 +231,7 @@ void send_to_host()
 
 	if(!frame)
 	  return;
-
+	
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 		queue_push_back(q_frame_pool, frame);
 	} else {

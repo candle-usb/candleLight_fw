@@ -48,7 +48,7 @@ typedef struct {
 	queue_t *q_frame_pool;
 	queue_t *q_from_host;
 
-	struct gs_host_frame *from_host_buf;
+        struct gs_host_frame *from_host_buf;
 
 	can_data_t *channels[NUM_CAN_CHANNEL];
 
@@ -58,7 +58,8 @@ typedef struct {
 	bool timestamps_enabled;
 	uint32_t sof_timestamp_us;
 
-	bool pad_pkts_to_max_pkt_size;
+        bool pad_pkts_to_max_pkt_size;
+
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
@@ -92,7 +93,7 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 
 
 /* Configuration Descriptor */
-__ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
+static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
 {
 	/*---------------------------------------------------------------------------*/
 	/* Configuration Descriptor */
@@ -168,7 +169,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] __ALIGN_END =
 };
 
 /* Microsoft OS String Descriptor */
-__ALIGN_BEGIN uint8_t USBD_GS_CAN_WINUSB_STR[] __ALIGN_END =
+static const uint8_t USBD_GS_CAN_WINUSB_STR[] =
 {
 	0x12,                    /* length */
 	0x03,                    /* descriptor type == string */
@@ -181,7 +182,7 @@ __ALIGN_BEGIN uint8_t USBD_GS_CAN_WINUSB_STR[] __ALIGN_END =
 };
 
 /*  Microsoft Compatible ID Feature Descriptor  */
-static __ALIGN_BEGIN uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] __ALIGN_END = {
+static const uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] = {
 	0x40, 0x00, 0x00, 0x00, /* length */
 	0x00, 0x01,             /* version 1.0 */
 	0x04, 0x00,             /* descr index (0x0004) */
@@ -207,7 +208,7 @@ static __ALIGN_BEGIN uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] __ALIGN_END = {
 };
 
 /* Microsoft Extended Properties Feature Descriptor */
-static __ALIGN_BEGIN uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] __ALIGN_END = {
+static const uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] = {
 	0x92, 0x00, 0x00, 0x00, /* length */
 	0x00, 0x01,				/* version 1.0 */
 	0x05, 0x00,             /* descr index (0x0005) */
@@ -311,16 +312,18 @@ uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_
 	return ret;
 }
 
+
+
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
 	UNUSED(cfgidx);
 	uint8_t ret = USBD_FAIL;
 
 	if (pdev->pClassData) {
-		USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	  USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
-		hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+                hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
 		USBD_GS_CAN_PrepareReceive(pdev);
 		ret = USBD_OK;
 	} else {
@@ -355,9 +358,9 @@ void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_
 }
 
 static led_seq_step_t led_identify_seq[] = {
-	{ .state = 0x01, .time_in_10ms = 10 },
-	{ .state = 0x02, .time_in_10ms = 10 },
-	{ .state = 0x00, .time_in_10ms = 0 }
+		{ .state = 0x01, .time_in_10ms = 10 },
+		{ .state = 0x02, .time_in_10ms = 10 },
+		{ .state = 0x00, .time_in_10ms = 0 }
 };
 
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
@@ -371,35 +374,35 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
-	switch (req->bRequest) {
+    switch (req->bRequest) {
 
-		case GS_USB_BREQ_HOST_FORMAT:
-			// TODO process host data (expect 0x0000beef in byte_order)
-			memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
-			break;
+    	case GS_USB_BREQ_HOST_FORMAT:
+    		// TODO process host data (expect 0x0000beef in byte_order)
+    		memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
+    		break;
 
-		case GS_USB_BREQ_IDENTIFY:
-			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-			if (param_u32) {
-				led_run_sequence(hcan->leds, led_identify_seq, -1);
-			} else {
-				ch = hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
-				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
-			}
-			break;
+    	case GS_USB_BREQ_IDENTIFY:
+    		memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+    		if (param_u32) {
+    			led_run_sequence(hcan->leds, led_identify_seq, -1);
+    		} else {
+    			ch = hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
+        		led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+    		}
+    		break;
 
-		case GS_USB_BREQ_SET_USER_ID:
-			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-			if (flash_set_user_id(req->wValue, param_u32)) {
-				flash_flush();
-			}
-			break;
+    	case GS_USB_BREQ_SET_USER_ID:
+    		memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+    		if (flash_set_user_id(req->wValue, param_u32)) {
+    			flash_flush();
+    		}
+    		break;
 
-		case GS_USB_BREQ_MODE:
-			if (req->wValue < NUM_CAN_CHANNEL) {
+    	case GS_USB_BREQ_MODE:
+    		if (req->wValue < NUM_CAN_CHANNEL) {
 
-				mode = (struct gs_device_mode*)hcan->ep0_buf;
-				ch = hcan->channels[req->wValue];
+    			mode = (struct gs_device_mode*)hcan->ep0_buf;
+    			ch = hcan->channels[req->wValue];
 
 				if (mode->mode == GS_CAN_MODE_RESET) {
 
@@ -421,11 +424,11 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					led_set_mode(hcan->leds, led_mode_normal);
 				}
 			}
-			break;
+    		break;
 
-		case GS_USB_BREQ_BITTIMING:
-			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-			if (req->wValue < NUM_CAN_CHANNEL) {
+    	case GS_USB_BREQ_BITTIMING:
+    		timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+    		if (req->wValue < NUM_CAN_CHANNEL) {
 				can_set_bittiming(
 					hcan->channels[req->wValue],
 					timing->brp,
@@ -433,12 +436,12 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					timing->phase_seg2,
 					timing->sjw
 				);
-			}
-			break;
+    		}
+    		break;
 
 		default:
 			break;
-	}
+    }
 
 	req->bRequest = 0xFF;
 	return USBD_OK;
@@ -499,7 +502,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_TIMESTAMP:
 			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
 			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
-			break;
+    		break;
 
 		case GS_USB_BREQ_GET_USER_ID:
 			if (req->wValue < NUM_CAN_CHANNEL) {
@@ -537,29 +540,25 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
-	uint16_t len = 0;
-	uint8_t *pbuf;
-
 	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
 
 		switch (req->wIndex) {
 
 			case 0x0004:
-				pbuf = USBD_MS_COMP_ID_FEATURE_DESC;
-				len = sizeof(USBD_MS_COMP_ID_FEATURE_DESC);
-				USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+				memcpy(USBD_DescBuf, USBD_MS_COMP_ID_FEATURE_DESC, sizeof(USBD_MS_COMP_ID_FEATURE_DESC));
+				USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
 				return true;
 
 			case 0x0005:
 				if (req->wValue==0) { // only return our GUID for interface #0
-					pbuf = USBD_MS_EXT_PROP_FEATURE_DESC;
-					len = sizeof(USBD_MS_EXT_PROP_FEATURE_DESC);
-					USBD_CtlSendData(pdev, pbuf, MIN(len, req->wLength));
+					memcpy(USBD_DescBuf, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+					USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength));
 					return true;
 				}
 				break;
 
 		}
+
 	}
 
 	return false;
@@ -633,7 +632,8 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 {
 	*len = sizeof(USBD_GS_CAN_CfgDesc);
-	return USBD_GS_CAN_CfgDesc;
+	memcpy(USBD_DescBuf, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
+	return USBD_DescBuf;
 }
 
 inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
@@ -687,22 +687,22 @@ uint8_t USBD_GS_CAN_GetPadPacketsToMaxPacketSize(USBD_HandleTypeDef *pdev)
 
 uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
 {
-	uint8_t buf[CAN_DATA_MAX_PACKET_SIZE],*send_addr;
-
+        uint8_t buf[CAN_DATA_MAX_PACKET_SIZE],*send_addr;
+  
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	size_t len = sizeof(struct gs_host_frame);
 
 	int primask = disable_irq();
 	if (!hcan->timestamps_enabled)
-		len -= 4;
+	  len -= 4;
 
 	send_addr = (uint8_t *)frame;
-
+	
 	if(hcan->pad_pkts_to_max_pkt_size){
-		// When talking to WinUSB it seems to help a lot if the
+	        // When talking to WinUSB it seems to help a lot if the
 		// size of packet you send equals the max packet size.
-		// In this mode, fill packets out to max packet size and
-		// then send.
+	        // In this mode, fill packets out to max packet size and
+	        // then send.
 		memcpy(buf, frame, len);
 
 		// zero rest of buffer
@@ -722,11 +722,12 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 
 	switch (index) {
 		case DFU_INTERFACE_STR_INDEX:
-			USBD_GetString(DFU_INTERFACE_STRING_FS, USBD_StrDesc, length);
-			return USBD_StrDesc;
+			USBD_GetString(DFU_INTERFACE_STRING_FS, USBD_DescBuf, length);
+			return USBD_DescBuf;
 		case 0xEE:
 			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
-			return USBD_GS_CAN_WINUSB_STR;
+			memcpy(USBD_DescBuf, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+			return USBD_DescBuf;
 		default:
 			*length = 0;
 			USBD_CtlError(pdev, 0);
@@ -739,3 +740,4 @@ bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	return hcan->dfu_detach_requested;
 }
+

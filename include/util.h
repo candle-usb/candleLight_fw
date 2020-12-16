@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Hubert Denkmair
+Copyright (c) 2016, 2019 Hubert Denkmair
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,44 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <cmsis_device.h>
 
-int disable_irq(void);
-void enable_irq(int primask);
 void hex32(char *out, uint32_t val);
+
+// ARM's
+// "Application Note 321 ARM Cortex-M Programming Guide to Memory Barrier Instructions"
+// (from https://developer.arm.com/documentation/dai0321/latest) says that
+// the ISBs are actually necessary on Cortex-M0 to avoid a 2-instruction
+// delay in the effect of enabling and disabling interrupts.
+// That probably doesn't matter here, but it's hard to say what the compiler
+// will put in those 2 instructions so it's safer to leave it. The DSB isn't
+// necessary on Cortex-M0, but it's architecturally required so we'll
+// include it to be safe.
+//
+// The "memory" and "cc" clobbers tell GCC to avoid moving memory loads or
+// stores across the instructions. This is important when an interrupt and the
+// code calling disable_irq/enable_irq share memory. The fact that these are
+// non-inlined functions probably forces GCC to flush everything to memory
+// anyways, but trying to outsmart the compiler is a bad strategy (you never
+// know when somebody will turn on LTO or something).
+
+static inline bool is_irq_enabled(void)
+{
+	return (__get_PRIMASK() & 1u) == 0u; // interrupts not prevented
+}
+
+static inline bool disable_irq(void) 
+{
+	bool was_enabled = is_irq_enabled();
+	__disable_irq();
+	__ISB();
+	return was_enabled;
+}
+
+static inline void enable_irq() 
+{
+	__enable_irq();
+    __ISB();
+}
+

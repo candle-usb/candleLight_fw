@@ -1,10 +1,14 @@
 __STACK_SIZE = 1024;
 __HEAP_SIZE  = 2560;
 
+__FLASH_SIZE = 32K;
+__NVM_SIZE = 1K;
+
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 32K
+  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = __FLASH_SIZE - __NVM_SIZE
   RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 6K
+  DATA (xrw) : ORIGIN = 0x08000000 + __FLASH_SIZE - __NVM_SIZE, LENGTH = __NVM_SIZE
 }
 
 ENTRY(Reset_Handler)
@@ -68,6 +72,13 @@ SECTIONS
   } > FLASH
 
   __etext = ALIGN (4);
+
+  .user_data :
+  {
+    . = ALIGN(4);
+    *(.user_data)
+    . = ALIGN(4);
+  } > DATA
 
   .data : AT (__etext)
   {

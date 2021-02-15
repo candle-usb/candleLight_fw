@@ -617,9 +617,12 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		return USBD_OK;
 	}
 
+	// Enqueue the frame we just received.
 	queue_push_back(hcan->q_from_host, hcan->from_host_buf);
+	// Grab a buffer for the next frame from the pool.
 	hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
 	if (hcan->from_host_buf) {
+		// We got a buffer! Get ready to receive from the USB host into it.
 		USBD_GS_CAN_PrepareReceive(pdev);
 	} else {
 		// gs_can has no way to drop packets. If we just drop this one, gs_can
@@ -692,7 +695,6 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	size_t len = sizeof(struct gs_host_frame);
 
-	int primask = disable_irq();
 	if (!hcan->timestamps_enabled)
 	  len -= 4;
 
@@ -711,6 +713,7 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 		len = sizeof(buf);
 	}
 
+	int primask = disable_irq();
 	uint8_t result = USBD_GS_CAN_Transmit(pdev, send_addr, len);
 	enable_irq(primask);
 	return result;

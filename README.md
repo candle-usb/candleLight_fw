@@ -8,6 +8,7 @@ This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, nota
 - USB2CAN: https://github.com/roboterclubaachen/usb2can (STM32F042x6)
 - CANAlyze: https://kkuchera.github.io/canalyze/ (STM32F042C6)
 - VulCAN Gen1: https://shop.copperforge.cc/products/ac41 (STM32F042x6)
+- Entreé: https://github.com/tuna-f1sh/entree (STM32F042x6)
 
 Of important note is that the common STM32F103 will NOT work with this firmware because its hardware cannot use both USB and CAN simultaneously.
 Beware also the smaller packages in the F042 series which map a USB and CAN_TX signal on the same pin and are therefore unusable !

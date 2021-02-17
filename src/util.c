@@ -25,6 +25,7 @@ THE SOFTWARE.
 */
 
 #include <util.h>
+#include <cmsis_device.h>
 
 void hex32(char *out, uint32_t val)
 {
@@ -43,4 +44,9 @@ void hex32(char *out, uint32_t val)
 		val >>= 4;
 		p--;
 	}
+}
+
+void assert_failed(void) {
+	/* for now, just halt and trigger debugger (if attached) */
+	__BKPT(0);
 }

@@ -54,7 +54,7 @@ static inline bool is_irq_enabled(void)
 	return (__get_PRIMASK() & 1u) == 0u; // interrupts not prevented
 }
 
-static inline bool disable_irq(void) 
+static inline bool disable_irq(void)
 {
 	bool was_enabled = is_irq_enabled();
 	__disable_irq();
@@ -62,9 +62,31 @@ static inline bool disable_irq(void)
 	return was_enabled;
 }
 
-static inline void enable_irq() 
+static inline void enable_irq()
 {
 	__enable_irq();
     __ISB();
 }
 
+/* Lightweight assert macro to replace standard assert()
+ *
+ * Standard assert() needs fprint, __FILE__ , __LINE__ string consts etc.
+ *
+ * stm32's library has "USE_FULL_ASSERT" to enable some checks, but they have
+ * their own assert_param() macro that also passes in __FILE__, __LINE__ so
+ * I'm not sure if (and how) it'll be possible to combine both.
+ *
+ * Interesting notes on
+ * https://barrgroup.com/embedded-systems/how-to/define-assert-macro
+ *
+ */
+#define assert_basic(exp)   \
+		if (exp) {			\
+		} else 				\
+			assert_failed()
+
+/** halt / set core to debug state with BKPT.
+ *
+ * TODO : save extra info somewhere in RAM, and let WDT auto-reset ?
+ */
+void assert_failed(void);

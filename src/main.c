@@ -41,6 +41,7 @@ THE SOFTWARE.
 #include "dfu.h"
 #include "timer.h"
 #include "flash.h"
+#include "util.h"
 
 void HAL_MspInit(void);
 void SystemClock_Config(void);
@@ -89,8 +90,11 @@ int main(void)
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
 	q_from_host  = queue_create(CAN_QUEUE_SIZE);
 	q_to_host    = queue_create(CAN_QUEUE_SIZE);
+	assert_basic(q_frame_pool && q_from_host && q_to_host);
 
 	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
+	assert_basic(msgbuf);
+
 	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
 		queue_push_back(q_frame_pool, &msgbuf[i]);
 	}
@@ -112,7 +116,7 @@ int main(void)
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
-				
+
 				led_indicate_trx(&hLED, led_2);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
@@ -231,7 +235,7 @@ void send_to_host()
 
 	if(!frame)
 	  return;
-	
+
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 		queue_push_back(q_frame_pool, frame);
 	} else {

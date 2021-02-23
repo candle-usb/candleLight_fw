@@ -64,6 +64,16 @@ function(make_bin_file target)
     )
 endfunction()
 
+## append version to .bin file
+function(append_version target target_ver)
+    add_custom_command(
+        TARGET ${target} POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        BYPRODUCTS ${target}.bin
+        COMMAND mv ${target}.bin ${target_ver}.bin        
+    )
+endfunction()
+
 ## report size
 function(show_object_size target)
     string(REPLACE "objcopy" "size" CMAKE_OBJSIZE "${CMAKE_OBJCOPY}")
@@ -101,14 +111,20 @@ endfunction()
 # Split into two categories, F042-based and F072-based.
 
 function(add_f042_target TGTNAME)
+    execute_process(
+        COMMAND git -C ${CMAKE_CURRENT_BINARY_DIR} log -1 --format=%h
+        OUTPUT_VARIABLE versionStr
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
     target_include_directories(${TGTNAME}_fw PRIVATE include/)
-    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME} VERSION_STR=\"${TGTNAME}-${versionStr}\")
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F042X6.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
     make_bin_file(${TGTNAME}_fw)
     dfu_flash(${TGTNAME}_fw)
     show_object_size(${TGTNAME}_fw)
+    append_version(${TGTNAME}_fw ${TGTNAME}-${versionStr})
 endfunction()
 
 function(add_f072_target TGTNAME)

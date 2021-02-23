@@ -53,7 +53,15 @@ make cantact_fw
 make help
 
 ```
+```shell
+# BRT Building canable
+./build_canable.sh
 
+# build_canable.sh
+# erases version info from CMake files
+# configures cmake
+# make canable_fw
+```
 ## Flashing
 
 Flashing candleLight on linux: (source: [https://wiki.linklayer.com/index.php/CandleLightFirmware](https://wiki.linklayer.com/index.php/CandleLightFirmware))

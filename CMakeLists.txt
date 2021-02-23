@@ -128,14 +128,20 @@ function(add_f042_target TGTNAME)
 endfunction()
 
 function(add_f072_target TGTNAME)
+    execute_process(
+        COMMAND git -C ${CMAKE_CURRENT_BINARY_DIR} log -1 --format=%h
+        OUTPUT_VARIABLE versionStr
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
     target_include_directories(${TGTNAME}_fw PRIVATE include/)
-    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME} VERSION_STR=\"${TGTNAME}-${versionStr}\")
+    target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
     make_bin_file(${TGTNAME}_fw)
     dfu_flash(${TGTNAME}_fw)
     show_object_size(${TGTNAME}_fw)
+    append_version(${TGTNAME}_fw ${TGTNAME}-${versionStr})
 endfunction()
 
 ########## generate list of targets.

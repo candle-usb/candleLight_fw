@@ -43,9 +43,6 @@ set(SOURCES
     src/cmsis/system_stm32f0xx.c
     include/stm32f0xx/Legacy/stm32_hal_legacy.h
 
-    include/cmsis/arm_common_tables.h
-    include/cmsis/arm_const_structs.h
-    include/cmsis/arm_math.h
     include/cmsis/cmsis_compiler.h
     include/cmsis/cmsis_device.h
     include/cmsis/cmsis_gcc.h

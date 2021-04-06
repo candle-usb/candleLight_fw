@@ -28,6 +28,18 @@ add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake )
 
+
+# Add a custom target that produces version.h, plus
+# a dummy output that's not actually produced, in order
+# to force version.hmake to always be re-run before the build
+
+
+add_custom_target(version_h BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+	COMMAND ${CMAKE_COMMAND}
+		-D SRCDIR="${CMAKE_CURRENT_SOURCE_DIR}"
+		-P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gitversion.cmake
+)
+
 set(
     SOURCE_FILES
         include/config.h
@@ -49,6 +61,8 @@ set(
         src/startup.c
         src/main.c
         src/interrupts.c
+
+        ${CMAKE_CURRENT_BINARY_DIR}/version.h
 )
 
 
@@ -102,7 +116,8 @@ endfunction()
 
 function(add_f042_target TGTNAME)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
-    target_include_directories(${TGTNAME}_fw PRIVATE include/)
+	add_dependencies(${TGTNAME}_fw version_h)
+    target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
     target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F042X6.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
@@ -113,7 +128,8 @@ endfunction()
 
 function(add_f072_target TGTNAME)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
-    target_include_directories(${TGTNAME}_fw PRIVATE include/)
+	add_dependencies(${TGTNAME}_fw version_h)
+    target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
     target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)

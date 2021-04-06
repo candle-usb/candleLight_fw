@@ -107,7 +107,7 @@ static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
 	0x00,
 	0x02,                             /* bNumInterfaces */
 	0x01,                             /* bConfigurationValue */
-	0x00,                             /* iConfiguration */
+	USBD_IDX_CONFIG_STR,              /* iConfiguration */
 	0x80,                             /* bmAttributes */
 	0x4B,                             /* MaxPower 150 mA */
 	/*---------------------------------------------------------------------------*/

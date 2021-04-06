@@ -26,12 +26,14 @@ THE SOFTWARE.
 
 #pragma once
 
+#include "version.h"
+
 #define CAN_QUEUE_SIZE 64
 
 #define USBD_VID                     0x1d50
 #define USBD_PID_FS                  0x606f
 #define USBD_LANGID_STRING           1033
-#define USBD_CONFIGURATION_STRING_FS (uint8_t*) "gs_usb config"
+#define USBD_CONFIGURATION_STRING_FS (uint8_t*) GIT_HASH
 #define USBD_INTERFACE_STRING_FS     (uint8_t*) "gs_usb interface"
 
 #define BOARD_candleLight 1

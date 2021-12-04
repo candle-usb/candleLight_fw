@@ -28,6 +28,8 @@ THE SOFTWARE.
 #include <string.h>
 #include "hal_include.h"
 
+#define SEQ_ISPASSED(now, target) ((int32_t) ((now) - (target)) >= 0)
+
 void led_init(
 	led_data_t *leds,
 	void* led1_port, uint16_t led1_pin, bool led1_active_high,
@@ -63,8 +65,12 @@ static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
 	leds->sequence_step = step_num;
 	led_set(&leds->led_state[0], step->state & 0x01);
 	led_set(&leds->led_state[1], step->state & 0x02);
-	leds->t_sequence_next = HAL_GetTick() + 10*step->time_in_10ms;
-	return 10 * step->time_in_10ms;
+	uint32_t delta = 10 * step->time_in_10ms;
+	if (delta > INT32_MAX) {
+		delta = INT32_MAX;	//clamp
+	}
+	leds->t_sequence_next = HAL_GetTick() + delta;
+	return delta;
 }
 
 void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat)
@@ -82,7 +88,8 @@ void led_indicate_trx(led_data_t *leds, led_num_t num)
 	uint32_t now = HAL_GetTick();
 	led_state_t *led = &leds->led_state[num];
 
-	if ( (led->on_until < now) && (led->off_until < now) ) {
+	if ( SEQ_ISPASSED(now, led->on_until) &&
+		SEQ_ISPASSED(now, led->off_until) ) {
 		led->off_until = now + 30;
 		led->on_until = now + 45;
 	}
@@ -93,7 +100,7 @@ void led_indicate_trx(led_data_t *leds, led_num_t num)
 static void led_update_normal_mode(led_state_t *led)
 {
 	uint32_t now = HAL_GetTick();
-	led_set(led, led->off_until < now);
+	led_set(led, SEQ_ISPASSED(now, led->off_until));
 }
 
 static void led_update_sequence(led_data_t *leds)
@@ -103,7 +110,7 @@ static void led_update_sequence(led_data_t *leds)
 	}
 
 	uint32_t now = HAL_GetTick();
-	if (now > leds->t_sequence_next) {
+	if (SEQ_ISPASSED(now, leds->t_sequence_next)) {
 
 		uint32_t t = led_set_sequence_step(leds, ++leds->sequence_step);
 

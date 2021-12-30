@@ -39,7 +39,8 @@ THE SOFTWARE.
 #define GS_CAN_MODE_TRIPLE_SAMPLE               (1<<2)
 #define GS_CAN_MODE_ONE_SHOT                    (1<<3)
 #define GS_CAN_MODE_HW_TIMESTAMP                (1<<4)
-
+/* #define GS_CAN_FEATURE_IDENTIFY              (1<<5) */
+/* #define GS_CAN_FEATURE_USER_ID               (1<<6) */
 #define GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE    (1<<7)
 
 #define GS_CAN_FEATURE_LISTEN_ONLY              (1<<0)

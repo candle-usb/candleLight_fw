@@ -43,6 +43,7 @@ THE SOFTWARE.
 /* #define GS_CAN_FEATURE_USER_ID               (1<<6) */
 #define GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE    (1<<7)
 #define GS_CAN_MODE_FD                          (1<<8) /* switch device to CAN-FD mode */
+/* #define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX (1<<9) */
 
 #define GS_CAN_FEATURE_LISTEN_ONLY              (1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK                (1<<1)
@@ -53,6 +54,10 @@ THE SOFTWARE.
 #define GS_CAN_FEATURE_USER_ID                  (1<<6)
 #define GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE (1<<7)
 #define GS_CAN_FEATURE_FD                       (1<<8) /* device supports CAN-FD */
+/* request workaround for LPC546XX erratum USB.15:
+ * let host driver add a padding byte to each USB frame
+ */
+#define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX   (1<<9)
 
 #define GS_CAN_FLAG_OVERFLOW                    (1<<0)
 #define GS_CAN_FLAG_FD                          (1<<1) /* is a CAN-FD frame */

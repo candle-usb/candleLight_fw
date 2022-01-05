@@ -32,18 +32,32 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 	__HAL_RCC_CAN1_CLK_ENABLE();
 
 	GPIO_InitTypeDef itd;
+#if defined(STM32F0)
 	itd.Pin = GPIO_PIN_8|GPIO_PIN_9;
 	itd.Mode = GPIO_MODE_AF_PP;
 	itd.Pull = GPIO_NOPULL;
 	itd.Speed = GPIO_SPEED_FREQ_HIGH;
 	itd.Alternate = GPIO_AF4_CAN;
 	HAL_GPIO_Init(GPIOB, &itd);
+#elif defined(STM32F4)
+	itd.Pin = GPIO_PIN_0|GPIO_PIN_1;
+	itd.Mode = GPIO_MODE_AF_PP;
+	itd.Pull = GPIO_NOPULL;
+	itd.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	itd.Alternate = GPIO_AF9_CAN1;
+	HAL_GPIO_Init(GPIOD, &itd);
+#endif
 
-	hcan->instance   = instance;
-	hcan->brp        = 6;
+	hcan->instance	 = instance;
+	hcan->brp		 = 6;
+	hcan->sjw		 = 1;
+#if defined(STM32F0)
 	hcan->phase_seg1 = 13;
 	hcan->phase_seg2 = 2;
-	hcan->sjw        = 1;
+#elif defined(STM32F4)
+	hcan->phase_seg1 = 12;
+	hcan->phase_seg2 = 1;
+#endif
 }
 
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
@@ -83,7 +97,7 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	// Reset CAN peripheral
 	can->MCR |= CAN_MCR_RESET;
 	while((can->MCR & CAN_MCR_RESET) != 0); // reset bit is set to zero after reset
-	while((can->MSR & CAN_MSR_SLAK) == 0);  // should be in sleep mode after reset
+	while((can->MSR & CAN_MSR_SLAK) == 0); // should be in sleep mode after reset
 
 	can->MCR |= CAN_MCR_INRQ ;
 	while((can->MSR & CAN_MSR_INAK) == 0);
@@ -151,12 +165,12 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 
 		rx_frame->can_dlc = fifo->RDTR & CAN_RDT0R_DLC;
 
-		rx_frame->data[0] = (fifo->RDLR >>  0) & 0xFF;
-		rx_frame->data[1] = (fifo->RDLR >>  8) & 0xFF;
+		rx_frame->data[0] = (fifo->RDLR >> 0) & 0xFF;
+		rx_frame->data[1] = (fifo->RDLR >> 8) & 0xFF;
 		rx_frame->data[2] = (fifo->RDLR >> 16) & 0xFF;
 		rx_frame->data[3] = (fifo->RDLR >> 24) & 0xFF;
-		rx_frame->data[4] = (fifo->RDHR >>  0) & 0xFF;
-		rx_frame->data[5] = (fifo->RDHR >>  8) & 0xFF;
+		rx_frame->data[4] = (fifo->RDHR >> 0) & 0xFF;
+		rx_frame->data[5] = (fifo->RDHR >> 8) & 0xFF;
 		rx_frame->data[6] = (fifo->RDHR >> 16) & 0xFF;
 		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
 

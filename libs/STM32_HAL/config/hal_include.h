@@ -26,13 +26,8 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "hal_include.h"
-
-#define USBD_MAX_NUM_INTERFACES       1
-#define USBD_MAX_NUM_CONFIGURATION    1
-#define USBD_DESC_BUF_SIZE            192
-#define USBD_SUPPORT_USER_STRING_DESC 1
-#define USBD_SELF_POWERED             0
-#define DEVICE_FS                     0
-
-#define USBD_ErrLog(...)
+#if defined(STM32F0)
+# include "stm32f0xx_hal.h"
+#elif defined(STM32F4)
+# include "stm32f4xx_hal.h"
+#endif

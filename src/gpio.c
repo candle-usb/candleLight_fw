@@ -25,9 +25,9 @@ THE SOFTWARE.
 */
 
 #include "config.h"
-#include "stm32f0xx_hal.h"
+#include "hal_include.h"
 
-//must run before can_init
+// must run before can_init
 void gpio_init()
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -35,6 +35,9 @@ void gpio_init()
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
+#if defined(STM32F4)
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+#endif
 
 #ifdef CAN_S_Pin
 	HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
@@ -90,4 +93,14 @@ void gpio_init()
 	HAL_GPIO_Init(nSI86EN_Port, &GPIO_InitStruct);	//enable si86
 
 #endif // BOARD_cannette
+
+#if BOARD == BOARD_STM32F4_DevBoard
+    // initialize USB pins
+    GPIO_InitStruct.Pin = USB_Pin_DM | USB_Pin_DP;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+    HAL_GPIO_Init(USB_GPIO_Port, &GPIO_InitStruct);
+#endif
 }

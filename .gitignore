@@ -6,3 +6,5 @@
 *.asmo
 *.elf
 *~
+.cache/
+compile_commands.json

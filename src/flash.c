@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "flash.h"
 #include <string.h>
-#include "stm32f0xx_hal_flash.h"
+#include "hal_include.h"
 
 #define NUM_CHANNEL 1
 
@@ -70,13 +70,24 @@ uint32_t flash_get_user_id(uint8_t channel)
 void flash_flush()
 {
 	FLASH_EraseInitTypeDef erase_pages;
+#if defined(STM32F0)
 	erase_pages.PageAddress = (uint32_t)&flash_data_rom;
 	erase_pages.NbPages = 1;
 	erase_pages.TypeErase = FLASH_TYPEERASE_PAGES;
+#elif defined(STM32F4)
+	erase_pages.VoltageRange = VOLTAGE_RANGE_3;
+	erase_pages.TypeErase = FLASH_TYPEERASE_SECTORS;
+	erase_pages.Sector = FLASH_SECTOR_7;
+	erase_pages.NbSectors = 1U;
+#endif
 
 	HAL_FLASH_Unlock();
+#if defined(STM32F0)
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_SR_PGERR);
-
+#elif defined(STM32F4)
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
+                           FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+#endif
 	uint32_t error = 0;
 	HAL_FLASHEx_Erase(&erase_pages, &error);
 	if (error==0xFFFFFFFF) { // erase finished successfully

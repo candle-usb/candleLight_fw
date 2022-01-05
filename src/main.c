@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include <string.h>
 
 #include "config.h"
-#include "stm32f0xx_hal.h"
+#include "hal_include.h"
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_core.h"
@@ -73,23 +73,23 @@ int main(void)
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
 
 	/* nice wake-up pattern */
-    for(uint8_t i=0; i<10; i++)
-    {
-        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-        HAL_Delay(50);
-        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    }
+	for(uint8_t i=0; i<10; i++)
+	{
+		HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+		HAL_Delay(50);
+		HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+	}
 
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();
 
-	can_init(&hCAN, CAN);
+	can_init(&hCAN, CAN_INTERFACE);
 	can_disable(&hCAN);
 
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
 	q_from_host  = queue_create(CAN_QUEUE_SIZE);
-	q_to_host    = queue_create(CAN_QUEUE_SIZE);
+	q_to_host	 = queue_create(CAN_QUEUE_SIZE);
 	assert_basic(q_frame_pool && q_from_host && q_to_host);
 
 	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
@@ -179,6 +179,10 @@ int main(void)
 void HAL_MspInit(void)
 {
 	__HAL_RCC_SYSCFG_CLK_ENABLE();
+#if defined(STM32F4)
+	__HAL_RCC_PWR_CLK_ENABLE();
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+#endif
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
@@ -186,16 +190,19 @@ void SystemClock_Config(void)
 {
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+
+#if defined(STM32F0)
 	RCC_PeriphCLKInitTypeDef PeriphClkInit;
-	RCC_CRSInitTypeDef RCC_CRSInitStruct;
+	RCC_CRSInitTypeDef       RCC_CRSInitStruct;
 
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
 	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-							  |RCC_CLOCKTYPE_PCLK1;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK |
+								  RCC_CLOCKTYPE_SYSCLK |
+								  RCC_CLOCKTYPE_PCLK1;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -206,7 +213,6 @@ void SystemClock_Config(void)
 	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
 	__HAL_RCC_CRS_CLK_ENABLE();
-
 	RCC_CRSInitStruct.Prescaler = RCC_CRS_SYNC_DIV1;
 	RCC_CRSInitStruct.Source = RCC_CRS_SYNC_SOURCE_USB;
 	RCC_CRSInitStruct.Polarity = RCC_CRS_SYNC_POLARITY_RISING;
@@ -214,6 +220,27 @@ void SystemClock_Config(void)
 	RCC_CRSInitStruct.ErrorLimitValue = 34;
 	RCC_CRSInitStruct.HSI48CalibrationValue = 32;
 	HAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);
+#elif defined(STM32F4)
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLM = 4;
+	RCC_OscInitStruct.PLL.PLLN = 168;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+	RCC_OscInitStruct.PLL.PLLQ = 7;
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
+
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK |
+								  RCC_CLOCKTYPE_SYSCLK |
+								  RCC_CLOCKTYPE_PCLK1 |
+								  RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
+#endif
 
 	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 

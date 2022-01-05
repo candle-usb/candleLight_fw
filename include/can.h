@@ -28,7 +28,9 @@ THE SOFTWARE.
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "stm32f0xx_hal.h"
+
+#include "hal_include.h"
+
 #include <gs_usb.h>
 
 typedef struct {

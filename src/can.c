@@ -32,18 +32,32 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 	__HAL_RCC_CAN1_CLK_ENABLE();
 
 	GPIO_InitTypeDef itd;
+#if defined(STM32F0)
 	itd.Pin = GPIO_PIN_8|GPIO_PIN_9;
 	itd.Mode = GPIO_MODE_AF_PP;
 	itd.Pull = GPIO_NOPULL;
 	itd.Speed = GPIO_SPEED_FREQ_HIGH;
 	itd.Alternate = GPIO_AF4_CAN;
 	HAL_GPIO_Init(GPIOB, &itd);
+#elif defined(STM32F4)
+	itd.Pin = GPIO_PIN_0|GPIO_PIN_1;
+	itd.Mode = GPIO_MODE_AF_PP;
+	itd.Pull = GPIO_NOPULL;
+	itd.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	itd.Alternate = GPIO_AF9_CAN1;
+	HAL_GPIO_Init(GPIOD, &itd);
+#endif
 
 	hcan->instance   = instance;
 	hcan->brp        = 6;
+	hcan->sjw		 = 1;
+#if defined(STM32F0)
 	hcan->phase_seg1 = 13;
 	hcan->phase_seg2 = 2;
-	hcan->sjw        = 1;
+#elif defined(STM32F4)
+	hcan->phase_seg1 = 12;
+	hcan->phase_seg2 = 1;
+#endif
 }
 
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)

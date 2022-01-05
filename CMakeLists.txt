@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 project(candleLightFirmware C ASM)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_compile_options(
-    -std=gnu11
-    -mcpu=cortex-m0 -mthumb
+    -std=gnu11 -mthumb
     -Wall -Wextra -Werror
     -fmessage-length=0
     -fsigned-char
@@ -17,8 +18,7 @@ add_compile_options(
 )
 
 add_link_options(
-    -mcpu=cortex-m0 -mthumb
-    -Wall -Wextra -g3
+    -mthumb -Wall -Wextra -g3
     -Xlinker --gc-sections 
     --specs=nano.specs
     --specs=nosys.specs
@@ -118,7 +118,9 @@ function(add_f042_target TGTNAME)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
     target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
-    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+    target_compile_options(${TGTNAME}_fw BEFORE PRIVATE -mcpu=cortex-m0)
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME} STM32F0)
+    target_link_options(${TGTNAME}_fw BEFORE PRIVATE -mcpu=cortex-m0)
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F042X6.ld)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
     make_bin_file(${TGTNAME}_fw)
@@ -130,9 +132,27 @@ function(add_f072_target TGTNAME)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
     target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
-    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME})
+    target_compile_options(${TGTNAME}_fw BEFORE PRIVATE -mcpu=cortex-m0)
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME} STM32F0)
+    target_link_options(${TGTNAME}_fw BEFORE PRIVATE -mcpu=cortex-m0)
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
+    target_link_options(STM32_HAL_STM32F072xB BEFORE PRIVATE -mcpu=cortex-m0)
+    target_link_options(STM32_USB_Device_Library_STM32F072xB BEFORE PRIVATE -mcpu=cortex-m0)
     target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
+    make_bin_file(${TGTNAME}_fw)
+    dfu_flash(${TGTNAME}_fw)
+    show_object_size(${TGTNAME}_fw)
+endfunction()
+
+function(add_f407_target TGTNAME)
+	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
+	add_dependencies(${TGTNAME}_fw version_h)
+    target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD=BOARD_${TGTNAME} STM32F4)
+    target_compile_options(${TGTNAME}_fw BEFORE PRIVATE -mcpu=cortex-m4)
+    target_link_options(${TGTNAME}_fw BEFORE PRIVATE -mcpu=cortex-m4)
+    target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F407XE.ld)
+    target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F407xE STM32_USB_Device_Library_STM32F407xE)
     make_bin_file(${TGTNAME}_fw)
     dfu_flash(${TGTNAME}_fw)
     show_object_size(${TGTNAME}_fw)
@@ -142,6 +162,7 @@ endfunction()
 # the "_fw" part is appended automatically
 set(TGT042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette")
 set(TGT072_LIST "candleLight")
+set(TGT407_LIST "STM32F4_DevBoard")
 
 
 foreach (TGTNAME IN LISTS TGT042_LIST)
@@ -155,6 +176,13 @@ foreach (TGTNAME IN LISTS TGT072_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
 	if (BUILD_${TGTNAME})
 		add_f072_target(${TGTNAME})
+	endif()
+endforeach()
+
+foreach (TGTNAME IN LISTS TGT407_LIST)
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
+	if (BUILD_${TGTNAME})
+		add_f407_target(${TGTNAME})
 	endif()
 endforeach()
 

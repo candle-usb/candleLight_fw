@@ -6,7 +6,7 @@ set(SOURCES
     Core/Src/usbd_ctlreq.c
     Core/Inc/usbd_ioreq.h
     Core/Src/usbd_ioreq.c
-    Core/Inc/usbd_core.h        
+    Core/Inc/usbd_core.h
     Core/Src/usbd_core.c
 )
 
@@ -17,10 +17,15 @@ set(INCLUDE_DIRS
 
 add_library(STM32_USB_Device_Library_STM32F042x6 STATIC ${SOURCES})
     target_include_directories(STM32_USB_Device_Library_STM32F042x6 PUBLIC ${INCLUDE_DIRS})
-    target_compile_options(STM32_USB_Device_Library_STM32F042x6 PRIVATE -Wno-unused-parameter)
+    target_compile_options(STM32_USB_Device_Library_STM32F042x6 PRIVATE -mcpu=cortex-m0 -Wno-unused-parameter -DSTM32F0)
     target_link_libraries(STM32_USB_Device_Library_STM32F042x6 PRIVATE STM32_HAL_STM32F042x6)
-    
+
 add_library(STM32_USB_Device_Library_STM32F072xB STATIC ${SOURCES})
     target_include_directories(STM32_USB_Device_Library_STM32F072xB PUBLIC ${INCLUDE_DIRS})
-    target_compile_options(STM32_USB_Device_Library_STM32F072xB PRIVATE -Wno-unused-parameter)
+    target_compile_options(STM32_USB_Device_Library_STM32F072xB PRIVATE -mcpu=cortex-m0 -Wno-unused-parameter -DSTM32F0)
     target_link_libraries(STM32_USB_Device_Library_STM32F072xB PRIVATE STM32_HAL_STM32F072xB)
+
+add_library(STM32_USB_Device_Library_STM32F407xE STATIC ${SOURCES})
+    target_include_directories(STM32_USB_Device_Library_STM32F407xE PUBLIC ${INCLUDE_DIRS})
+    target_compile_options(STM32_USB_Device_Library_STM32F407xE PRIVATE -mcpu=cortex-m4 -Wno-unused-parameter -DSTM32F4)
+    target_link_libraries(STM32_USB_Device_Library_STM32F407xE PRIVATE STM32_HAL_STM32F407xE)

@@ -42,6 +42,8 @@ THE SOFTWARE.
 #define BOARD_usb2can     4
 #define BOARD_canalyze     5
 #define BOARD_cannette    6
+#define BOARD_STM32F4_DevBoard 7
+
 
 #if BOARD == BOARD_candleLight
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "candleLight USB to CAN adapter"
@@ -59,7 +61,6 @@ THE SOFTWARE.
 	#define LED2_Pin GPIO_PIN_1
 	#define LED2_Mode GPIO_MODE_OUTPUT_OD
 	#define LED2_Active_High 0
-
 #elif BOARD == BOARD_cantact
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "cantact gs_usb"
 	#define USBD_MANUFACTURER_STRING	(uint8_t*) "cantact.io"
@@ -162,6 +163,27 @@ THE SOFTWARE.
 
 	#define DCDCEN_Port GPIOC
 	#define DCDCEN_Pin GPIO_PIN_15		/* activate DCDC converter, active high */
+#elif BOARD == BOARD_STM32F4_DevBoard
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
+	#define DFU_INTERFACE_STRING_FS  (uint8_t*) "STM32F4VE firmware upgrade interface"
+
+	#define CAN_S_Pin		 GPIO_PIN_10
+	#define CAN_S_GPIO_Port  GPIOA
+
+	#define LED1_GPIO_Port	 GPIOA
+	#define LED1_Pin		 GPIO_PIN_6
+	#define LED1_Mode		 GPIO_MODE_OUTPUT_OD
+	#define LED1_Active_High 0
+
+	#define LED2_GPIO_Port	 GPIOA
+	#define LED2_Pin		 GPIO_PIN_7
+	#define LED2_Mode		 GPIO_MODE_OUTPUT_OD
+	#define LED2_Active_High 0
+
+	#define USB_GPIO_Port	 GPIOA
+	#define USB_Pin_DM		 GPIO_PIN_11
+	#define USB_Pin_DP		 GPIO_PIN_12
 #else
 	#error please define BOARD
 #endif

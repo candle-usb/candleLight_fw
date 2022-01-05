@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 #include "dfu.h"
 #include <stdint.h>
-#include "stm32f0xx_hal.h"
+#include "hal_include.h"
 
 #define RESET_TO_BOOTLOADER_MAGIC_CODE 0xDEADBEEF
 

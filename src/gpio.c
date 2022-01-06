@@ -70,7 +70,7 @@ void gpio_init()
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
 
-#if BOARD == BOARD_cannette
+#if defined(BOARD_cannette)
 	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
 	GPIO_InitStruct.Pin = nCANSTBY_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -94,7 +94,7 @@ void gpio_init()
 
 #endif // BOARD_cannette
 
-#if BOARD == BOARD_STM32F4_DevBoard
+#if defined(BOARD_STM32F4_DevBoard)
     // initialize USB pins
     GPIO_InitStruct.Pin = USB_Pin_DM | USB_Pin_DP;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;

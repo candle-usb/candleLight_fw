@@ -56,15 +56,7 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 # define USB_INTERRUPT   OTG_FS_IRQn
 # define CAN_INTERFACE   CAN1
 # define CAN_CLOCK_SPEED 42000000
-    /*
-    * PMA layout
-    *  0x00 -  0x17 (24 bytes) metadata?
-    *  0x18 -  0x57 (64 bytes) EP0 OUT
-    *  0x58 -  0x97 (64 bytes) EP0 IN
-    *  0x98 -  0xD7 (64 bytes) EP1 IN
-    *  0xD8 - 0x157 (128 bytes) EP1 OUT (buffer 1)
-    * 0x158 - 0x1D7 (128 bytes) EP1 OUT (buffer 2)
-    */
+
 // RX FIFO is defined in words, so divide bytes by 4
 // RX FIFO size chosen according to reference manual RM0368 which suggests
 // using (largest packet size / 4) + 1

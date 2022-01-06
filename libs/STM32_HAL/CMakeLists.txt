@@ -124,15 +124,15 @@ set(INCLUDE_DIRS
 
 add_library(STM32_HAL_STM32F042x6 STATIC ${STM32F0_SOURCES})
     target_include_directories(STM32_HAL_STM32F042x6 PUBLIC ${INCLUDE_DIRS} include/stm32f0xx)
-    target_compile_options(STM32_HAL_STM32F042x6 PRIVATE -mcpu=cortex-m0 -Wno-unused-parameter)
+    target_compile_options(STM32_HAL_STM32F042x6 PRIVATE ${CPUFLAGS_F0} -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F042x6 PUBLIC STM32F042x6 HAL_TARGET_PREFIX=stm32f0xx)
 
 add_library(STM32_HAL_STM32F072xB STATIC ${STM32F0_SOURCES})
     target_include_directories(STM32_HAL_STM32F072xB PUBLIC ${INCLUDE_DIRS} include/stm32f0xx)
-    target_compile_options(STM32_HAL_STM32F072xB PRIVATE -mcpu=cortex-m0 -Wno-unused-parameter)
+    target_compile_options(STM32_HAL_STM32F072xB PRIVATE ${CPUFLAGS_F0} -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F072xB PUBLIC STM32F072xB HAL_TARGET_PREFIX=stm32f0xx)
 
 add_library(STM32_HAL_STM32F407xE STATIC ${STM32F4_SOURCES})
     target_include_directories(STM32_HAL_STM32F407xE PUBLIC ${INCLUDE_DIRS} include/stm32f4xx)
-    target_compile_options(STM32_HAL_STM32F407xE PRIVATE -mcpu=cortex-m4 -Wno-unused-parameter)
+    target_compile_options(STM32_HAL_STM32F407xE PRIVATE ${CPUFLAGS_F4} -Wno-unused-parameter)
     target_compile_definitions(STM32_HAL_STM32F407xE PUBLIC STM32F407xx HAL_TARGET_PREFIX=stm32f4xx)

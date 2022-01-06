@@ -3,8 +3,6 @@ project(STM32_HAL)
 set(STM32F0_SOURCES
     config/stm32f0xx_hal_conf.h
 
-    config/hal_include.h
-
     include/stm32f0xx/stm32f0xx_hal_def.h
     include/stm32f0xx/stm32f0xx_hal.h
     src/stm32f0xx/stm32f0xx_hal.c

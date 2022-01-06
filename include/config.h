@@ -22,6 +22,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+*
+*
+* Some board-specific defines here, such as :
+* - USB strings
+* - LED pin assignments and polarity
+* - other special pins to control CAN transceivers.
+*
+* CAN_S_PIN :Some CAN transceivers (e.g. TJA1050) have a "Silent mode in which the transmitter is disabled";
+* enabled with this 'S' pin. If undefined, the corresponding code will be disabled.
+*
 */
 
 #pragma once

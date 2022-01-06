@@ -3,6 +3,7 @@
 
 This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, notably:
 - candleLight: https://github.com/HubertD/candleLight (STM32F072xB)
+- candleLight: https://www.linux-automation.com/en/products/candlelight.html (STM32F072xB)
 - cantact: http://linklayer.github.io/cantact/ (STM32F042C6)
 - canable (cantact clone): http://canable.io/ (STM32F042C6)
 - USB2CAN: https://github.com/roboterclubaachen/usb2can (STM32F042x6)

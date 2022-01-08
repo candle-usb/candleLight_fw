@@ -114,6 +114,8 @@ int main(void)
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
 				// Echo sent frame back to host
+				frame->flags = 0x0;
+				frame->reserved = 0x0;
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
 

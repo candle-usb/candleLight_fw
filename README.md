@@ -1,5 +1,5 @@
 # candleLight_gsusb
-[![Build Status](https://travis-ci.org/candle-usb/candleLight_fw.svg?branch=master)](https://travis-ci.org/candle-usb/candleLight_fw)
+[![Build](https://github.com/candle-usb/candleLight_fw/actions/workflows/ci.yml/badge.svg)](https://github.com/candle-usb/candleLight_fw/actions)
 
 This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, notably:
 - candleLight: https://github.com/HubertD/candleLight (STM32F072xB)

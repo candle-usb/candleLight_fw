@@ -1,33 +1,53 @@
 name: CI
 
 on:
+  schedule:
+    # build every day at 00:15 UTC
+    - cron:  '15 0 * * *'
   push:
-    branches: [ master ]
   pull_request:
     branches: [ master ]
 
 env:
   BUILD_TYPE: Release
+  CMAKE_TOOLCHAIN_FILE: cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - "cantact"
+          - "canalyze"
+          - "canable"
+          - "usb2can"
+          - "cannette"
+          - "candleLight"
+          - "STM32F4_DevBoard"
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Install toolchain
-      run: sudo apt-get -y install gcc-arm-none-eabi
+      run: sudo apt-get -yq install gcc-arm-none-eabi
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+              -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+              -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/${{env.CMAKE_TOOLCHAIN_FILE}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      env:
+        MAKEFLAGS: "-j4"
+      run: |
+        cmake --build ${{github.workspace}}/build \
+              --config ${{env.BUILD_TYPE}} \
+              --target ${{matrix.target}}_fw
 
-    - name: Upload a Build Artifact
+    - name: Upload Build Artifacts
       uses: actions/upload-artifact@v2.3.1
       with:
-        name: firmware
-        path: ${{github.workspace}}/build/*_fw.bin
-      
+        name: ${{matrix.target}}_firmware
+        path: ${{github.workspace}}/build/${{matrix.target}}_fw.bin

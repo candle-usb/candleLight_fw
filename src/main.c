@@ -48,13 +48,13 @@ void SystemClock_Config(void);
 static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 static void send_to_host();
 
-can_data_t hCAN;
-USBD_HandleTypeDef hUSB;
-led_data_t hLED;
+can_data_t hCAN = {0};
+USBD_HandleTypeDef hUSB = {0};
+led_data_t hLED = {0};
 
-queue_t *q_frame_pool;
-queue_t *q_from_host;
-queue_t *q_to_host;
+queue_t *q_frame_pool = NULL;
+queue_t *q_from_host = NULL;
+queue_t *q_to_host = NULL;
 
 uint32_t received_count=0;
 

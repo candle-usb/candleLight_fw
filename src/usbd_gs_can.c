@@ -735,3 +735,27 @@ bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
 	return hcan->dfu_detach_requested;
 }
 
+// Handle USB suspend event
+void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
+{
+	// Disable CAN and go off bus on USB suspend
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+
+	if(hcan != NULL)
+	{
+		for(uint32_t i=0; i<NUM_CAN_CHANNEL; i++)
+		{
+			if(hcan->channels[i] != NULL)
+				can_disable(hcan->channels[i]);
+		}
+	}
+
+	if(hcan != NULL && hcan->leds != NULL)
+		led_set_mode(hcan->leds, led_mode_off);
+}
+
+void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	hcan->TxState = 0;
+}

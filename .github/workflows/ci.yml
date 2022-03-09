@@ -2,8 +2,8 @@ name: CI
 
 on:
   schedule:
-    # build every day at 00:15 UTC
-    - cron:  '15 0 * * *'
+    # build every monday at 00:15 UTC
+    - cron:  '15 0 * * 1'
   push:
   pull_request:
     branches: [ master ]
@@ -46,8 +46,12 @@ jobs:
               --config ${{env.BUILD_TYPE}} \
               --target ${{matrix.target}}_fw
 
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y%m%d')"
+
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v2.3.1
       with:
-        name: ${{matrix.target}}_firmware
-        path: ${{github.workspace}}/build/${{matrix.target}}_fw.bin
+        name: ${{matrix.target}}_${{steps.date.outputs.date}}_firmware
+        path: ${{github.workspace}}/build/${{matrix.target}}_${{steps.date.outputs.date}}_fw.bin

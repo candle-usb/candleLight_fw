@@ -54,4 +54,4 @@ jobs:
       uses: actions/upload-artifact@v2.3.1
       with:
         name: ${{matrix.target}}_${{steps.date.outputs.date}}_firmware
-        path: ${{github.workspace}}/build/${{matrix.target}}_${{steps.date.outputs.date}}_fw.bin
+        path: ${{github.workspace}}/build/${{matrix.target}}_fw.bin

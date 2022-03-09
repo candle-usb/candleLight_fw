@@ -15,16 +15,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - "cantact"
-          - "canalyze"
-          - "canable"
-          - "usb2can"
-          - "cannette"
-          - "candleLight"
-          - "STM32F4_DevBoard"
 
     steps:
     - uses: actions/checkout@v2
@@ -43,15 +33,27 @@ jobs:
         MAKEFLAGS: "-j"
       run: |
         cmake --build ${{github.workspace}}/build \
-              --config ${{env.BUILD_TYPE}} \
-              --target ${{matrix.target}}_fw
+              --config ${{env.BUILD_TYPE}}
 
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y%m%d')"
+      
+    - name: generate short hash
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-    - name: Upload Build Artifacts
+    - name: Upload weekly build
       uses: actions/upload-artifact@v2.3.1
+      #only run step if event type was "schedule"
+      if: github.event.schedule
       with:
-        name: ${{matrix.target}}_${{steps.date.outputs.date}}_firmware
+        name: weekly_${{steps.date.outputs.date}}_${{steps.vars.outputs.sha_short}}
         path: ${{github.workspace}}/build/${{matrix.target}}_fw.bin
+
+    - name: Upload dev snapshot
+      uses: actions/upload-artifact@v2.3.1
+      if: ${{ github.event_name != 'schedule'}}
+      with:
+        name: build_${{steps.date.outputs.date}}_${{steps.vars.outputs.sha_short}}
+        path: ${{github.workspace}}/build/*_fw.bin

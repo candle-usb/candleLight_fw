@@ -61,6 +61,8 @@ typedef struct {
         bool pad_pkts_to_max_pkt_size;
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
+static volatile bool is_usb_suspend_cb = false;
+
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
 static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
 static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
@@ -653,7 +655,7 @@ bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	if (hcan->TxState == 0) {
+	if (hcan->TxState == 0 && (false == is_usb_suspend_cb)) {
 		hcan->TxState = 1;
 		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, buf, len);
 		return USBD_OK;
@@ -752,10 +754,13 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 
 	if(hcan != NULL && hcan->leds != NULL)
 		led_set_mode(hcan->leds, led_mode_off);
+	
+	is_usb_suspend_cb = true;
 }
 
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	hcan->TxState = 0;
+	is_usb_suspend_cb = false;
 }

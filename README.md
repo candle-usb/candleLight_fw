@@ -83,6 +83,35 @@ Flashing candleLight on linux: (source: [https://wiki.linklayer.com/index.php/Ca
 
 
 
+## Associating persistent device names 
+With udev on linux, it is possible to assign a device name to a certain serial number (see udev manpages and [systemd.link](https://www.freedesktop.org/software/systemd/man/systemd.link.html)).
+This can be useful when multiple devices are connected at the same time.
+
+An example configuration :
+
+```
+ $ cat /etc/systemd/network/60-persistent-candev.link 
+[Match]
+Property=ID_MODEL=cannette_gs_usb ID_SERIAL_SHORT="003800254250431420363230"
+
+[Link]
+# from systemd.link manpage:
+# Note that specifying a name that the kernel might use for another interface (for example "eth0") is dangerous because the name assignment done by udev will race with the assignment done by the kernel, and only one
+#   interface may use the name. Depending on the order of operations, either udev or the kernel will win, making the naming unpredictable. It is best to use some different prefix
+
+Name=cannette99
+```
+
+( The serial number can be found with the `lsusb` utility). After reloading systemd units and resetting this board :
+
+```
+ $ ip a
+....
+59: cannette99: <NOARP,ECHO> mtu 16 qdisc noop state DOWN group default qlen 10
+    link/can 
+ $
+```
+
 
 ## Links to related projects
 * [Cangaroo](https://github.com/HubertD/cangaroo) open source can bus analyzer software

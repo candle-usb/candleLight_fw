@@ -44,15 +44,15 @@ jobs:
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
     - name: Upload weekly build
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v3
       #only run step if event type was "schedule"
       if: github.event.schedule
       with:
         name: weekly_${{steps.date.outputs.date}}_${{steps.vars.outputs.sha_short}}
-        path: ${{github.workspace}}/build/${{matrix.target}}_fw.bin
+        path: ${{github.workspace}}/build/*_fw.bin
 
     - name: Upload dev snapshot
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v3
       if: ${{ github.event_name != 'schedule'}}
       with:
         name: build_${{steps.date.outputs.date}}_${{steps.vars.outputs.sha_short}}

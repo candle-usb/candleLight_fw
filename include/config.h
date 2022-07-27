@@ -63,6 +63,23 @@ THE SOFTWARE.
 	#define LED2_Mode GPIO_MODE_OUTPUT_OD
 	#define LED2_Active_High 0
 
+#elif defined(BOARD_CANable_MKS)
+	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "CANable-MKS gs_usb"
+	#define USBD_MANUFACTURER_STRING	(uint8_t*) "makerbase"
+	#define DFU_INTERFACE_STRING_FS		(uint8_t*) "CANable-MKS firmware upgrade interface"
+
+	// SILENT pin not connected
+
+	#define LED1_GPIO_Port GPIOA
+	#define LED1_Pin GPIO_PIN_1
+	#define LED1_Mode GPIO_MODE_OUTPUT_OD
+	#define LED1_Active_High 0
+
+	#define LED2_GPIO_Port GPIOA
+	#define LED2_Pin GPIO_PIN_0
+	#define LED2_Mode GPIO_MODE_OUTPUT_OD
+	#define LED2_Active_High 0
+
 #elif defined(BOARD_cantact)
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "cantact gs_usb"
 	#define USBD_MANUFACTURER_STRING	(uint8_t*) "cantact.io"

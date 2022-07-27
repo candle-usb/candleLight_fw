@@ -62,6 +62,7 @@ THE SOFTWARE.
 	#define LED2_Pin GPIO_PIN_1
 	#define LED2_Mode GPIO_MODE_OUTPUT_OD
 	#define LED2_Active_High 0
+
 #elif defined(BOARD_cantact)
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "cantact gs_usb"
 	#define USBD_MANUFACTURER_STRING	(uint8_t*) "cantact.io"
@@ -122,6 +123,7 @@ THE SOFTWARE.
 	#define LED1_Pin GPIO_PIN_3	/* green */
 	#define LED1_Mode GPIO_MODE_OUTPUT_OD
 	#define LED1_Active_High 0
+
 #elif defined(BOARD_canalyze)
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "CANAlyze gs_usb"
 	#define USBD_MANUFACTURER_STRING	(uint8_t*) "STMicroelectronics"
@@ -164,6 +166,7 @@ THE SOFTWARE.
 
 	#define DCDCEN_Port GPIOC
 	#define DCDCEN_Pin GPIO_PIN_15		/* activate DCDC converter, active high */
+
 #elif defined(BOARD_STM32F4_DevBoard)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
@@ -185,6 +188,7 @@ THE SOFTWARE.
 	#define USB_GPIO_Port	 GPIOA
 	#define USB_Pin_DM		 GPIO_PIN_11
 	#define USB_Pin_DP		 GPIO_PIN_12
+
 #else
 	#error please define BOARD
 #endif

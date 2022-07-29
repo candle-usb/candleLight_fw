@@ -32,16 +32,16 @@ THE SOFTWARE.
 
 void led_init(
 	led_data_t *leds,
-	void* led1_port, uint16_t led1_pin, bool led1_active_high,
-	void* led2_port, uint16_t led2_pin, bool led2_active_high
+	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high,
+	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high
 ) {
 	memset(leds, 0, sizeof(led_data_t));
-	leds->led_state[0].port = led1_port;
-	leds->led_state[0].pin = led1_pin;
-	leds->led_state[0].is_active_high = led1_active_high;
-	leds->led_state[1].port = led2_port;
-	leds->led_state[1].pin = led2_pin;
-	leds->led_state[1].is_active_high = led2_active_high;
+	leds->led_state[led_rx].port = led_rx_port;
+	leds->led_state[led_rx].pin = led_rx_pin;
+	leds->led_state[led_rx].is_active_high = led_rx_active_high;
+	leds->led_state[led_tx].port = led_tx_port;
+	leds->led_state[led_tx].pin = led_tx_pin;
+	leds->led_state[led_tx].is_active_high = led_tx_active_high;
 }
 
 void led_set_mode(led_data_t *leds,led_mode_t mode)
@@ -63,8 +63,8 @@ static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
 {
 	led_seq_step_t *step = &leds->sequence[step_num];
 	leds->sequence_step = step_num;
-	led_set(&leds->led_state[0], step->state & 0x01);
-	led_set(&leds->led_state[1], step->state & 0x02);
+	led_set(&leds->led_state[led_rx], step->state & 0x01);
+	led_set(&leds->led_state[led_tx], step->state & 0x02);
 	uint32_t delta = 10 * step->time_in_10ms;
 	if (delta > INT32_MAX) {
 		delta = INT32_MAX;	//clamp
@@ -140,13 +140,13 @@ void led_update(led_data_t *leds)
 	switch (leds->mode) {
 
 		case led_mode_off:
-			led_set(&leds->led_state[0], false);
-			led_set(&leds->led_state[1], false);
+			led_set(&leds->led_state[led_rx], false);
+			led_set(&leds->led_state[led_tx], false);
 			break;
 
 		case led_mode_normal:
-			led_update_normal_mode(&leds->led_state[0]);
-			led_update_normal_mode(&leds->led_state[1]);
+			led_update_normal_mode(&leds->led_state[led_rx]);
+			led_update_normal_mode(&leds->led_state[led_tx]);
 			break;
 
 		case led_mode_sequence:
@@ -154,7 +154,7 @@ void led_update(led_data_t *leds)
 			break;
 
 		default:
-			led_set(&leds->led_state[0], false);
-			led_set(&leds->led_state[1], true);
+			led_set(&leds->led_state[led_rx], false);
+			led_set(&leds->led_state[led_tx], true);
 	}
 }

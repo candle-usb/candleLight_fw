@@ -38,8 +38,8 @@ typedef enum {
 } led_mode_t;
 
 typedef enum {
-	led_1,
-	led_2
+	led_rx = 0,	//will also index into array led_state[]
+	led_tx
 } led_num_t;
 
 typedef struct {
@@ -70,8 +70,8 @@ typedef struct {
 
 void led_init(
 	led_data_t *leds,
-	void* led1_port, uint16_t led1_pin, bool led1_active_high,
-	void* led2_port, uint16_t led2_pin, bool led2_active_high
+	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high,
+	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high
 );
 void led_set_mode(led_data_t *leds,led_mode_t mode);
 void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat);

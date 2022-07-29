@@ -48,27 +48,27 @@ void gpio_init()
 	HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
 #endif
 
-#if (LED1_Active_High == 1)
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+#if (LEDRX_Active_High == 1)
+	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_PIN_RESET);
 #else
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_PIN_SET);
 #endif
-	GPIO_InitStruct.Pin = LED1_Pin;
-	GPIO_InitStruct.Mode = LED1_Mode;
+	GPIO_InitStruct.Pin = LEDRX_Pin;
+	GPIO_InitStruct.Mode = LEDRX_Mode;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(LED1_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(LEDRX_GPIO_Port, &GPIO_InitStruct);
 
-#if (LED2_Active_High == 1)
-	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+#if (LEDTX_Active_High == 1)
+	HAL_GPIO_WritePin(LEDTX_GPIO_Port, LEDTX_Pin, GPIO_PIN_RESET);
 #else
-	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LEDTX_GPIO_Port, LEDTX_Pin, GPIO_PIN_SET);
 #endif
-	GPIO_InitStruct.Pin = LED2_Pin;
-	GPIO_InitStruct.Mode = LED2_Mode;
+	GPIO_InitStruct.Pin = LEDTX_Pin;
+	GPIO_InitStruct.Mode = LEDTX_Mode;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(LEDTX_GPIO_Port, &GPIO_InitStruct);
 
 #if defined(BOARD_cannette)
 	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);

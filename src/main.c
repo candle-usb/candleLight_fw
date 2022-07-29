@@ -70,14 +70,14 @@ int main(void)
 
 	gpio_init();
 
-	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
+	led_init(&hLED, LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High, LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
 	/* nice wake-up pattern */
 	for(uint8_t i=0; i<10; i++)
 	{
-		HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+		HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
 		HAL_Delay(50);
-		HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+		HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
 	}
 
 	led_set_mode(&hLED, led_mode_off);
@@ -119,7 +119,7 @@ int main(void)
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
 
-				led_indicate_trx(&hLED, led_2);
+				led_indicate_trx(&hLED, led_tx);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
 			}
@@ -144,7 +144,7 @@ int main(void)
 
 					send_to_host_or_enqueue(frame);
 
-					led_indicate_trx(&hLED, led_1);
+					led_indicate_trx(&hLED, led_rx);
 				}
 				else
 				{

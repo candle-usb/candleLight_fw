@@ -259,7 +259,7 @@ void send_to_host(void)
 	struct gs_host_frame *frame = queue_pop_front(q_to_host);
 
 	if(!frame)
-	  return;
+		return;
 
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 		queue_push_back(q_frame_pool, frame);
@@ -267,4 +267,3 @@ void send_to_host(void)
 		queue_push_front(q_to_host, frame);
 	}
 }
-

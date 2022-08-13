@@ -50,7 +50,7 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 
 	hcan->instance   = instance;
 	hcan->brp        = 6;
-	hcan->sjw		 = 1;
+	hcan->sjw        = 1;
 #if defined(STM32F0)
 	hcan->phase_seg1 = 13;
 	hcan->phase_seg2 = 2;

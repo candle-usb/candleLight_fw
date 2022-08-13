@@ -284,4 +284,3 @@ struct gs_tx_context {
 	struct gs_can *dev;
 	unsigned int echo_id;
 };
-

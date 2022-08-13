@@ -30,14 +30,14 @@ THE SOFTWARE.
 
 void NMI_Handler(void)
 {
-    __asm__("BKPT");
-    while (1);
+	__asm__("BKPT");
+	while (1);
 }
 
 void HardFault_Handler(void)
 {
-    __asm__("BKPT");
-    while (1);
+	__asm__("BKPT");
+	while (1);
 }
 
 void SysTick_Handler(void)
@@ -54,8 +54,8 @@ void USB_Handler(void)
 
 void Default_Handler(void)
 {
-    __asm__("BKPT");
-    while (1);
+	__asm__("BKPT");
+	while (1);
 }
 
 extern void Reset_Handler(void);

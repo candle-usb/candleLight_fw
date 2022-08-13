@@ -30,4 +30,3 @@ THE SOFTWARE.
 
 extern const USBD_DescriptorsTypeDef FS_Desc;
 extern uint8_t USBD_DescBuf[USBD_DESC_BUF_SIZE];
-

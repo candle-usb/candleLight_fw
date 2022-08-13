@@ -48,7 +48,7 @@ typedef struct {
 	queue_t *q_frame_pool;
 	queue_t *q_from_host;
 
-        struct gs_host_frame *from_host_buf;
+	struct gs_host_frame *from_host_buf;
 
 	can_data_t *channels[NUM_CAN_CHANNEL];
 
@@ -58,7 +58,7 @@ typedef struct {
 	bool timestamps_enabled;
 	uint32_t sof_timestamp_us;
 
-        bool pad_pkts_to_max_pkt_size;
+	bool pad_pkts_to_max_pkt_size;
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 static volatile bool is_usb_suspend_cb = false;
@@ -350,9 +350,9 @@ void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_
 }
 
 static led_seq_step_t led_identify_seq[] = {
-		{ .state = 0x01, .time_in_10ms = 10 },
-		{ .state = 0x02, .time_in_10ms = 10 },
-		{ .state = 0x00, .time_in_10ms = 0 }
+	{ .state = 0x01, .time_in_10ms = 10 },
+	{ .state = 0x02, .time_in_10ms = 10 },
+	{ .state = 0x00, .time_in_10ms = 0 }
 };
 
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
@@ -366,35 +366,35 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
-    switch (req->bRequest) {
+	switch (req->bRequest) {
 
-    	case GS_USB_BREQ_HOST_FORMAT:
-    		// TODO process host data (expect 0x0000beef in byte_order)
-    		memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
-    		break;
+		case GS_USB_BREQ_HOST_FORMAT:
+			// TODO process host data (expect 0x0000beef in byte_order)
+			memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
+			break;
 
-    	case GS_USB_BREQ_IDENTIFY:
-    		memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-    		if (param_u32) {
-    			led_run_sequence(hcan->leds, led_identify_seq, -1);
-    		} else {
-    			ch = hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
-        		led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
-    		}
-    		break;
+		case GS_USB_BREQ_IDENTIFY:
+			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+			if (param_u32) {
+				led_run_sequence(hcan->leds, led_identify_seq, -1);
+			} else {
+				ch = hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
+				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+			}
+			break;
 
-    	case GS_USB_BREQ_SET_USER_ID:
-    		memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-    		if (flash_set_user_id(req->wValue, param_u32)) {
-    			flash_flush();
-    		}
-    		break;
+		case GS_USB_BREQ_SET_USER_ID:
+			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+			if (flash_set_user_id(req->wValue, param_u32)) {
+				flash_flush();
+			}
+			break;
 
-    	case GS_USB_BREQ_MODE:
-    		if (req->wValue < NUM_CAN_CHANNEL) {
+		case GS_USB_BREQ_MODE:
+			if (req->wValue < NUM_CAN_CHANNEL) {
 
-    			mode = (struct gs_device_mode*)hcan->ep0_buf;
-    			ch = hcan->channels[req->wValue];
+				mode = (struct gs_device_mode*)hcan->ep0_buf;
+				ch = hcan->channels[req->wValue];
 
 				if (mode->mode == GS_CAN_MODE_RESET) {
 
@@ -416,11 +416,11 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					led_set_mode(hcan->leds, led_mode_normal);
 				}
 			}
-    		break;
+			break;
 
-    	case GS_USB_BREQ_BITTIMING:
-    		timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-    		if (req->wValue < NUM_CAN_CHANNEL) {
+		case GS_USB_BREQ_BITTIMING:
+			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+			if (req->wValue < NUM_CAN_CHANNEL) {
 				can_set_bittiming(
 					hcan->channels[req->wValue],
 					timing->brp,
@@ -428,12 +428,12 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					timing->phase_seg2,
 					timing->sjw
 				);
-    		}
-    		break;
+			}
+			break;
 
 		default:
 			break;
-    }
+	}
 
 	req->bRequest = 0xFF;
 	return USBD_OK;
@@ -494,7 +494,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_TIMESTAMP:
 			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
 			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
-    		break;
+			break;
 
 		case GS_USB_BREQ_GET_USER_ID:
 			if (req->wValue < NUM_CAN_CHANNEL) {

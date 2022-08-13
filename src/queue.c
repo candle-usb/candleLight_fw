@@ -44,7 +44,7 @@ unsigned queue_size(queue_t *q)
 {
 	bool was_irq_enabled = disable_irq();
 	unsigned retval = q->size;
-	if (was_irq_enabled) enable_irq();
+	restore_irq(was_irq_enabled);
 	return retval;
 }
 
@@ -65,7 +65,7 @@ bool queue_push_back(queue_t *q, void *el)
 		retval = true;
 	}
 
-	if (was_irq_enabled) enable_irq();
+	restore_irq(was_irq_enabled);
 	return retval;
 }
 
@@ -83,7 +83,7 @@ bool queue_push_front(queue_t *q, void *el)
 		q->size += 1;
 		retval = true;
 	}
-	if (was_irq_enabled) enable_irq();
+	restore_irq(was_irq_enabled);
 	return retval;
 }
 
@@ -96,7 +96,7 @@ void *queue_pop_front(queue_t *q)
 		q->first = (q->first + 1) % q->max_elements;
 		q->size -= 1;
 	}
-	if (was_irq_enabled) enable_irq();
+	restore_irq(was_irq_enabled);
 	return el;
 }
 

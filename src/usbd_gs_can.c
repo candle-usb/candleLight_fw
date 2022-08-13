@@ -640,7 +640,7 @@ inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	int primask = disable_irq();
+	bool was_irq_enabled = disable_irq();
 	if (!hcan->from_host_buf) {
 		hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
 		if (hcan->from_host_buf) {
@@ -648,7 +648,7 @@ bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 		}
 	}
 	bool result = hcan->TxState == 0;
-	enable_irq(primask);
+	restore_irq(was_irq_enabled);
 	return result;
 }
 
@@ -706,9 +706,9 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 		len = sizeof(buf);
 	}
 
-	int primask = disable_irq();
+	bool was_irq_enabled = disable_irq();
 	uint8_t result = USBD_GS_CAN_Transmit(pdev, send_addr, len);
-	enable_irq(primask);
+	restore_irq(was_irq_enabled);
 	return result;
 }
 

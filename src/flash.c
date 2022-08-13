@@ -39,7 +39,7 @@ static flash_data_t flash_data_ram;
 __attribute__((__section__(".user_data"))) const flash_data_t flash_data_rom;
 
 
-void flash_load()
+void flash_load(void)
 {
 	memcpy(&flash_data_ram, &flash_data_rom, sizeof(flash_data_t));
 }
@@ -67,7 +67,7 @@ uint32_t flash_get_user_id(uint8_t channel)
 	}
 }
 
-void flash_flush()
+void flash_flush(void)
 {
 	FLASH_EraseInitTypeDef erase_pages;
 #if defined(STM32F0)

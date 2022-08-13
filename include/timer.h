@@ -28,5 +28,5 @@ THE SOFTWARE.
 
 #include <stdint.h>
 
-void timer_init();
-uint32_t timer_get();
+void timer_init(void);
+uint32_t timer_get(void);

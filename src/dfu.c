@@ -35,10 +35,10 @@ THE SOFTWARE.
 
 static uint32_t dfu_reset_to_bootloader_magic;
 
-static void dfu_hack_boot_pin_f042();
-static void dfu_jump_to_bootloader();
+static void dfu_hack_boot_pin_f042(void);
+static void dfu_jump_to_bootloader(uint32_t sysmem_base);
 
-void dfu_run_bootloader()
+void dfu_run_bootloader(void)
 {
 	dfu_reset_to_bootloader_magic = RESET_TO_BOOTLOADER_MAGIC_CODE;
 	NVIC_SystemReset();
@@ -66,7 +66,7 @@ void __initialize_hardware_early(void)
 	SystemInit();
 }
 
-static void dfu_hack_boot_pin_f042()
+static void dfu_hack_boot_pin_f042(void)
 {
 	__HAL_RCC_GPIOF_CLK_ENABLE();
 	GPIO_InitTypeDef GPIO_InitStruct;

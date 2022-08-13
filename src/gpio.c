@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "hal_include.h"
 
 // must run before can_init
-void gpio_init()
+void gpio_init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;
 

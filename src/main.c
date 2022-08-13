@@ -46,7 +46,7 @@ THE SOFTWARE.
 void HAL_MspInit(void);
 void SystemClock_Config(void);
 static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
-static void send_to_host();
+static void send_to_host(void);
 
 can_data_t hCAN = {0};
 USBD_HandleTypeDef hUSB = {0};
@@ -258,7 +258,7 @@ bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 	return true;
 }
 
-void send_to_host()
+void send_to_host(void)
 {
 	struct gs_host_frame *frame = queue_pop_front(q_to_host);
 

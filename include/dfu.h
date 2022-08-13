@@ -26,4 +26,4 @@ THE SOFTWARE.
 
 #pragma once
 
-void dfu_run_bootloader();
+void dfu_run_bootloader(void);

@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "timer.h"
 #include "hal_include.h"
 
-void timer_init()
+void timer_init(void)
 {
 	__HAL_RCC_TIM2_CLK_ENABLE();
 
@@ -44,7 +44,7 @@ void timer_init()
 	TIM2->EGR = TIM_EGR_UG;
 }
 
-uint32_t timer_get()
+uint32_t timer_get(void)
 {
 	return TIM2->CNT;
 }

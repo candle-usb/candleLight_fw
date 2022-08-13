@@ -19,10 +19,10 @@ extern const copy_table_t __copy_table_end__;
 extern const zero_table_t __zero_table_start__;
 extern const zero_table_t __zero_table_end__;
 
-void __initialize_hardware_early();
-void _start() __attribute__((noreturn));
+void __initialize_hardware_early(void);
+void _start(void) __attribute__((noreturn));
 
-void Reset_Handler()
+void Reset_Handler(void)
 {
     __initialize_hardware_early();
 

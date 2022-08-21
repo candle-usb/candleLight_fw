@@ -27,6 +27,30 @@ THE SOFTWARE.
 #include "can.h"
 #include "config.h"
 
+// The STM32F0 only has one CAN interface, define it as CAN1 as
+// well, so it doesn't need to be handled separately.
+#if !defined(CAN1) && defined(CAN)
+#define CAN1 CAN
+#endif
+
+// Completely reset the CAN pheriperal, including bus-state and error counters
+static void rcc_reset(CAN_TypeDef *instance)
+{
+#ifdef CAN1
+	if (instance == CAN1) {
+		__HAL_RCC_CAN1_FORCE_RESET();
+		__HAL_RCC_CAN1_RELEASE_RESET();
+	}
+#endif
+
+#ifdef CAN2
+	if (instance == CAN2) {
+		__HAL_RCC_CAN2_FORCE_RESET();
+		__HAL_RCC_CAN2_RELEASE_RESET();
+	}
+#endif
+}
+
 void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 {
 	__HAL_RCC_CAN1_CLK_ENABLE();
@@ -98,6 +122,9 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->MCR |= CAN_MCR_RESET;
 	while((can->MCR & CAN_MCR_RESET) != 0); // reset bit is set to zero after reset
 	while((can->MSR & CAN_MSR_SLAK) == 0);  // should be in sleep mode after reset
+
+	// Completely reset while being of the bus
+	rcc_reset(can);
 
 	can->MCR |= CAN_MCR_INRQ ;
 	while((can->MSR & CAN_MSR_INAK) == 0);

@@ -664,16 +664,6 @@ uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t le
 	}
 }
 
-uint8_t USBD_GS_CAN_GetProtocolVersion(USBD_HandleTypeDef *pdev)
-{
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	if (hcan->timestamps_enabled) {
-		return 2;
-	} else {
-		return 1;
-	}
-}
-
 uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
 {
 	uint8_t buf[CAN_DATA_MAX_PACKET_SIZE],*send_addr;

@@ -68,7 +68,6 @@ set(
 
 	include/can.h src/can.c
 	include/dfu.h src/dfu.c
-	include/flash.h src/flash.c
 	include/gpio.h src/gpio.c
 	include/led.h src/led.c
 	include/queue.h src/queue.c

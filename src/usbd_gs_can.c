@@ -349,7 +349,7 @@ void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_
 	return;
 }
 
-static led_seq_step_t led_identify_seq[] = {
+static const led_seq_step_t led_identify_seq[] = {
 	{ .state = 0x01, .time_in_10ms = 10 },
 	{ .state = 0x02, .time_in_10ms = 10 },
 	{ .state = 0x00, .time_in_10ms = 0 }

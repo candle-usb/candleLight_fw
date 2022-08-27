@@ -61,7 +61,7 @@ static void led_set(led_state_t *led, bool state)
 
 static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
 {
-	led_seq_step_t *step = &leds->sequence[step_num];
+	const led_seq_step_t *step = &leds->sequence[step_num];
 	leds->sequence_step = step_num;
 	led_set(&leds->led_state[led_rx], step->state & 0x01);
 	led_set(&leds->led_state[led_tx], step->state & 0x02);
@@ -73,7 +73,7 @@ static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
 	return delta;
 }
 
-void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat)
+void led_run_sequence(led_data_t *leds, const led_seq_step_t *sequence, int32_t num_repeat)
 {
 	leds->last_mode = leds->mode;
 	leds->mode = led_mode_sequence;

@@ -44,17 +44,17 @@ THE SOFTWARE.
 #include "util.h"
 
 void HAL_MspInit(void);
-void SystemClock_Config(void);
+static void SystemClock_Config(void);
 static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 static void send_to_host(void);
 
-can_data_t hCAN = {0};
-USBD_HandleTypeDef hUSB = {0};
-led_data_t hLED = {0};
+static can_data_t hCAN = {0};
+static USBD_HandleTypeDef hUSB = {0};
+static led_data_t hLED = {0};
 
-queue_t *q_frame_pool = NULL;
-queue_t *q_from_host = NULL;
-queue_t *q_to_host = NULL;
+static queue_t *q_frame_pool = NULL;
+static queue_t *q_from_host = NULL;
+static queue_t *q_to_host = NULL;
 
 int main(void)
 {

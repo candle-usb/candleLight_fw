@@ -6,6 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(
     -std=gnu11 -mthumb
     -Wall -Wextra -Werror
+    -Wstrict-prototypes
     -fmessage-length=0
     -fsigned-char
     -ffunction-sections -fdata-sections

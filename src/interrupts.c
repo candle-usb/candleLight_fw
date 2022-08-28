@@ -60,7 +60,7 @@ void Default_Handler(void)
 
 extern void Reset_Handler(void);
 
-typedef void(*pFunc)();
+typedef void(*pFunc)(void);
 extern uint32_t __StackTop;
 
 #if defined(STM32F0)

@@ -272,7 +272,13 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 uint32_t can_get_error_status(can_data_t *hcan)
 {
 	CAN_TypeDef *can = hcan->instance;
-	return can->ESR;
+
+	uint32_t err = can->ESR;
+
+	/* Write 7 to LEC so we know if it gets set to the same thing again */
+	can->ESR = 7<<4;
+
+	return err;
 }
 
 static bool status_is_active(uint32_t err)
@@ -286,6 +292,7 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 	 * whether there's anything worth sending. This variable tracks that final
 	 * result. */
 	bool should_send = false;
+	(void) hcan;
 
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG | CAN_ERR_CRTL;
@@ -322,23 +329,6 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 	 * place as any. */
 	frame->data[6] = tx_error_cnt;
 	frame->data[7] = rx_error_cnt;
-
-	uint8_t last_tx_error_cnt = (last_err>>16) & 0xFF;
-	uint8_t last_rx_error_cnt = (last_err>>24) & 0xFF;
-	/* If either error counter transitioned to/from 0. */
-	if ((tx_error_cnt == 0) != (last_tx_error_cnt == 0)) {
-		should_send = true;
-	}
-	if ((rx_error_cnt == 0) != (last_rx_error_cnt == 0)) {
-		should_send = true;
-	}
-	/* If either error counter increased by 15. */
-	if (((int)last_tx_error_cnt + CAN_ERRCOUNT_THRESHOLD) < tx_error_cnt) {
-		should_send = true;
-	}
-	if (((int)last_rx_error_cnt + CAN_ERRCOUNT_THRESHOLD) < rx_error_cnt) {
-		should_send = true;
-	}
 
 	if (err & CAN_ESR_EPVF) {
 		frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
@@ -388,10 +378,6 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 		default: /* 0=no error, 7=no change */
 			break;
 	}
-
-	CAN_TypeDef *can = hcan->instance;
-	/* Write 7 to LEC so we know if it gets set to the same thing again */
-	can->ESR = 7<<4;
 
 	return should_send;
 }

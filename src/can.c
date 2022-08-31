@@ -295,7 +295,7 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 	(void) hcan;
 
 	frame->echo_id = 0xFFFFFFFF;
-	frame->can_id  = CAN_ERR_FLAG | CAN_ERR_CRTL;
+	frame->can_id  = CAN_ERR_FLAG;
 	frame->can_dlc = CAN_ERR_DLC;
 	frame->data[0] = CAN_ERR_LOSTARB_UNSPEC;
 	frame->data[1] = CAN_ERR_CRTL_UNSPEC;
@@ -307,18 +307,23 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 	frame->data[7] = 0;
 
 	if (err & CAN_ESR_BOFF) {
-		frame->can_id |= CAN_ERR_BUSOFF;
 		if (!(last_err & CAN_ESR_BOFF)) {
 			/* We transitioned to bus-off. */
+			frame->can_id |= CAN_ERR_BUSOFF;
 			should_send = true;
 		}
-	} else if (last_err & CAN_ESR_BOFF) {
-		/* We transitioned out of bus-off. */
-		should_send = true;
+		// - tec (overflowed) / rec (looping, likely used for recessive counting)
+		//   are not valid in the bus-off state.
+		// - The warning flags remains set, error passive will cleared.
+		// - LEC errors will be reported, while the device isn't even allowed to send.
+		//
+		// Hence only report bus-off, ignore everything else.
+		return should_send;
 	}
 
 	/* We transitioned from passive/bus-off to active, so report the edge. */
 	if (!status_is_active(last_err) && status_is_active(err)) {
+		frame->can_id |= CAN_ERR_CRTL;
 		frame->data[1] |= CAN_ERR_CRTL_ACTIVE;
 		should_send = true;
 	}
@@ -331,17 +336,17 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 	frame->data[7] = rx_error_cnt;
 
 	if (err & CAN_ESR_EPVF) {
-		frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 		if (!(last_err & CAN_ESR_EPVF)) {
+			frame->can_id |= CAN_ERR_CRTL;
+			frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
-	} else if (err & CAN_ESR_EWGF) {
-		frame->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
+	} else 	if (err & CAN_ESR_EWGF) {
 		if (!(last_err & CAN_ESR_EWGF)) {
+			frame->can_id |= CAN_ERR_CRTL;
+			frame->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
 			should_send = true;
 		}
-	} else if (last_err & (CAN_ESR_EPVF | CAN_ESR_EWGF)) {
-		should_send = true;
 	}
 
 	uint8_t lec = (err>>4) & 0x07;

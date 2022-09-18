@@ -50,7 +50,6 @@ typedef struct {
 
 	USBD_SetupReqTypedef last_setup_request;
 
-	struct gs_host_config host_config;
 	queue_t *q_frame_pool;
 	queue_t *q_from_host;
 
@@ -379,8 +378,15 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	switch (req->bRequest) {
 
 		case GS_USB_BREQ_HOST_FORMAT:
-			// TODO process host data (expect 0x0000beef in byte_order)
-			memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
+			/* The firmware on the original USB2CAN by Geschwister Schneider
+			 * Technologie Entwicklungs- und Vertriebs UG exchanges all data
+			 * between the host and the device in host byte order. This is done
+			 * with the struct gs_host_config::byte_order member, which is sent
+			 * first to indicate the desired byte order.
+			 *
+			 * The widely used open source firmware candleLight doesn't support
+			 * this feature and exchanges the data in little endian byte order.
+			 */
 			break;
 
 		case GS_USB_BREQ_IDENTIFY:

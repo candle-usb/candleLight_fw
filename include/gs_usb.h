@@ -45,6 +45,7 @@ THE SOFTWARE.
 #define GS_CAN_MODE_FD                          (1<<8) /* switch device to CAN-FD mode */
 /* #define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX (1<<9) */
 /* #define GS_CAN_FEATURE_BT_CONST_EXT          (1<<10) */
+/* #define GS_CAN_FEATURE_TERMINATION           (1<<11) */
 
 #define GS_CAN_FEATURE_LISTEN_ONLY              (1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK                (1<<1)
@@ -64,6 +65,12 @@ THE SOFTWARE.
  * GS_USB_BREQ_BT_CONST_EXT and struct gs_device_bt_const_extended
  */
 #define GS_CAN_FEATURE_BT_CONST_EXT             (1<<10)
+/* device supports switchable termination, see:
+ * - GS_USB_BREQ_SET_TERMINATION
+ * - GS_USB_BREQ_GET_TERMINATION
+ * - struct gs_device_termination_state
+ */
+#define GS_CAN_FEATURE_TERMINATION              (1<<11)
 
 #define GS_CAN_FLAG_OVERFLOW                    (1<<0)
 #define GS_CAN_FLAG_FD                          (1<<1) /* is a CAN-FD frame */
@@ -163,6 +170,8 @@ enum gs_usb_breq {
 	GS_USB_BREQ_SET_USER_ID,
 	GS_USB_BREQ_DATA_BITTIMING,
 	GS_USB_BREQ_BT_CONST_EXT,
+	GS_USB_BREQ_SET_TERMINATION,
+	GS_USB_BREQ_GET_TERMINATION,
 };
 
 enum gs_can_mode {
@@ -251,6 +260,10 @@ struct gs_device_bt_const_extended {
 	u32 dbrp_min;
 	u32 dbrp_max;
 	u32 dbrp_inc;
+} __packed;
+
+struct gs_device_termination_state {
+	u32 state;
 } __packed;
 
 struct gs_host_frame {

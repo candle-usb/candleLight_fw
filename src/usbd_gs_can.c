@@ -83,18 +83,14 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 	.Init = USBD_GS_CAN_Start,
 	.DeInit = USBD_GS_CAN_DeInit,
 	.Setup = USBD_GS_CAN_Setup,
-	NULL, // EP0_TxSent
 	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
 	.DataIn = USBD_GS_CAN_DataIn,
 	.DataOut = USBD_GS_CAN_DataOut,
 	.SOF = USBD_GS_CAN_SOF,
-	NULL, // IsoInComplete
-	NULL, // IsoOutComplete
 	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	NULL, // GetDeviceQualifierDescriptor
-	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc // GetUsrStrDescriptor
+	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
 };
 
 

@@ -80,21 +80,21 @@ static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev);
 
 /* CAN interface class callbacks structure */
 USBD_ClassTypeDef USBD_GS_CAN = {
-	USBD_GS_CAN_Start,
-	USBD_GS_CAN_DeInit,
-	USBD_GS_CAN_Setup,
+	.Init = USBD_GS_CAN_Start,
+	.DeInit = USBD_GS_CAN_DeInit,
+	.Setup = USBD_GS_CAN_Setup,
 	NULL, // EP0_TxSent
-	USBD_GS_CAN_EP0_RxReady,
-	USBD_GS_CAN_DataIn,
-	USBD_GS_CAN_DataOut,
-	USBD_GS_CAN_SOF,
+	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
+	.DataIn = USBD_GS_CAN_DataIn,
+	.DataOut = USBD_GS_CAN_DataOut,
+	.SOF = USBD_GS_CAN_SOF,
 	NULL, // IsoInComplete
 	NULL, // IsoOutComplete
-	USBD_GS_CAN_GetCfgDesc,
-	USBD_GS_CAN_GetCfgDesc,
-	USBD_GS_CAN_GetCfgDesc,
+	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	NULL, // GetDeviceQualifierDescriptor
-	USBD_GS_CAN_GetStrDesc // GetUsrStrDescriptor
+	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc // GetUsrStrDescriptor
 };
 
 

@@ -206,6 +206,25 @@ THE SOFTWARE.
 	#define USB_Pin_DM		 GPIO_PIN_11
 	#define USB_Pin_DP		 GPIO_PIN_12
 
+#elif defined(BOARD_STM32F412_DevBoard)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F412VE Dev Board"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
+	#define DFU_INTERFACE_STRING_FS  (uint8_t*) "STM32F412VE firmware upgrade interface"
+
+	#define LEDRX_GPIO_Port	 GPIOC
+	#define LEDRX_Pin		 GPIO_PIN_8
+	#define LEDRX_Mode		 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High 0
+
+	#define LEDTX_GPIO_Port	 GPIOC
+	#define LEDTX_Pin		 GPIO_PIN_9
+	#define LEDTX_Mode		 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High 0
+
+	#define USB_GPIO_Port	 GPIOA
+	#define USB_Pin_DM		 GPIO_PIN_11
+	#define USB_Pin_DP		 GPIO_PIN_12
+
 #else
 	#error please define BOARD
 #endif

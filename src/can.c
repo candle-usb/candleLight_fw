@@ -64,12 +64,26 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 	itd.Alternate = GPIO_AF4_CAN;
 	HAL_GPIO_Init(GPIOB, &itd);
 #elif defined(STM32F4)
+	#if defined(BOARD_STM32F412_DevBoard)
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+    /**CAN1 GPIO Configuration
+    PB8     ------> CAN1_RX
+    PB9     ------> CAN1_TX
+    */
+    itd.Pin = GPIO_PIN_8|GPIO_PIN_9;
+    itd.Mode = GPIO_MODE_AF_PP;
+    itd.Pull = GPIO_NOPULL;
+    itd.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    itd.Alternate = GPIO_AF8_CAN1;
+    HAL_GPIO_Init(GPIOB, &itd);
+	#else
 	itd.Pin = GPIO_PIN_0|GPIO_PIN_1;
 	itd.Mode = GPIO_MODE_AF_PP;
 	itd.Pull = GPIO_NOPULL;
 	itd.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	itd.Alternate = GPIO_AF9_CAN1;
 	HAL_GPIO_Init(GPIOD, &itd);
+	#endif
 #endif
 
 	hcan->instance   = instance;

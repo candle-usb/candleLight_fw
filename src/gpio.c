@@ -27,6 +27,8 @@ THE SOFTWARE.
 #include "config.h"
 #include "hal_include.h"
 
+#define GPIO_INIT_STATE(ACTIVE_HIGH) (((ACTIVE_HIGH) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
+
 // must run before can_init
 void gpio_init(void)
 {
@@ -48,36 +50,34 @@ void gpio_init(void)
 	HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
 #endif
 
-#if (LEDRX_Active_High == 1)
-	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_PIN_RESET);
-#else
-	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_PIN_SET);
-#endif
+#ifdef LEDRX_Pin
+	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_INIT_STATE(LEDRX_Active_High));
 	GPIO_InitStruct.Pin = LEDRX_Pin;
 	GPIO_InitStruct.Mode = LEDRX_Mode;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LEDRX_GPIO_Port, &GPIO_InitStruct);
-
-#if (LEDTX_Active_High == 1)
-	HAL_GPIO_WritePin(LEDTX_GPIO_Port, LEDTX_Pin, GPIO_PIN_RESET);
-#else
-	HAL_GPIO_WritePin(LEDTX_GPIO_Port, LEDTX_Pin, GPIO_PIN_SET);
 #endif
+
+#ifdef LEDTX_Pin
+	HAL_GPIO_WritePin(LEDTX_GPIO_Port, LEDTX_Pin, GPIO_INIT_STATE(LEDTX_Active_High));
 	GPIO_InitStruct.Pin = LEDTX_Pin;
 	GPIO_InitStruct.Mode = LEDTX_Mode;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LEDTX_GPIO_Port, &GPIO_InitStruct);
+#endif
 
-#if defined(BOARD_cannette)
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
+#ifdef nCANSTBY_Pin
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
 	GPIO_InitStruct.Pin = nCANSTBY_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(nCANSTBY_Port, &GPIO_InitStruct);	//xceiver standby.
+#endif
 
+#if defined(BOARD_cannette)
 	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_SET);
 	GPIO_InitStruct.Pin = DCDCEN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -91,7 +91,6 @@ void gpio_init(void)
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(nSI86EN_Port, &GPIO_InitStruct);	//enable si86
-
 #endif // BOARD_cannette
 
 #if defined(BOARD_STM32F4_DevBoard)

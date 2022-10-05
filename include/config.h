@@ -177,6 +177,7 @@ THE SOFTWARE.
 
 	#define nCANSTBY_Port GPIOC
 	#define nCANSTBY_Pin GPIO_PIN_14	/* control xceiver standby, active low */
+	#define nCANSTBY_Active_High 1
 
 	#define nSI86EN_Port GPIOC
 	#define nSI86EN_Pin GPIO_PIN_13		/* enable power to Si86xx isolater, active low */

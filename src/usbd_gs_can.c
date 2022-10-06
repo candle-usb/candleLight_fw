@@ -38,6 +38,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "led.h"
 #include "queue.h"
+#include "gpio.h"
 #include "timer.h"
 #include "flash.h"
 #include "util.h"
@@ -277,7 +278,11 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 	| GS_CAN_FEATURE_HW_TIMESTAMP
 	| GS_CAN_FEATURE_IDENTIFY
 	| GS_CAN_FEATURE_USER_ID
-	| GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE,
+	| GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+#ifdef TERM_Pin
+	| GS_CAN_FEATURE_TERMINATION
+#endif
+	,
 	CAN_CLOCK_SPEED, // can timing base clock
 	1, // tseg1 min
 	16, // tseg1 max
@@ -388,6 +393,13 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			}
 			break;
 
+		case GS_USB_BREQ_SET_TERMINATION:
+			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+			if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
+				USBD_CtlError(pdev, req);
+			}
+			break;
+
 		case GS_USB_BREQ_SET_USER_ID:
 			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
 			if (flash_set_user_id(req->wValue, param_u32)) {
@@ -473,10 +485,17 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	enum gs_can_termination_state term_state;
 	uint32_t d32;
 
 	switch (req->bRequest) {
 
+		case GS_USB_BREQ_SET_TERMINATION:
+			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
+				USBD_CtlError(pdev, req);
+				break;
+			}
+		// fall-through
 		case GS_USB_BREQ_HOST_FORMAT:
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_BITTIMING:
@@ -484,6 +503,19 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_SET_USER_ID:
 			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+			break;
+
+		case GS_USB_BREQ_GET_TERMINATION:
+			term_state = get_term(req->wValue);
+
+			if (term_state == GS_CAN_TERMINATION_UNSUPPORTED) {
+				USBD_CtlError(pdev, req);
+			} else {
+				d32 = (uint32_t)term_state;
+				memcpy(hcan->ep0_buf, &d32, sizeof(d32));
+				USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+			}
+
 			break;
 
 		case GS_USB_BREQ_DEVICE_CONFIG:

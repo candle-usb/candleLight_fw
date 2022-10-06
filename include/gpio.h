@@ -26,4 +26,27 @@ THE SOFTWARE.
 
 #pragma once
 
+#include "gs_usb.h"
+#include "config.h"
+
 void gpio_init(void);
+
+#ifdef TERM_Pin
+enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state);
+enum gs_can_termination_state get_term(unsigned int channel);
+
+#else
+static inline enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state)
+{
+	(void)channel;
+	(void)state;
+	return GS_CAN_TERMINATION_UNSUPPORTED;
+}
+
+static inline enum gs_can_termination_state get_term(unsigned int channel)
+{
+	(void)channel;
+	return GS_CAN_TERMINATION_UNSUPPORTED;
+}
+
+#endif

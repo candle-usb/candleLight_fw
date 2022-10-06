@@ -29,8 +29,10 @@ THE SOFTWARE.
 * - LED pin assignments and polarity
 * - other special pins to control CAN transceivers.
 *
-* CAN_S_PIN :Some CAN transceivers (e.g. TJA1050) have a "Silent mode in which the transmitter is disabled";
+* CAN_S_PIN: Some CAN transceivers (e.g. TJA1050) have a "Silent mode in which the transmitter is disabled";
 * enabled with this 'S' pin. If undefined, the corresponding code will be disabled.
+*
+* TERM_Pin: Add support for an externally controlled terminating resistor
 *
 */
 
@@ -206,6 +208,11 @@ THE SOFTWARE.
 	#define USB_GPIO_Port			 GPIOA
 	#define USB_Pin_DM				 GPIO_PIN_11
 	#define USB_Pin_DP				 GPIO_PIN_12
+
+	#define TERM_GPIO_Port		GPIOB
+	#define TERM_Pin			GPIO_PIN_3
+	#define TERM_Mode			GPIO_MODE_OUTPUT_PP
+	#define TERM_Active_High	1
 
 #else
 	#error please define BOARD

@@ -27,6 +27,7 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdint.h>
+#include "hal_include.h" 	//ugly, we just need this for compiler-independant __packed directive ...
 
 #define u32				   uint32_t
 #define u8				   uint8_t
@@ -190,6 +191,12 @@ enum gs_can_state {
 	GS_CAN_STATE_BUS_OFF,
 	GS_CAN_STATE_STOPPED,
 	GS_CAN_STATE_SLEEPING
+};
+
+enum gs_can_termination_state {
+	GS_CAN_TERMINATION_UNSUPPORTED = -1,	// private, not in kernel enum
+	GS_CAN_TERMINATION_STATE_OFF = 0,
+	GS_CAN_TERMINATION_STATE_ON,
 };
 
 /* data types passed between host and device */

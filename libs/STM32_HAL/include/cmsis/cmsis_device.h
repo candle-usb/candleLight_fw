@@ -9,3 +9,7 @@
 #ifdef STM32F407xx
 #include <cmsis/device/stm32f407xx.h>
 #endif
+
+#ifdef STM32F412Zx
+#include <cmsis/device/stm32f412zx.h>
+#endif

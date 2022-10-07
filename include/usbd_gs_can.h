@@ -55,8 +55,11 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 # define USB_INTERFACE   USB_OTG_FS
 # define USB_INTERRUPT   OTG_FS_IRQn
 # define CAN_INTERFACE   CAN1
-# define CAN_CLOCK_SPEED 42000000
-
+    #if defined(BOARD_STM32F412_DevBoard)
+    # define CAN_CLOCK_SPEED 48000000
+    #else
+    # define CAN_CLOCK_SPEED 42000000
+    #endif
 // RX FIFO is defined in words, so divide bytes by 4
 // RX FIFO size chosen according to reference manual RM0368 which suggests
 // using (largest packet size / 4) + 1

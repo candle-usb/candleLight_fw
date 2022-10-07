@@ -163,12 +163,26 @@ function(add_f407_target TGTNAME)
 	show_object_size(${TGTNAME}_fw)
 endfunction()
 
+function(add_f412_target TGTNAME)
+	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
+	add_dependencies(${TGTNAME}_fw version_h)
+    target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
+    target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F4 BOARD_STM32F412_DevBoard)
+    target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
+    target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
+    target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F412XE.ld)
+    target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F412xE STM32_USB_Device_Library_STM32F412xE)
+    make_bin_file(${TGTNAME}_fw)
+    dfu_flash(${TGTNAME}_fw)
+    show_object_size(${TGTNAME}_fw)
+endfunction()
+
 ########## generate list of targets.
 # the "_fw" part is appended automatically
 set(TGT042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette")
 set(TGT072_LIST "candleLight" "CANable_MKS")
 set(TGT407_LIST "STM32F4_DevBoard")
-
+set(TGT412_LIST "STM32F412_DevBoard")
 
 foreach (TGTNAME IN LISTS TGT042_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
@@ -188,6 +202,13 @@ foreach (TGTNAME IN LISTS TGT407_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
 	if (BUILD_${TGTNAME})
 		add_f407_target(${TGTNAME})
+	endif()
+endforeach()
+
+foreach (TGTNAME IN LISTS TGT412_LIST)
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
+	if (BUILD_${TGTNAME})
+		add_f412_target(${TGTNAME})
 	endif()
 endforeach()
 

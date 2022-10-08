@@ -25,7 +25,6 @@ THE SOFTWARE.
 */
 
 #include <stdint.h>
-#include <stddef.h>
 #include "hal_include.h"
 
 void NMI_Handler(void)

@@ -27,7 +27,6 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdbool.h>
-#include <util.h>
 
 typedef struct {
 	unsigned max_elements;

@@ -24,8 +24,10 @@ THE SOFTWARE.
 
 */
 
-#include <queue.h>
 #include <stdlib.h>
+
+#include "queue.h"
+#include "util.h"
 
 queue_t *queue_create(unsigned max_elements){
 	queue_t *q = calloc(1, sizeof(queue_t));

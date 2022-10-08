@@ -26,6 +26,8 @@ THE SOFTWARE.
 
 #pragma once
 
+#include <stdint.h>
+#include "usbd_conf.h"
 #include "usbd_def.h"
 
 extern const USBD_DescriptorsTypeDef FS_Desc;

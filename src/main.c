@@ -24,11 +24,13 @@ THE SOFTWARE.
 
 */
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "config.h"
 #include "hal_include.h"
+#include "usbd_conf.h"
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_core.h"

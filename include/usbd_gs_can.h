@@ -27,11 +27,12 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdbool.h>
-#include <usbd_def.h>
-#include <queue.h>
-#include <led.h>
-#include <can.h>
-#include <gs_usb.h>
+#include <stdint.h>
+#include "usbd_def.h"
+#include "queue.h"
+#include "led.h"
+#include "can.h"
+#include "gs_usb.h"
 
 /* Define these here so they can be referenced in other files */
 

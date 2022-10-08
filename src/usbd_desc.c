@@ -24,8 +24,9 @@ THE SOFTWARE.
 
 */
 
+#include <stdint.h>
 #include <string.h>
-#include "usbd_core.h"
+#include "usbd_ctlreq.h"
 #include "usbd_desc.h"
 #include "config.h"
 #include "util.h"

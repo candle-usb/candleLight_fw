@@ -25,7 +25,10 @@ THE SOFTWARE.
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "usbd_core.h"
+#include "usbd_ctlreq.h"
+#include "usbd_def.h"
 #include "usbd_gs_can.h"
 
 PCD_HandleTypeDef hpcd_USB_FS;

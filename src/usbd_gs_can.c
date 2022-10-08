@@ -30,12 +30,17 @@ THE SOFTWARE.
 #include <string.h>
 #include "hal_include.h"
 #include "usbd_desc.h"
+#include "usbd_core.h"
+#include "usbd_def.h"
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
 #include "gs_usb.h"
 #include "can.h"
+#include "led.h"
+#include "queue.h"
 #include "timer.h"
 #include "flash.h"
+#include "util.h"
 
 typedef struct {
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];

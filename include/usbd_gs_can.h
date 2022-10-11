@@ -35,26 +35,26 @@ THE SOFTWARE.
 
 /* Define these here so they can be referenced in other files */
 
-#define CAN_DATA_MAX_PACKET_SIZE   32  /* Endpoint IN & OUT Packet size */
-#define CAN_CMD_PACKET_SIZE        64  /* Control Endpoint Packet size */
-#define USB_CAN_CONFIG_DESC_SIZ    50
-#define NUM_CAN_CHANNEL             1
-#define USBD_GS_CAN_VENDOR_CODE  0x20
-#define DFU_INTERFACE_NUM           1
-#define DFU_INTERFACE_STR_INDEX  0xE0
+#define CAN_DATA_MAX_PACKET_SIZE 32    /* Endpoint IN & OUT Packet size */
+#define CAN_CMD_PACKET_SIZE		 64    /* Control Endpoint Packet size */
+#define USB_CAN_CONFIG_DESC_SIZ	 50
+#define NUM_CAN_CHANNEL			 1
+#define USBD_GS_CAN_VENDOR_CODE	 0x20
+#define DFU_INTERFACE_NUM		 1
+#define DFU_INTERFACE_STR_INDEX	 0xE0
 
 extern USBD_ClassTypeDef USBD_GS_CAN;
 
 
 #if defined(STM32F0)
-# define USB_INTERFACE   USB
-# define USB_INTERRUPT   USB_IRQn
-# define CAN_INTERFACE   CAN
+# define USB_INTERFACE	 USB
+# define USB_INTERRUPT	 USB_IRQn
+# define CAN_INTERFACE	 CAN
 # define CAN_CLOCK_SPEED 48000000
 #elif defined(STM32F4)
-# define USB_INTERFACE   USB_OTG_FS
-# define USB_INTERRUPT   OTG_FS_IRQn
-# define CAN_INTERFACE   CAN1
+# define USB_INTERFACE	 USB_OTG_FS
+# define USB_INTERRUPT	 OTG_FS_IRQn
+# define CAN_INTERFACE	 CAN1
 # define CAN_CLOCK_SPEED 42000000
 
 // RX FIFO is defined in words, so divide bytes by 4

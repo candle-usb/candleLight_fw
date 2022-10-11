@@ -30,8 +30,8 @@ THE SOFTWARE.
 
 #define RESET_TO_BOOTLOADER_MAGIC_CODE 0xDEADBEEF
 
-#define SYSMEM_STM32F042 0x1FFFC400
-#define SYSMEM_STM32F072 0x1FFFC800
+#define SYSMEM_STM32F042			   0x1FFFC400
+#define SYSMEM_STM32F072			   0x1FFFC800
 
 static uint32_t dfu_reset_to_bootloader_magic;
 
@@ -80,7 +80,7 @@ static void dfu_hack_boot_pin_f042(void)
 
 static void dfu_jump_to_bootloader(uint32_t sysmem_base)
 {
-	void (*bootloader)(void) = (void (*)(void)) (*((uint32_t *) (sysmem_base + 4)));
+	void (*bootloader)(void) = (void (*)(void))(*((uint32_t *) (sysmem_base + 4)));
 
 	__set_MSP(*(__IO uint32_t*) sysmem_base);
 	bootloader();

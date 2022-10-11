@@ -40,7 +40,7 @@ static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t
 
 #ifdef USB_SUPPORT_USER_STRING_DESC
 uint8_t *USBD_FS_USRStringDesc(USBD_SpeedTypeDef speed, uint8_t idx, uint16_t *length);
-#endif /* USB_SUPPORT_USER_STRING_DESC */  
+#endif /* USB_SUPPORT_USER_STRING_DESC */
 
 const USBD_DescriptorsTypeDef FS_Desc = {
 	USBD_FS_DeviceDescriptor,
@@ -74,7 +74,7 @@ static const uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] = {
 	USBD_IDX_PRODUCT_STR,       /* Index of product string */
 	USBD_IDX_SERIAL_STR,        /* Index of serial number string */
 	USBD_MAX_NUM_CONFIGURATION  /* bNumConfigurations */
-} ;
+};
 
 /* USB Standard Device Descriptor */
 static const uint8_t USBD_LangIDDesc[USB_LEN_LANGID_STR_DESC] =
@@ -121,7 +121,7 @@ uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 
 	UNUSED(speed);
 
-	hex32(buf     , *(uint32_t*)(UID_BASE    ));
+	hex32(buf,		*(uint32_t*)(UID_BASE    ));
 	hex32(buf +  8, *(uint32_t*)(UID_BASE + 4));
 	hex32(buf + 16, *(uint32_t*)(UID_BASE + 8));
 

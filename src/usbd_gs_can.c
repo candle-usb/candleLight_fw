@@ -211,12 +211,12 @@ static const uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] = {
 /* Microsoft Extended Properties Feature Descriptor */
 static const uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] = {
 	0x92, 0x00, 0x00, 0x00, /* length */
-	0x00, 0x01,				/* version 1.0 */
+	0x00, 0x01,             /* version 1.0 */
 	0x05, 0x00,             /* descr index (0x0005) */
 	0x01, 0x00,             /* number of sections */
 	0x88, 0x00, 0x00, 0x00, /* property section size */
 	0x07, 0x00, 0x00, 0x00, /* property data type 7: Unicode REG_MULTI_SZ */
-	0x2a, 0x00,				/* property name length */
+	0x2a, 0x00,             /* property name length */
 
 	0x44, 0x00, 0x65, 0x00, /* property name "DeviceInterfaceGUIDs" */
 	0x76, 0x00, 0x69, 0x00,
@@ -315,7 +315,7 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	UNUSED(cfgidx);
 
 	assert_basic(pdev->pClassData);
-	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
+	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN,	 USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 	USBD_GS_CAN_PrepareReceive(pdev);
 
@@ -407,11 +407,11 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
 
 					can_enable(ch,
-						(mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
-						(mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
-						(mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
-						// triple sampling not supported on bxCAN
-					);
+							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+							   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
+							   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
+					           // triple sampling not supported on bxCAN
+							   );
 
 					led_set_mode(hcan->leds, led_mode_normal);
 				}
@@ -427,7 +427,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					timing->prop_seg + timing->phase_seg1,
 					timing->phase_seg2,
 					timing->sjw
-				);
+					);
 			}
 			break;
 
@@ -521,9 +521,9 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 
 	if (
 		(req_type == 0x01) // class request
-	 && (req_rcpt == 0x01) // recipient: interface
-	 && (req->wIndex == DFU_INTERFACE_NUM)
-	 ) {
+	   && (req_rcpt == 0x01) // recipient: interface
+	   && (req->wIndex == DFU_INTERFACE_NUM)
+		) {
 		return USBD_GS_CAN_DFU_Request(pdev, req);
 	} else {
 		return USBD_GS_CAN_Config_Request(pdev, req);
@@ -677,7 +677,7 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 
 	send_addr = (uint8_t *)frame;
 
-	if(hcan->pad_pkts_to_max_pkt_size){
+	if (hcan->pad_pkts_to_max_pkt_size) {
 		// When talking to WinUSB it seems to help a lot if the
 		// size of packet you send equals the max packet size.
 		// In this mode, fill packets out to max packet size and
@@ -727,18 +727,18 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 	// Disable CAN and go off bus on USB suspend
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 
-	if(hcan != NULL)
+	if (hcan != NULL)
 	{
-		for(uint32_t i=0; i<NUM_CAN_CHANNEL; i++)
+		for (uint32_t i=0; i<NUM_CAN_CHANNEL; i++)
 		{
-			if(hcan->channels[i] != NULL)
+			if (hcan->channels[i] != NULL)
 				can_disable(hcan->channels[i]);
 		}
 	}
 
-	if(hcan != NULL && hcan->leds != NULL)
+	if (hcan != NULL && hcan->leds != NULL)
 		led_set_mode(hcan->leds, led_mode_off);
-	
+
 	is_usb_suspend_cb = true;
 }
 

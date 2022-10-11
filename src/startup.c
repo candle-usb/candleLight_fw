@@ -1,17 +1,17 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct _copy_table_t  
+typedef struct _copy_table_t
 {
 	uint32_t const* src;
 	uint32_t* dest;
-	uint32_t  wlen;
+	uint32_t wlen;
 } copy_table_t;
 
 typedef struct _zero_table_t
 {
 	uint32_t* dest;
-	uint32_t  wlen;
+	uint32_t wlen;
 } zero_table_t;
 
 extern const copy_table_t __copy_table_start__;
@@ -49,6 +49,6 @@ void Reset_Handler(void)
 void _exit(int code)
 {
 	(void) code;
-	__asm__("BKPT");
+	__asm__ ("BKPT");
 	while (1);
 }

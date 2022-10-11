@@ -1,28 +1,28 @@
 /*
 
-The MIT License (MIT)
+   The MIT License (MIT)
 
-Copyright (c) 2016 Hubert Denkmair
+   Copyright (c) 2016 Hubert Denkmair
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
 
-*/
+ */
 
 #include "can.h"
 #include "config.h"
@@ -86,11 +86,11 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
 {
-	if ( (brp>0) && (brp<=1024)
-	  && (phase_seg1>0) && (phase_seg1<=16)
-	  && (phase_seg2>0) && (phase_seg2<=8)
-	  && (sjw>0) && (sjw<=4)
-	) {
+	if (  (brp>0) && (brp<=1024)
+	   && (phase_seg1>0) && (phase_seg1<=16)
+	   && (phase_seg2>0) && (phase_seg2<=8)
+	   && (sjw>0) && (sjw<=4)
+		  ) {
 		hcan->brp = brp & 0x3FF;
 		hcan->phase_seg1 = phase_seg1;
 		hcan->phase_seg2 = phase_seg2;
@@ -106,34 +106,34 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	CAN_TypeDef *can = hcan->instance;
 
 	uint32_t mcr = CAN_MCR_INRQ
-				 | CAN_MCR_ABOM
-				 | CAN_MCR_TXFP
-				 | (one_shot ? CAN_MCR_NART : 0);
+				   | CAN_MCR_ABOM
+				   | CAN_MCR_TXFP
+				   | (one_shot ? CAN_MCR_NART : 0);
 
 	uint32_t btr = ((uint32_t)(hcan->sjw-1)) << 24
-				 | ((uint32_t)(hcan->phase_seg1-1)) << 16
-				 | ((uint32_t)(hcan->phase_seg2-1)) << 20
-				 | (hcan->brp - 1)
-				 | (loop_back ? CAN_MODE_LOOPBACK : 0)
-				 | (listen_only ? CAN_MODE_SILENT : 0);
+				   | ((uint32_t)(hcan->phase_seg1-1)) << 16
+				   | ((uint32_t)(hcan->phase_seg2-1)) << 20
+				   | (hcan->brp - 1)
+				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
+				   | (listen_only ? CAN_MODE_SILENT : 0);
 
 
 	// Reset CAN peripheral
 	can->MCR |= CAN_MCR_RESET;
-	while((can->MCR & CAN_MCR_RESET) != 0); // reset bit is set to zero after reset
-	while((can->MSR & CAN_MSR_SLAK) == 0);  // should be in sleep mode after reset
+	while ((can->MCR & CAN_MCR_RESET) != 0);                                                 // reset bit is set to zero after reset
+	while ((can->MSR & CAN_MSR_SLAK) == 0);                                                // should be in sleep mode after reset
 
 	// Completely reset while being of the bus
 	rcc_reset(can);
 
-	can->MCR |= CAN_MCR_INRQ ;
-	while((can->MSR & CAN_MSR_INAK) == 0);
+	can->MCR |= CAN_MCR_INRQ;
+	while ((can->MSR & CAN_MSR_INAK) == 0);
 
 	can->MCR = mcr;
 	can->BTR = btr;
 
 	can->MCR &= ~CAN_MCR_INRQ;
-	while((can->MSR & CAN_MSR_INAK) != 0);
+	while ((can->MSR & CAN_MSR_INAK) != 0);
 
 	uint32_t filter_bit = 0x00000001;
 	can->FMR |= CAN_FMR_FINIT;
@@ -141,8 +141,8 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FA1R &= ~filter_bit;        // disable filter
 	can->FS1R |= filter_bit;         // set to single 32-bit filter mode
 	can->FM1R &= ~filter_bit;        // set filter mask mode for filter 0
-	can->sFilterRegister[0].FR1 = 0; // filter ID = 0
-	can->sFilterRegister[0].FR2 = 0; // filter Mask = 0
+	can->sFilterRegister[0].FR1 = 0;     // filter ID = 0
+	can->sFilterRegister[0].FR2 = 0;     // filter Mask = 0
 	can->FFA1R &= ~filter_bit;       // assign filter 0 to FIFO 0
 	can->FA1R |= filter_bit;         // enable filter
 	can->FMR &= ~CAN_FMR_FINIT;
@@ -158,7 +158,7 @@ void can_disable(can_data_t *hcan)
 #ifdef nCANSTBY_Pin
 	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
 #endif
-	can->MCR |= CAN_MCR_INRQ ; // send can controller into initialization mode
+	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 
 bool can_is_enabled(can_data_t *hcan)
@@ -201,7 +201,7 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 		rx_frame->data[6] = (fifo->RDHR >> 16) & 0xFF;
 		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
 
-		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
+		can->RF0R |= CAN_RF0R_RFOM0;         // release FIFO
 
 		return true;
 	} else {
@@ -233,7 +233,7 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 		/* first, clear transmission request */
 		mb->TIR &= CAN_TI0R_TXRQ;
 
-		if (frame->can_id & CAN_EFF_FLAG) { // extended id
+		if (frame->can_id & CAN_EFF_FLAG) {         // extended id
 			mb->TIR = CAN_ID_EXT | (frame->can_id & 0x1FFFFFFF) << 3;
 		} else {
 			mb->TIR = (frame->can_id & 0x7FF) << 21;
@@ -247,13 +247,13 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 		mb->TDTR |= frame->can_dlc & 0x0F;
 
 		mb->TDLR =
-			  ( frame->data[3] << 24 )
+			( frame->data[3] << 24 )
 			| ( frame->data[2] << 16 )
 			| ( frame->data[1] <<  8 )
 			| ( frame->data[0] <<  0 );
 
 		mb->TDHR =
-			  ( frame->data[7] << 24 )
+			( frame->data[7] << 24 )
 			| ( frame->data[6] << 16 )
 			| ( frame->data[5] <<  8 )
 			| ( frame->data[4] <<  0 );

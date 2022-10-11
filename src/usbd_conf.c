@@ -32,7 +32,7 @@ PCD_HandleTypeDef hpcd_USB_FS;
 
 void HAL_PCD_MspInit(PCD_HandleTypeDef* hpcd)
 {
-	if(hpcd->Instance==USB_INTERFACE) {
+	if (hpcd->Instance==USB_INTERFACE) {
 
 #if defined(USB)
 		__HAL_RCC_USB_CLK_ENABLE();
@@ -46,7 +46,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* hpcd)
 
 void HAL_PCD_MspDeInit(PCD_HandleTypeDef* hpcd)
 {
-	if(hpcd->Instance==USB_INTERFACE) {
+	if (hpcd->Instance==USB_INTERFACE) {
 #if defined(USB)
 		__HAL_RCC_USB_CLK_DISABLE();
 #elif defined(USB_OTG_FS)
@@ -142,10 +142,10 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	* 0x158 - 0x1D7 (128 bytes) EP1 OUT (buffer 2)
 	*/
 #if defined(USB)
-	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x00 , PCD_SNG_BUF, 0x18);
-	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x80 , PCD_SNG_BUF, 0x58);
-	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x81 , PCD_SNG_BUF, 0x98);
-	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x02 , PCD_DBL_BUF, 0x00D80158);
+	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x00, PCD_SNG_BUF, 0x18);
+	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x80, PCD_SNG_BUF, 0x58);
+	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x81, PCD_SNG_BUF, 0x98);
+	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x02, PCD_DBL_BUF, 0x00D80158);
 #elif defined(USB_OTG_FS)
 	HAL_PCDEx_SetRxFiFo((PCD_HandleTypeDef*)pdev->pData, USB_RX_FIFO_SIZE); // shared RX FIFO
 	HAL_PCDEx_SetTxFiFo((PCD_HandleTypeDef*)pdev->pData, 0U, 64U / 4U);     // 0x80, 64 bytes (div by 4 for words)

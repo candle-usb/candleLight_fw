@@ -70,7 +70,7 @@ int main(void)
 	led_init(&hLED, LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High, LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
 	/* nice wake-up pattern */
-	for(uint8_t i=0; i<10; i++)
+	for (uint8_t i=0; i<10; i++)
 	{
 		HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
 		HAL_Delay(50);
@@ -86,7 +86,7 @@ int main(void)
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
 	q_from_host  = queue_create(CAN_QUEUE_SIZE);
-	q_to_host	 = queue_create(CAN_QUEUE_SIZE);
+	q_to_host    = queue_create(CAN_QUEUE_SIZE);
 	assert_basic(q_frame_pool && q_from_host && q_to_host);
 
 	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
@@ -191,7 +191,7 @@ void SystemClock_Config(void)
 
 #if defined(STM32F0)
 	RCC_PeriphCLKInitTypeDef PeriphClkInit;
-	RCC_CRSInitTypeDef       RCC_CRSInitStruct;
+	RCC_CRSInitTypeDef RCC_CRSInitStruct;
 
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
 	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
@@ -258,7 +258,7 @@ void send_to_host(void)
 {
 	struct gs_host_frame *frame = queue_pop_front(q_to_host);
 
-	if(!frame)
+	if (!frame)
 		return;
 
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {

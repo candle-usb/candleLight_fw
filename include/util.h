@@ -87,10 +87,10 @@ static inline void restore_irq(bool was_enabled)
  * https://barrgroup.com/embedded-systems/how-to/define-assert-macro
  *
  */
-#define assert_basic(exp)	\
-		if (exp) {			\
-		} else 				\
-			assert_failed()
+#define assert_basic(exp)   \
+	if (exp) {          \
+	} else              \
+	assert_failed()
 
 /** halt / set core to debug state with BKPT.
  *

@@ -38,174 +38,174 @@ THE SOFTWARE.
 
 #include "version.h"
 
-#define CAN_QUEUE_SIZE 64
+#define CAN_QUEUE_SIZE				 64
 
-#define USBD_VID                     0x1d50
-#define USBD_PID_FS                  0x606f
-#define USBD_LANGID_STRING           1033
+#define USBD_VID					 0x1d50
+#define USBD_PID_FS					 0x606f
+#define USBD_LANGID_STRING			 1033
 #define USBD_CONFIGURATION_STRING_FS (uint8_t*) GIT_HASH
-#define USBD_INTERFACE_STRING_FS     (uint8_t*) "gs_usb interface"
+#define USBD_INTERFACE_STRING_FS	 (uint8_t*) "gs_usb interface"
 
 #if defined(BOARD_candleLight)
-	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "candleLight USB to CAN adapter"
-	#define USBD_MANUFACTURER_STRING	(uint8_t*) "bytewerk"
-	#define DFU_INTERFACE_STRING_FS		(uint8_t*) "candleLight firmware upgrade interface"
-	#define CAN_S_Pin GPIO_PIN_13
-	#define CAN_S_GPIO_Port GPIOC
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "candleLight USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "bytewerk"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "candleLight firmware upgrade interface"
+	#define CAN_S_Pin				 GPIO_PIN_13
+	#define CAN_S_GPIO_Port			 GPIOC
 
-	#define LEDRX_Pin GPIO_PIN_0
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_OD
-	#define LEDRX_GPIO_Port GPIOA
-	#define LEDRX_Active_High 0
+	#define LEDRX_Pin				 GPIO_PIN_0
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Active_High		 0
 
-	#define LEDTX_GPIO_Port GPIOA
-	#define LEDTX_Pin GPIO_PIN_1
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_OD
-	#define LEDTX_Active_High 0
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_1
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_CANable_MKS)
-	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "CANable-MKS gs_usb"
-	#define USBD_MANUFACTURER_STRING	(uint8_t*) "makerbase"
-	#define DFU_INTERFACE_STRING_FS		(uint8_t*) "CANable-MKS firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "CANable-MKS gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "makerbase"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANable-MKS firmware upgrade interface"
 
-	// SILENT pin not connected
+// SILENT pin not connected
 
-	#define LEDRX_GPIO_Port GPIOA
-	#define LEDRX_Pin GPIO_PIN_1
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_OD
+	#define LEDRX_GPIO_Port	  GPIOA
+	#define LEDRX_Pin		  GPIO_PIN_1
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LEDRX_Active_High 0
 
-	#define LEDTX_GPIO_Port GPIOA
-	#define LEDTX_Pin GPIO_PIN_0
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_OD
+	#define LEDTX_GPIO_Port	  GPIOA
+	#define LEDTX_Pin		  GPIO_PIN_0
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High 0
 
 #elif defined(BOARD_cantact)
-	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "cantact gs_usb"
-	#define USBD_MANUFACTURER_STRING	(uint8_t*) "cantact.io"
-	#define DFU_INTERFACE_STRING_FS		(uint8_t*) "cantact firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cantact gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "cantact.io"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cantact firmware upgrade interface"
 
-	// SILENT pin not connected
+// SILENT pin not connected
 
-	#define LEDRX_GPIO_Port GPIOB
-	#define LEDRX_Pin GPIO_PIN_0	/* green */
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_PP
+	#define LEDRX_GPIO_Port	  GPIOB
+	#define LEDRX_Pin		  GPIO_PIN_0 /* green */
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDRX_Active_High 1
 
-	#define LEDTX_GPIO_Port GPIOB
-	#define LEDTX_Pin GPIO_PIN_1	/* red */
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_PP
+	#define LEDTX_GPIO_Port	  GPIOB
+	#define LEDTX_Pin		  GPIO_PIN_1 /* red */
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High 1
 
 #elif defined(BOARD_canable)
-	#define USBD_PRODUCT_STRING_FS			(uint8_t*) "canable gs_usb"
-	#define USBD_MANUFACTURER_STRING		(uint8_t*) "canable.io"
-	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "canable firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "canable gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "canable.io"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "canable firmware upgrade interface"
 
-	// SILENT pin not connected
+// SILENT pin not connected
 
-	#define LEDRX_GPIO_Port GPIOB
-	#define LEDRX_Pin GPIO_PIN_0	/* green */
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_PP
+	#define LEDRX_GPIO_Port	  GPIOB
+	#define LEDRX_Pin		  GPIO_PIN_0 /* green */
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDRX_Active_High 1
 
-	#define LEDTX_GPIO_Port GPIOB
-	#define LEDTX_Pin GPIO_PIN_1	/* blue */
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_PP
+	#define LEDTX_GPIO_Port	  GPIOB
+	#define LEDTX_Pin		  GPIO_PIN_1 /* blue */
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High 0
 
 #elif defined(BOARD_usb2can)
-	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "USB2CAN RCA gs_usb"
-	#define USBD_MANUFACTURER_STRING	(uint8_t*) "Roboter Club Aachen"
-	#define DFU_INTERFACE_STRING_FS		(uint8_t*) "usb2can firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "USB2CAN RCA gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "Roboter Club Aachen"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "usb2can firmware upgrade interface"
 
-	// SILENT pin not connected
+// SILENT pin not connected
 
 	#define LED4_GPIO_Port GPIOA
-	#define LED4_Pin GPIO_PIN_0	/* white */
-	#define LED4_Mode GPIO_MODE_OUTPUT_OD
+	#define LED4_Pin	   GPIO_PIN_0 /* white */
+	#define LED4_Mode	   GPIO_MODE_OUTPUT_OD
 	#define LED4_Active_Low
 
-	#define LEDTX_GPIO_Port GPIOA
-	#define LEDTX_Pin GPIO_PIN_1	/* blue */
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_OD
+	#define LEDTX_GPIO_Port	  GPIOA
+	#define LEDTX_Pin		  GPIO_PIN_1 /* blue */
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High 0
 
-	#define LED3_GPIO_Port GPIOA
-	#define LED3_Pin GPIO_PIN_2	/* red */
-	#define LED3_Mode GPIO_MODE_OUTPUT_OD
+	#define LED3_GPIO_Port	  GPIOA
+	#define LED3_Pin		  GPIO_PIN_2 /* red */
+	#define LED3_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LED3_Active_Low
 
-	#define LEDRX_GPIO_Port GPIOB
-	#define LEDRX_Pin GPIO_PIN_3	/* green */
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_OD
+	#define LEDRX_GPIO_Port	  GPIOB
+	#define LEDRX_Pin		  GPIO_PIN_3 /* green */
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LEDRX_Active_High 0
 
 #elif defined(BOARD_canalyze)
-	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "CANAlyze gs_usb"
-	#define USBD_MANUFACTURER_STRING	(uint8_t*) "STMicroelectronics"
-	#define DFU_INTERFACE_STRING_FS		(uint8_t*) "CANAlyze firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "CANAlyze gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "STMicroelectronics"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANAlyze firmware upgrade interface"
 
-	// SILENT pin not connected
+// SILENT pin not connected
 
-	#define LEDRX_GPIO_Port GPIOB
-	#define LEDRX_Pin GPIO_PIN_0	/* green */
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_PP
+	#define LEDRX_GPIO_Port	  GPIOB
+	#define LEDRX_Pin		  GPIO_PIN_0 /* green */
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDRX_Active_High 1
 
-	#define LEDTX_GPIO_Port GPIOB
-	#define LEDTX_Pin GPIO_PIN_1	/* red */
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_PP
+	#define LEDTX_GPIO_Port	  GPIOB
+	#define LEDTX_Pin		  GPIO_PIN_1 /* red */
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High 1
 
 #elif defined(BOARD_cannette)
-	#define USBD_PRODUCT_STRING_FS			(uint8_t*) "cannette gs_usb"
-	#define USBD_MANUFACTURER_STRING		(uint8_t*) "chacaltech"
-	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "cannette firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cannette gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "chacaltech"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cannette firmware upgrade interface"
 
-	// SILENT pin not connected
+// SILENT pin not connected
 
-	#define LEDRX_GPIO_Port GPIOA
-	#define LEDRX_Pin GPIO_PIN_9	/* RX: green */
-	#define LEDRX_Mode GPIO_MODE_OUTPUT_OD
-	#define LEDRX_Active_High 0
+	#define LEDRX_GPIO_Port		 GPIOA
+	#define LEDRX_Pin			 GPIO_PIN_9 /* RX: green */
+	#define LEDRX_Mode			 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High	 0
 
-	#define LEDTX_GPIO_Port GPIOA
-	#define LEDTX_Pin GPIO_PIN_8	/* TX: red */
-	#define LEDTX_Mode GPIO_MODE_OUTPUT_OD
-	#define LEDTX_Active_High 0
+	#define LEDTX_GPIO_Port		 GPIOA
+	#define LEDTX_Pin			 GPIO_PIN_8 /* TX: red */
+	#define LEDTX_Mode			 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High	 0
 
-	#define nCANSTBY_Port GPIOC
-	#define nCANSTBY_Pin GPIO_PIN_14	/* control xceiver standby, active low */
+	#define nCANSTBY_Port		 GPIOC
+	#define nCANSTBY_Pin		 GPIO_PIN_14 /* control xceiver standby, active low */
 	#define nCANSTBY_Active_High 1
 
-	#define nSI86EN_Port GPIOC
-	#define nSI86EN_Pin GPIO_PIN_13		/* enable power to Si86xx isolater, active low */
+	#define nSI86EN_Port		 GPIOC
+	#define nSI86EN_Pin			 GPIO_PIN_13 /* enable power to Si86xx isolater, active low */
 
-	#define DCDCEN_Port GPIOC
-	#define DCDCEN_Pin GPIO_PIN_15		/* activate DCDC converter, active high */
+	#define DCDCEN_Port			 GPIOC
+	#define DCDCEN_Pin			 GPIO_PIN_15 /* activate DCDC converter, active high */
 
 #elif defined(BOARD_STM32F4_DevBoard)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
-	#define DFU_INTERFACE_STRING_FS  (uint8_t*) "STM32F4VE firmware upgrade interface"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "STM32F4VE firmware upgrade interface"
 
-	#define CAN_S_Pin		 GPIO_PIN_10
-	#define CAN_S_GPIO_Port  GPIOA
+	#define CAN_S_Pin				 GPIO_PIN_10
+	#define CAN_S_GPIO_Port			 GPIOA
 
-	#define LEDRX_GPIO_Port	 GPIOA
-	#define LEDRX_Pin		 GPIO_PIN_6
-	#define LEDRX_Mode		 GPIO_MODE_OUTPUT_OD
-	#define LEDRX_Active_High 0
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Pin				 GPIO_PIN_6
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High		 0
 
-	#define LEDTX_GPIO_Port	 GPIOA
-	#define LEDTX_Pin		 GPIO_PIN_7
-	#define LEDTX_Mode		 GPIO_MODE_OUTPUT_OD
-	#define LEDTX_Active_High 0
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_7
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
 
-	#define USB_GPIO_Port	 GPIOA
-	#define USB_Pin_DM		 GPIO_PIN_11
-	#define USB_Pin_DP		 GPIO_PIN_12
+	#define USB_GPIO_Port			 GPIOA
+	#define USB_Pin_DM				 GPIO_PIN_11
+	#define USB_Pin_DP				 GPIO_PIN_12
 
 #else
 	#error please define BOARD

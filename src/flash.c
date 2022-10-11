@@ -86,13 +86,13 @@ void flash_flush(void)
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_SR_PGERR);
 #elif defined(STM32F4)
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
-                           FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+						   FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #endif
 	uint32_t error = 0;
 	HAL_FLASHEx_Erase(&erase_pages, &error);
 	if (error==0xFFFFFFFF) { // erase finished successfully
 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)&flash_data_rom.user_id[0], flash_data_ram.user_id[0]);
 	}
-	
+
 	HAL_FLASH_Lock();
 }

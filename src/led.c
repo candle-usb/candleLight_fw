@@ -34,7 +34,7 @@ void led_init(
 	led_data_t *leds,
 	void* led_rx_port, uint16_t led_rx_pin, bool led_rx_active_high,
 	void* led_tx_port, uint16_t led_tx_pin, bool led_tx_active_high
-) {
+	) {
 	memset(leds, 0, sizeof(led_data_t));
 	leds->led_state[led_rx].port = led_rx_port;
 	leds->led_state[led_rx].pin = led_rx_pin;
@@ -67,7 +67,7 @@ static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
 	led_set(&leds->led_state[led_tx], step->state & 0x02);
 	uint32_t delta = 10 * step->time_in_10ms;
 	if (delta > INT32_MAX) {
-		delta = INT32_MAX;	//clamp
+		delta = INT32_MAX;  //clamp
 	}
 	leds->t_sequence_next = HAL_GetTick() + delta;
 	return delta;
@@ -89,7 +89,7 @@ void led_indicate_trx(led_data_t *leds, led_num_t num)
 	led_state_t *led = &leds->led_state[num];
 
 	if ( SEQ_ISPASSED(now, led->on_until) &&
-		SEQ_ISPASSED(now, led->off_until) ) {
+		 SEQ_ISPASSED(now, led->off_until) ) {
 		led->off_until = now + 30;
 		led->on_until = now + 45;
 	}

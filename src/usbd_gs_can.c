@@ -394,9 +394,11 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 
 		case GS_USB_BREQ_SET_TERMINATION:
-			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-			if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
-				USBD_CtlError(pdev, req);
+			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
+				memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+				if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
+					USBD_CtlError(pdev, req);
+				}
 			}
 			break;
 

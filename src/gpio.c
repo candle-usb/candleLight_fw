@@ -50,10 +50,10 @@ enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termina
 	}
 
 #if (TERM_Active_High == 1)
-	#define TERM_ON  GPIO_PIN_SET
+	#define TERM_ON	 GPIO_PIN_SET
 	#define TERM_OFF GPIO_PIN_RESET
 #else
-	#define TERM_ON  GPIO_PIN_RESET
+	#define TERM_ON	 GPIO_PIN_RESET
 	#define TERM_OFF GPIO_PIN_SET
 #endif
 

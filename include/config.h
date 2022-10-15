@@ -209,10 +209,10 @@ THE SOFTWARE.
 	#define USB_Pin_DM				 GPIO_PIN_11
 	#define USB_Pin_DP				 GPIO_PIN_12
 
-	#define TERM_GPIO_Port		GPIOB
-	#define TERM_Pin			GPIO_PIN_3
-	#define TERM_Mode			GPIO_MODE_OUTPUT_PP
-	#define TERM_Active_High	1
+	#define TERM_GPIO_Port			 GPIOB
+	#define TERM_Pin				 GPIO_PIN_3
+	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
+	#define TERM_Active_High		 1
 
 #else
 	#error please define BOARD

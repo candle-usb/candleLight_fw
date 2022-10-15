@@ -341,7 +341,7 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 			frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
-	} else 	if (err & CAN_ESR_EWGF) {
+	} else if (err & CAN_ESR_EWGF) {
 		if (!(last_err & CAN_ESR_EWGF)) {
 			frame->can_id |= CAN_ERR_CRTL;
 			frame->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;

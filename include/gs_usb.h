@@ -49,6 +49,7 @@ THE SOFTWARE.
 /* #define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX (1<<9) */
 /* #define GS_CAN_FEATURE_BT_CONST_EXT          (1<<10) */
 /* #define GS_CAN_FEATURE_TERMINATION           (1<<11) */
+#define GS_CAN_MODE_BERR_REPORTING (1<<12)
 
 #define GS_CAN_FEATURE_LISTEN_ONLY				(1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK				(1<<1)
@@ -74,6 +75,7 @@ THE SOFTWARE.
  * - struct gs_device_termination_state
  */
 #define GS_CAN_FEATURE_TERMINATION				(1<<11)
+#define GS_CAN_FEATURE_BERR_REPORTINGBIT		(1<<12)
 
 #define GS_CAN_FLAG_OVERFLOW					(1<<0)
 #define GS_CAN_FLAG_FD							(1<<1) /* is a CAN-FD frame */

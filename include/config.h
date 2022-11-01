@@ -52,6 +52,10 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "candleLight USB to CAN adapter"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "bytewerk"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "candleLight firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+
 	#define CAN_S_Pin				 GPIO_PIN_13
 	#define CAN_S_GPIO_Port			 GPIOC
 
@@ -70,6 +74,9 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "makerbase"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANable-MKS firmware upgrade interface"
 
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+
 // SILENT pin not connected
 
 	#define LEDRX_GPIO_Port	  GPIOA
@@ -86,6 +93,9 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cantact gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "cantact.io"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cantact firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
 
 // SILENT pin not connected
 
@@ -104,6 +114,9 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "canable.io"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "canable firmware upgrade interface"
 
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+
 // SILENT pin not connected
 
 	#define LEDRX_GPIO_Port	  GPIOB
@@ -120,6 +133,9 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "USB2CAN RCA gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "Roboter Club Aachen"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "usb2can firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
 
 // SILENT pin not connected
 
@@ -148,6 +164,9 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "STMicroelectronics"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANAlyze firmware upgrade interface"
 
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+
 // SILENT pin not connected
 
 	#define LEDRX_GPIO_Port	  GPIOB
@@ -164,6 +183,9 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cannette gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "chacaltech"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cannette firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
 
 // SILENT pin not connected
 
@@ -191,6 +213,9 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "STM32F4VE firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN1
+	#define CAN_CLOCK_SPEED			 42000000
 
 	#define CAN_S_Pin				 GPIO_PIN_10
 	#define CAN_S_GPIO_Port			 GPIOA

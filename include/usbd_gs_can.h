@@ -48,15 +48,11 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 
 
 #if defined(STM32F0)
-# define USB_INTERFACE	 USB
-# define USB_INTERRUPT	 USB_IRQn
-# define CAN_INTERFACE	 CAN
-# define CAN_CLOCK_SPEED 48000000
+# define USB_INTERFACE USB
+# define USB_INTERRUPT USB_IRQn
 #elif defined(STM32F4)
-# define USB_INTERFACE	 USB_OTG_FS
-# define USB_INTERRUPT	 OTG_FS_IRQn
-# define CAN_INTERFACE	 CAN1
-# define CAN_CLOCK_SPEED 42000000
+# define USB_INTERFACE USB_OTG_FS
+# define USB_INTERRUPT OTG_FS_IRQn
 
 // RX FIFO is defined in words, so divide bytes by 4
 // RX FIFO size chosen according to reference manual RM0368 which suggests

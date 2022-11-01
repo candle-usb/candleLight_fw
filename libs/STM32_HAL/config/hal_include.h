@@ -30,4 +30,6 @@ THE SOFTWARE.
 # include "stm32f0xx_hal.h"
 #elif defined(STM32F4)
 # include "stm32f4xx_hal.h"
+#elif defined(STM32G0)
+# include "stm32g0xx_hal.h"
 #endif

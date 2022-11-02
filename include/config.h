@@ -209,6 +209,39 @@ THE SOFTWARE.
 	#define DCDCEN_Port			 GPIOC
 	#define DCDCEN_Pin			 GPIO_PIN_15 /* activate DCDC converter, active high */
 
+#elif defined(BOARD_budgetcan)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "budgetcan gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "budgetcan"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "budgetcan firmware upgrade interface"
+	#define CAN_INTERFACE			 FDCAN1
+	#define CAN_INTERFACE2			 FDCAN2
+	#define CAN_CLOCK_SPEED			 64000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CANFD_SUPPORT
+
+	#define nCANSTBY_Port		 GPIOA
+	#define nCANSTBY_Pin		 GPIO_PIN_0    /* control xceiver standby, active low */
+	#define nCANSTBY_Active_High 0
+
+	#define LEDRX_GPIO_Port		 GPIOB
+	#define LEDRX_Pin			 GPIO_PIN_4
+	#define LEDRX_Mode			 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High	 1
+
+	#define LEDTX_GPIO_Port		 GPIOB
+	#define LEDTX_Pin			 GPIO_PIN_3
+	#define LEDTX_Mode			 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High	 1
+
+	#define USB_GPIO_Port		 GPIOA
+	#define USB_Pin_DM			 GPIO_PIN_11
+	#define USB_Pin_DP			 GPIO_PIN_12
+
+	#define TERM_GPIO_Port		 GPIOA
+	#define TERM_Pin			 GPIO_PIN_1
+	#define TERM_Mode			 GPIO_MODE_OUTPUT_PP
+	#define TERM_Active_High	 1
+
 #elif defined(BOARD_STM32F4_DevBoard)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"

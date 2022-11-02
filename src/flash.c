@@ -79,6 +79,12 @@ void flash_flush(void)
 	erase_pages.TypeErase = FLASH_TYPEERASE_SECTORS;
 	erase_pages.Sector = FLASH_SECTOR_7;
 	erase_pages.NbSectors = 1U;
+#elif defined(STM32G0)
+	uint32_t user_id_page = ((uint32_t)&flash_data_rom - FLASH_BASE) / FLASH_PAGE_SIZE;
+	erase_pages.TypeErase = FLASH_TYPEERASE_PAGES;
+	erase_pages.Banks = 0;
+	erase_pages.Page = user_id_page;
+	erase_pages.NbPages = 1;
 #endif
 
 	HAL_FLASH_Unlock();
@@ -87,11 +93,26 @@ void flash_flush(void)
 #elif defined(STM32F4)
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
 						   FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+#elif defined(STM32G0)
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPTVERR);
 #endif
+
 	uint32_t error = 0;
 	HAL_FLASHEx_Erase(&erase_pages, &error);
 	if (error==0xFFFFFFFF) { // erase finished successfully
+#if defined(STM32G0)
+		uint32_t address = (uint32_t)&flash_data_rom;
+		uint32_t end_address = (uint32_t)&flash_data_rom + (sizeof(flash_data_t));
+		while (address < end_address)
+		{
+			uint64_t data_64 = *(uint64_t*)(&flash_data_ram + (address - (uint32_t)&flash_data_rom));
+			if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, address, data_64) == HAL_OK) {
+				address = address + 8; /* increment to next double word*/
+			}
+		}
+#else
 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)&flash_data_rom.user_id[0], flash_data_ram.user_id[0]);
+#endif
 	}
 
 	HAL_FLASH_Lock();

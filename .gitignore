@@ -1,10 +1,10 @@
 /.vscode/
 /build/
-*.o
-*.d
-*.bin
 *.asmo
+*.bin
+*.d
 *.elf
+*.o
 *~
 .cache/
 compile_commands.json

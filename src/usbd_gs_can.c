@@ -323,15 +323,6 @@ static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
 	return USBD_OK;
 }
 
-void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_t* handle) {
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-
-	assert_basic(hcan);
-	assert_basic(channel < NUM_CAN_CHANNEL);
-	hcan->channels[channel] = handle;
-	return;
-}
-
 static const led_seq_step_t led_identify_seq[] = {
 	{ .state = 0x01, .time_in_10ms = 10 },
 	{ .state = 0x02, .time_in_10ms = 10 },
@@ -368,7 +359,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			if (param_u32) {
 				led_run_sequence(hcan->leds, led_identify_seq, -1);
 			} else {
-				ch = hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
+				ch = &hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
 				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
 			}
 			break;
@@ -386,7 +377,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			if (req->wValue < NUM_CAN_CHANNEL) {
 
 				mode = (struct gs_device_mode*)hcan->ep0_buf;
-				ch = hcan->channels[req->wValue];
+				ch = &hcan->channels[req->wValue];
 
 				if (mode->mode == GS_CAN_MODE_RESET) {
 
@@ -414,7 +405,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
 			if (req->wValue < NUM_CAN_CHANNEL) {
 				can_set_bittiming(
-					hcan->channels[req->wValue],
+					&hcan->channels[req->wValue],
 					timing->brp,
 					timing->prop_seg + timing->phase_seg1,
 					timing->phase_seg2,
@@ -725,8 +716,9 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 	{
 		for (uint32_t i=0; i<NUM_CAN_CHANNEL; i++)
 		{
-			if (hcan->channels[i] != NULL)
-				can_disable(hcan->channels[i]);
+			can_data_t *channel = &hcan->channels[i];
+
+			can_disable(channel);
 		}
 	}
 

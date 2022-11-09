@@ -59,7 +59,7 @@ typedef struct {
 
 	struct gs_host_frame *from_host_buf;
 
-	can_data_t *channels[NUM_CAN_CHANNEL];
+	can_data_t channels[NUM_CAN_CHANNEL];
 
 	led_data_t *leds;
 	bool dfu_detach_requested;
@@ -84,7 +84,6 @@ typedef struct {
 #endif
 
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds);
-void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_t* handle);
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev);

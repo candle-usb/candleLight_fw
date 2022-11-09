@@ -49,7 +49,6 @@ static void SystemClock_Config(void);
 static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 static void send_to_host(void);
 
-static can_data_t hCAN = {0};
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 static led_data_t hLED = {0};
@@ -60,6 +59,7 @@ static queue_t *q_to_host = NULL;
 
 int main(void)
 {
+	can_data_t *channel = &hGS_CAN.channels[0];
 	uint32_t last_can_error_status = 0;
 
 	HAL_Init();
@@ -80,8 +80,8 @@ int main(void)
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();
 
-	can_init(&hCAN, CAN_INTERFACE);
-	can_disable(&hCAN);
+	can_init(channel, CAN_INTERFACE);
+	can_disable(channel);
 
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
@@ -99,7 +99,6 @@ int main(void)
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hGS_CAN, &hUSB, q_frame_pool, q_from_host, &hLED);
-	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
 	USBD_Start(&hUSB);
 
 #ifdef CAN_S_GPIO_Port
@@ -109,7 +108,7 @@ int main(void)
 	while (1) {
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
-			if (can_send(&hCAN, frame)) {
+			if (can_send(channel, frame)) {
 				// Echo sent frame back to host
 				frame->flags = 0x0;
 				frame->reserved = 0x0;
@@ -126,11 +125,11 @@ int main(void)
 			send_to_host();
 		}
 
-		if (can_is_rx_pending(&hCAN)) {
+		if (can_is_rx_pending(channel)) {
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0)
 			{
-				if (can_receive(&hCAN, frame)) {
+				if (can_receive(channel, frame)) {
 
 					frame->timestamp_us = timer_get();
 					frame->echo_id = 0xFFFFFFFF; // not a echo frame
@@ -152,11 +151,11 @@ int main(void)
 			// received frame", so wait until we get there. LEC will hold some error
 			// to report even if multiple pass by.
 		} else {
-			uint32_t can_err = can_get_error_status(&hCAN);
+			uint32_t can_err = can_get_error_status(channel);
 			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0) {
 				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
+				if (can_parse_error_status(can_err, last_can_error_status, channel, frame)) {
 					send_to_host_or_enqueue(frame);
 					last_can_error_status = can_err;
 				} else {

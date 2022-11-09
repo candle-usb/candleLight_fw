@@ -47,6 +47,28 @@ THE SOFTWARE.
 
 extern USBD_ClassTypeDef USBD_GS_CAN;
 
+typedef struct {
+	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
+
+	__IO uint32_t TxState;
+
+	USBD_SetupReqTypedef last_setup_request;
+
+	queue_t *q_frame_pool;
+	queue_t *q_from_host;
+
+	struct gs_host_frame *from_host_buf;
+
+	can_data_t *channels[NUM_CAN_CHANNEL];
+
+	led_data_t *leds;
+	bool dfu_detach_requested;
+
+	bool timestamps_enabled;
+	uint32_t sof_timestamp_us;
+
+	bool pad_pkts_to_max_pkt_size;
+} USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 #if defined(STM32F0)
 # define USB_INTERFACE USB

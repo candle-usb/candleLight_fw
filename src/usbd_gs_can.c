@@ -280,12 +280,8 @@ static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
  * within other calls, which means the USB interrupt is already disabled and we
  * don't have any other interrupts to worry about. */
 
-uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds)
+uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds)
 {
-	USBD_GS_CAN_HandleTypeDef *hcan = calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef));
-
-	assert_basic(hcan);
-
 	hcan->q_frame_pool = q_frame_pool;
 	hcan->q_from_host = q_from_host;
 	hcan->leds = leds;

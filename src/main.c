@@ -50,6 +50,7 @@ static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 static void send_to_host(void);
 
 static can_data_t hCAN = {0};
+static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 static led_data_t hLED = {0};
 
@@ -97,7 +98,7 @@ int main(void)
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
-	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host, &hLED);
+	USBD_GS_CAN_Init(&hGS_CAN, &hUSB, q_frame_pool, q_from_host, &hLED);
 	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
 	USBD_Start(&hUSB);
 

@@ -4,18 +4,24 @@ project(candleLightFirmware C ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(
-	-std=gnu11 -mthumb
-	-Wall -Wextra -Werror
-	-Wstrict-prototypes
-	-fmessage-length=0
-	-fsigned-char
-	-ffunction-sections -fdata-sections
-	-ffreestanding
-	-fno-move-loop-invariants
-	-Os -g3
-	-flto -ffat-lto-objects
 	--specs=nano.specs
 	--specs=nosys.specs
+	-Os
+	-Wall
+	-Werror
+	-Wextra
+	-Wstrict-prototypes
+	-fdata-sections
+	-ffat-lto-objects
+	-ffreestanding
+	-ffunction-sections
+	-flto
+	-fmessage-length=0
+	-fno-move-loop-invariants
+	-fsigned-char
+	-g3
+	-mthumb
+	-std=gnu11
 )
 
 #need these later, per-platform
@@ -23,10 +29,13 @@ set(CPUFLAGS_F0 -mcpu=cortex-m0)
 set(CPUFLAGS_F4 -mcpu=cortex-m4)
 
 add_link_options(
-	-mthumb -Wall -Wextra -g3
-	-Xlinker --gc-sections
 	--specs=nano.specs
 	--specs=nosys.specs
+	-Wall
+	-Wextra
+	-Xlinker --gc-sections
+	-g3
+	-mthumb
 )
 
 add_subdirectory(libs/STM32_HAL)

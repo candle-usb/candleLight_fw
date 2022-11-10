@@ -89,11 +89,8 @@ int main(void)
 	q_to_host    = queue_create(CAN_QUEUE_SIZE);
 	assert_basic(q_frame_pool && q_from_host && q_to_host);
 
-	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
-	assert_basic(msgbuf);
-
 	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
-		queue_push_back(q_frame_pool, &msgbuf[i]);
+		queue_push_back(q_frame_pool, &hGS_CAN.msgbuf[i]);
 	}
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);

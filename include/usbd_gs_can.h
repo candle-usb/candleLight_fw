@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include <stdint.h>
 
 #include "can.h"
+#include "config.h"
 #include "gs_usb.h"
 #include "led.h"
 #include "queue.h"
@@ -68,6 +69,8 @@ typedef struct {
 	uint32_t sof_timestamp_us;
 
 	bool pad_pkts_to_max_pkt_size;
+
+	struct gs_host_frame msgbuf[CAN_QUEUE_SIZE];
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 #if defined(STM32F0)

@@ -171,7 +171,7 @@ populate_ldscript(CPU_FAMILY STM32F042X6
 	RAM_START 0x20000000
 	RAM_SIZE 6k
 	STACK_SIZE 1k
-	HEAP_SIZE 2k
+	HEAP_SIZE 1k
 )
 
 populate_ldscript(CPU_FAMILY STM32F072XB
@@ -180,7 +180,7 @@ populate_ldscript(CPU_FAMILY STM32F072XB
 	RAM_START 0x20000000
 	RAM_SIZE 16k
 	STACK_SIZE 2k
-	HEAP_SIZE 2k
+	HEAP_SIZE 1k
 )
 
 populate_ldscript(CPU_FAMILY STM32F407XE
@@ -189,7 +189,7 @@ populate_ldscript(CPU_FAMILY STM32F407XE
 	RAM_START 0x20000000
 	RAM_SIZE 128k
 	STACK_SIZE 2k
-	HEAP_SIZE 2k
+	HEAP_SIZE 1k
 )
 
 populate_ldscript(CPU_FAMILY STM32G0B1XK
@@ -198,7 +198,7 @@ populate_ldscript(CPU_FAMILY STM32G0B1XK
 	RAM_START 0x20000000
 	RAM_SIZE 144k
 	STACK_SIZE 2k
-	HEAP_SIZE 2k
+	HEAP_SIZE 1k
 )
 
 ######### commands for adding each target have a lot in common: make helper func.

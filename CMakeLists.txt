@@ -33,9 +33,9 @@ add_link_options(
 	--specs=nosys.specs
 	-Wall
 	-Wextra
-	-Xlinker --gc-sections
 	-g3
 	-mthumb
+	LINKER:--gc-sections
 )
 
 add_subdirectory(libs/STM32_HAL)

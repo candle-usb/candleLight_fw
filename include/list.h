@@ -31,68 +31,21 @@
 #ifndef _LINUXKPI_LINUX_LIST_H_
 #define _LINUXKPI_LINUX_LIST_H_
 
-#ifndef _STANDALONE
-/*
- * Since LIST_HEAD conflicts with the Linux definition we must include any
- * FreeBSD header which requires it here so it is resolved with the correct
- * definition prior to the undef.
- */
-#include <linux/types.h>
-
-#include <sys/param.h>
-#include <sys/kernel.h>
-#include <sys/queue.h>
-#include <sys/cpuset.h>
-#include <sys/jail.h>
-#include <sys/lock.h>
-#include <sys/mutex.h>
-#include <sys/proc.h>
-#include <sys/vnode.h>
-#include <sys/conf.h>
-#include <sys/socket.h>
-#include <sys/mbuf.h>
-
-#include <net/bpf.h>
-#include <net/ethernet.h>
-#include <net/if.h>
-#include <net/if_var.h>
-#include <net/if_types.h>
-#include <net/if_media.h>
-#include <net/vnet.h>
-
-#include <netinet/in.h>
-#include <netinet/in_pcb.h>
-#include <netinet/in_var.h>
-#include <netinet/tcp_lro.h>
-
-#include <netinet6/in6_var.h>
-#include <netinet6/nd6.h>
-
-#include <net80211/ieee80211.h>
-#include <net80211/ieee80211_var.h>
-#include <net80211/ieee80211_node.h>
-
-#include <vm/vm.h>
-#include <vm/vm_object.h>
-#include <vm/pmap.h>
-#endif
+#include "compiler.h"
 
 #ifndef prefetch
 #define prefetch(x)
 #endif
 
-#define LINUX_LIST_HEAD_INIT(name) { &(name), &(name) }
+#define LIST_HEAD_INIT(name) { &(name), &(name) }
 
-#define LINUX_LIST_HEAD(name) \
-	struct list_head name = LINUX_LIST_HEAD_INIT(name)
+#define LIST_HEAD(name) \
+	struct list_head name = LIST_HEAD_INIT(name)
 
-#ifndef LIST_HEAD_DEF
-#define LIST_HEAD_DEF
 struct list_head {
 	struct list_head *next;
 	struct list_head *prev;
 };
-#endif
 
 static inline void
 INIT_LIST_HEAD(struct list_head *list)

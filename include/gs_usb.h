@@ -311,8 +311,3 @@ struct gs_host_frame_canfd {
 
 	u8 data[64];
 } __packed;
-
-struct gs_tx_context {
-	struct gs_can *dev;
-	unsigned int echo_id;
-};

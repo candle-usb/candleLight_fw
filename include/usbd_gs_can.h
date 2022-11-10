@@ -28,11 +28,12 @@ THE SOFTWARE.
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "usbd_def.h"
-#include "queue.h"
-#include "led.h"
+
 #include "can.h"
 #include "gs_usb.h"
+#include "led.h"
+#include "queue.h"
+#include "usbd_def.h"
 
 /* Define these here so they can be referenced in other files */
 

@@ -29,9 +29,8 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "hal_include.h"
-
 #include "gs_usb.h"
+#include "hal_include.h"
 
 typedef struct {
 	CAN_TypeDef *instance;

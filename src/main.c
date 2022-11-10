@@ -28,20 +28,20 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "can.h"
 #include "config.h"
+#include "dfu.h"
+#include "gpio.h"
+#include "gs_usb.h"
 #include "hal_include.h"
+#include "led.h"
+#include "queue.h"
+#include "timer.h"
 #include "usbd_conf.h"
+#include "usbd_core.h"
 #include "usbd_def.h"
 #include "usbd_desc.h"
-#include "usbd_core.h"
 #include "usbd_gs_can.h"
-#include "gpio.h"
-#include "queue.h"
-#include "gs_usb.h"
-#include "can.h"
-#include "led.h"
-#include "dfu.h"
-#include "timer.h"
 #include "util.h"
 
 void HAL_MspInit(void);

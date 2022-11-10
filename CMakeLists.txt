@@ -36,6 +36,7 @@ add_link_options(
 	-g3
 	-mthumb
 	LINKER:--gc-sections
+	LINKER:--print-memory-usage
 )
 
 add_subdirectory(libs/STM32_HAL)

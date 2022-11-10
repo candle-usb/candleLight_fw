@@ -26,9 +26,10 @@ THE SOFTWARE.
 
 #include <stdint.h>
 #include <string.h>
+
+#include "config.h"
 #include "usbd_ctlreq.h"
 #include "usbd_desc.h"
-#include "config.h"
 #include "util.h"
 
 static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);

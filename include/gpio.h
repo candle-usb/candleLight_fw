@@ -26,8 +26,8 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "gs_usb.h"
 #include "config.h"
+#include "gs_usb.h"
 
 void gpio_init(void);
 

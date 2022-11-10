@@ -102,7 +102,7 @@ int main(void)
 #endif
 
 	while (1) {
-		struct gs_host_frame *frame = queue_pop_front(q_from_host);
+		struct gs_host_frame *frame = queue_pop_front(hGS_CAN.q_from_host);
 		if (frame != 0) { // send can message from host
 			if (can_send(channel, frame)) {
 				// Echo sent frame back to host
@@ -113,7 +113,7 @@ int main(void)
 
 				led_indicate_trx(&hLED, led_tx);
 			} else {
-				queue_push_front(q_from_host, frame); // retry later
+				queue_push_front(hGS_CAN.q_from_host, frame); // retry later
 			}
 		}
 
@@ -122,7 +122,7 @@ int main(void)
 		}
 
 		if (can_is_rx_pending(channel)) {
-			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			struct gs_host_frame *frame = queue_pop_front(hGS_CAN.q_frame_pool);
 			if (frame != 0)
 			{
 				if (can_receive(channel, frame)) {
@@ -139,7 +139,7 @@ int main(void)
 				}
 				else
 				{
-					queue_push_back(q_frame_pool, frame);
+					queue_push_back(hGS_CAN.q_frame_pool, frame);
 				}
 			}
 			// If there are frames to receive, don't report any error frames. The
@@ -148,14 +148,15 @@ int main(void)
 			// to report even if multiple pass by.
 		} else {
 			uint32_t can_err = can_get_error_status(channel);
-			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			struct gs_host_frame *frame = queue_pop_front(hGS_CAN.q_frame_pool);
+
 			if (frame != 0) {
 				frame->timestamp_us = timer_get();
 				if (can_parse_error_status(can_err, last_can_error_status, channel, frame)) {
 					queue_push_back(q_to_host, frame);
 					last_can_error_status = can_err;
 				} else {
-					queue_push_back(q_frame_pool, frame);
+					queue_push_back(hGS_CAN.q_frame_pool, frame);
 				}
 			}
 		}
@@ -288,7 +289,7 @@ void send_to_host(void)
 		return;
 
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
-		queue_push_back(q_frame_pool, frame);
+		queue_push_back(hGS_CAN.q_frame_pool, frame);
 	} else {
 		queue_push_front(q_to_host, frame);
 	}

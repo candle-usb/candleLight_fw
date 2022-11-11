@@ -69,7 +69,6 @@ set(
 	include/dfu.h src/dfu.c
 	include/gpio.h src/gpio.c
 	include/led.h src/led.c
-	include/queue.h src/queue.c
 	include/timer.h src/timer.c
 	include/util.h src/util.c
 

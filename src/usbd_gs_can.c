@@ -33,7 +33,6 @@ THE SOFTWARE.
 #include "gs_usb.h"
 #include "hal_include.h"
 #include "led.h"
-#include "queue.h"
 #include "timer.h"
 #include "usbd_core.h"
 #include "usbd_ctlreq.h"
@@ -268,7 +267,9 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)hcan->from_host_buf, sizeof(*hcan->from_host_buf));
+	struct gs_host_frame *frame = &hcan->from_host_buf->frame;
+
+	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t *)frame, sizeof(*frame));
 }
 
 /* It's unclear from the documentation, but it appears that the USB library is
@@ -280,13 +281,10 @@ static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
  * within other calls, which means the USB interrupt is already disabled and we
  * don't have any other interrupts to worry about. */
 
-uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds)
+uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds)
 {
-	hcan->q_frame_pool = q_frame_pool;
-	hcan->q_from_host = q_from_host;
 	hcan->leds = leds;
 	pdev->pClassData = hcan;
-	hcan->from_host_buf = NULL;
 
 	return USBD_OK;
 }
@@ -600,14 +598,23 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		return USBD_OK;
 	}
 
+	bool was_irq_enabled = disable_irq();
 	// Enqueue the frame we just received.
-	queue_push_back(hcan->q_from_host, hcan->from_host_buf);
+	list_add_tail(&hcan->from_host_buf->list, &hcan->list_from_host);
+
 	// Grab a buffer for the next frame from the pool.
-	hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+	hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,
+												   struct gs_host_frame_object,
+												   list);
 	if (hcan->from_host_buf) {
+		list_del(&hcan->from_host_buf->list);
+		restore_irq(was_irq_enabled);
+
 		// We got a buffer! Get ready to receive from the USB host into it.
 		USBD_GS_CAN_PrepareReceive(pdev);
 	} else {
+		restore_irq(was_irq_enabled);
+
 		// gs_can has no way to drop packets. If we just drop this one, gs_can
 		// will fill up its queue of packets awaiting ACKs and then hang. Instead,
 		// wait to call PrepareReceive until we have a frame to receive into.
@@ -627,8 +634,11 @@ bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	bool was_irq_enabled = disable_irq();
 	if (!hcan->from_host_buf) {
-		hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+		hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,
+													   struct gs_host_frame_object,
+													   list);
 		if (hcan->from_host_buf) {
+			list_del(&hcan->from_host_buf->list);
 			USBD_GS_CAN_PrepareReceive(pdev);
 		}
 	}

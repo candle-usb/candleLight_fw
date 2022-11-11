@@ -35,7 +35,6 @@ THE SOFTWARE.
 #include "gs_usb.h"
 #include "hal_include.h"
 #include "led.h"
-#include "queue.h"
 #include "timer.h"
 #include "usbd_conf.h"
 #include "usbd_core.h"
@@ -51,10 +50,6 @@ static void send_to_host(void);
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 static led_data_t hLED = {0};
-
-static queue_t *q_frame_pool = NULL;
-static queue_t *q_from_host = NULL;
-static queue_t *q_to_host = NULL;
 
 int main(void)
 {
@@ -82,19 +77,17 @@ int main(void)
 	can_init(channel, CAN_INTERFACE);
 	can_disable(channel);
 
+	INIT_LIST_HEAD(&hGS_CAN.list_frame_pool);
+	INIT_LIST_HEAD(&hGS_CAN.list_from_host);
+	INIT_LIST_HEAD(&hGS_CAN.list_to_host);
 
-	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
-	q_from_host  = queue_create(CAN_QUEUE_SIZE);
-	q_to_host    = queue_create(CAN_QUEUE_SIZE);
-	assert_basic(q_frame_pool && q_from_host && q_to_host);
-
-	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
-		queue_push_back(q_frame_pool, &hGS_CAN.msgbuf[i]);
+	for (unsigned i = 0; i < ARRAY_SIZE(hGS_CAN.msgbuf); i++) {
+		list_add_tail(&hGS_CAN.msgbuf[i].list, &hGS_CAN.list_frame_pool);
 	}
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
-	USBD_GS_CAN_Init(&hGS_CAN, &hUSB, q_frame_pool, q_from_host, &hLED);
+	USBD_GS_CAN_Init(&hGS_CAN, &hUSB, &hLED);
 	USBD_Start(&hUSB);
 
 #ifdef CAN_S_GPIO_Port
@@ -102,19 +95,32 @@ int main(void)
 #endif
 
 	while (1) {
-		struct gs_host_frame *frame = queue_pop_front(hGS_CAN.q_from_host);
-		if (frame != 0) { // send can message from host
+		struct gs_host_frame_object *frame_object;
+
+		bool was_irq_enabled = disable_irq();
+		frame_object = list_first_entry_or_null(&hGS_CAN.list_from_host,
+												struct gs_host_frame_object,
+												list);
+		if (frame_object) { // send CAN message from host
+			struct gs_host_frame *frame = &frame_object->frame;
+
+			list_del(&frame_object->list);
+			restore_irq(was_irq_enabled);
+
 			if (can_send(channel, frame)) {
 				// Echo sent frame back to host
 				frame->flags = 0x0;
 				frame->reserved = 0x0;
 				frame->timestamp_us = timer_get();
-				queue_push_back(q_to_host, frame);
+
+				list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
 
 				led_indicate_trx(&hLED, led_tx);
 			} else {
-				queue_push_front(hGS_CAN.q_from_host, frame); // retry later
+				list_add_locked(&frame_object->list, &hGS_CAN.list_from_host);
 			}
+		} else {
+			restore_irq(was_irq_enabled);
 		}
 
 		if (USBD_GS_CAN_TxReady(&hUSB)) {
@@ -122,9 +128,16 @@ int main(void)
 		}
 
 		if (can_is_rx_pending(channel)) {
-			struct gs_host_frame *frame = queue_pop_front(hGS_CAN.q_frame_pool);
-			if (frame != 0)
-			{
+			bool was_irq_enabled = disable_irq();
+			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
+													struct gs_host_frame_object,
+													list);
+			if (frame_object) {
+				struct gs_host_frame *frame = &frame_object->frame;
+
+				list_del(&frame_object->list);
+				restore_irq(was_irq_enabled);
+
 				if (can_receive(channel, frame)) {
 
 					frame->timestamp_us = timer_get();
@@ -133,14 +146,14 @@ int main(void)
 					frame->flags = 0;
 					frame->reserved = 0;
 
-					queue_push_back(q_to_host, frame);
+					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
 
 					led_indicate_trx(&hLED, led_rx);
+				} else {
+					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
 				}
-				else
-				{
-					queue_push_back(hGS_CAN.q_frame_pool, frame);
-				}
+			} else {
+				restore_irq(was_irq_enabled);
 			}
 			// If there are frames to receive, don't report any error frames. The
 			// best we can localize the errors to is "after the last successfully
@@ -148,16 +161,27 @@ int main(void)
 			// to report even if multiple pass by.
 		} else {
 			uint32_t can_err = can_get_error_status(channel);
-			struct gs_host_frame *frame = queue_pop_front(hGS_CAN.q_frame_pool);
 
-			if (frame != 0) {
+			bool was_irq_enabled = disable_irq();
+			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
+													struct gs_host_frame_object,
+													list);
+			if (frame_object) {
+				struct gs_host_frame *frame = &frame_object->frame;
+
+				list_del(&frame_object->list);
+				restore_irq(was_irq_enabled);
+
 				frame->timestamp_us = timer_get();
 				if (can_parse_error_status(can_err, last_can_error_status, channel, frame)) {
-					queue_push_back(q_to_host, frame);
+					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
+
 					last_can_error_status = can_err;
 				} else {
-					queue_push_back(hGS_CAN.q_frame_pool, frame);
+					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
 				}
+			} else {
+				restore_irq(was_irq_enabled);
 			}
 		}
 
@@ -283,14 +307,22 @@ void SystemClock_Config(void)
 
 void send_to_host(void)
 {
-	struct gs_host_frame *frame = queue_pop_front(q_to_host);
+	struct gs_host_frame_object *frame_object;
 
-	if (!frame)
+	bool was_irq_enabled = disable_irq();
+	frame_object = list_first_entry_or_null(&hGS_CAN.list_to_host,
+											struct gs_host_frame_object,
+											list);
+	if (!frame_object) {
+		restore_irq(was_irq_enabled);
 		return;
+	}
+	list_del(&frame_object->list);
+	restore_irq(was_irq_enabled);
 
-	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
-		queue_push_back(hGS_CAN.q_frame_pool, frame);
+	if (USBD_GS_CAN_SendFrame(&hUSB, &frame_object->frame) == USBD_OK) {
+		list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
 	} else {
-		queue_push_front(q_to_host, frame);
+		list_add_locked(&frame_object->list, &hGS_CAN.list_to_host);
 	}
 }

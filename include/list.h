@@ -32,6 +32,7 @@
 #define _LINUXKPI_LINUX_LIST_H_
 
 #include "compiler.h"
+#include "util.h"
 
 #ifndef prefetch
 #define prefetch(x)
@@ -425,6 +426,23 @@ static inline int list_is_last(const struct list_head *list,
 							   const struct list_head *head)
 {
 	return list->next == head;
+}
+
+#define list_first_entry_or_null_locked(ptr, type, member) \
+	({ \
+		bool was_irq_enabled = disable_irq(); \
+		type *entry = list_first_entry_or_null(ptr, type, member); \
+		restore_irq(was_irq_enabled); \
+		entry; \
+	})
+
+static inline void
+list_move_tail_locked(struct list_head *entry, struct list_head *head)
+{
+	bool was_irq_enabled = disable_irq();
+
+	list_move_tail(entry, head);
+	restore_irq(was_irq_enabled);
 }
 
 #define hlist_entry(ptr, type, field) container_of(ptr, type, field)

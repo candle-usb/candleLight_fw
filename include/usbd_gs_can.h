@@ -66,7 +66,6 @@ void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev);
-uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev);
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 

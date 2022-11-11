@@ -288,6 +288,12 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 	1, // brp increment;
 };
 
+static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)hcan->from_host_buf, sizeof(*hcan->from_host_buf));
+}
+
 /* It's unclear from the documentation, but it appears that the USB library is
  * not safely reentrant. It attempts to signal errors via return values if it is
  * reentered, but that code is not interrupt-safe and the error values are
@@ -650,12 +656,6 @@ static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 	*len = sizeof(USBD_GS_CAN_CfgDesc);
 	memcpy(USBD_DescBuf, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
 	return USBD_DescBuf;
-}
-
-inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
-{
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t*)hcan->from_host_buf, sizeof(*hcan->from_host_buf));
 }
 
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)

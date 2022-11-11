@@ -208,11 +208,16 @@ enum gs_can_termination_state {
 struct gs_host_config {
 	u32 byte_order;
 } __packed;
-/* All data exchanged between host and device is exchanged in host byte order,
- * thanks to the struct gs_host_config byte_order member, which is sent first
- * to indicate the desired byte order.
- */
 
+/* The firmware on the original USB2CAN by Geschwister Schneider
+ * Technologie Entwicklungs- und Vertriebs UG exchanges all data
+ * between the host and the device in host byte order. This is done
+ * with the struct gs_host_config::byte_order member, which is sent
+ * first to indicate the desired byte order.
+ *
+ * The widely used open source firmware candleLight doesn't support
+ * this feature and exchanges the data in little endian byte order.
+ */
 struct gs_device_config {
 	u8 reserved1;
 	u8 reserved2;

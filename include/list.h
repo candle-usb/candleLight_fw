@@ -428,20 +428,21 @@ static inline int list_is_last(const struct list_head *list,
 	return list->next == head;
 }
 
-#define list_first_entry_or_null_locked(ptr, type, member) \
-	({ \
-		bool was_irq_enabled = disable_irq(); \
-		type *entry = list_first_entry_or_null(ptr, type, member); \
-		restore_irq(was_irq_enabled); \
-		entry; \
-	})
-
 static inline void
-list_move_tail_locked(struct list_head *entry, struct list_head *head)
+list_add_locked(struct list_head *entry, struct list_head *head)
 {
 	bool was_irq_enabled = disable_irq();
 
-	list_move_tail(entry, head);
+	list_add(entry, head);
+	restore_irq(was_irq_enabled);
+}
+
+static inline void
+list_add_tail_locked(struct list_head *entry, struct list_head *head)
+{
+	bool was_irq_enabled = disable_irq();
+
+	list_add_tail(entry, head);
 	restore_irq(was_irq_enabled);
 }
 

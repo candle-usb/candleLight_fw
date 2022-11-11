@@ -27,7 +27,8 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdint.h>
-#include "hal_include.h"    //ugly, we just need this for compiler-independant __packed directive ...
+
+#include "compiler.h"
 
 #define u32				   uint32_t
 #define u8				   uint8_t
@@ -207,7 +208,7 @@ enum gs_can_termination_state {
 /* data types passed between host and device */
 struct gs_host_config {
 	u32 byte_order;
-} __packed;
+} __packed __aligned(4);
 
 /* The firmware on the original USB2CAN by Geschwister Schneider
  * Technologie Entwicklungs- und Vertriebs UG exchanges all data
@@ -225,18 +226,18 @@ struct gs_device_config {
 	u8 icount;
 	u32 sw_version;
 	u32 hw_version;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_device_mode {
 	u32 mode;
 	u32 flags;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_device_state {
 	u32 state;
 	u32 rxerr;
 	u32 txerr;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_device_bittiming {
 	u32 prop_seg;
@@ -244,7 +245,7 @@ struct gs_device_bittiming {
 	u32 phase_seg2;
 	u32 sjw;
 	u32 brp;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_device_bt_const {
 	u32 feature;
@@ -257,7 +258,7 @@ struct gs_device_bt_const {
 	u32 brp_min;
 	u32 brp_max;
 	u32 brp_inc;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_device_bt_const_extended {
 	u32 feature;
@@ -279,11 +280,11 @@ struct gs_device_bt_const_extended {
 	u32 dbrp_min;
 	u32 dbrp_max;
 	u32 dbrp_inc;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_device_termination_state {
 	u32 state;
-} __packed;
+} __packed __aligned(4);
 
 struct gs_host_frame {
 	u32 echo_id;
@@ -298,7 +299,7 @@ struct gs_host_frame {
 
 	u32 timestamp_us;
 
-} __packed;
+} __packed __aligned(4);
 
 struct gs_host_frame_canfd {
 	u32 echo_id;
@@ -310,4 +311,4 @@ struct gs_host_frame_canfd {
 	u8 reserved;
 
 	u8 data[64];
-} __packed;
+} __packed __aligned(4);

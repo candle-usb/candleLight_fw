@@ -176,7 +176,7 @@ endfunction()
 ########## generate list of targets.
 # the "_fw" part is appended automatically
 set(TGTF042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette")
-set(TGTF072_LIST "candleLight" "CANable_MKS")
+set(TGTF072_LIST "candleLight" "CANable_MKS" "CONVERTDEVICE_xCAN01")
 set(TGTF407_LIST "STM32F4_DevBoard")
 
 foreach (TGTNAME IN LISTS TGTF042_LIST)

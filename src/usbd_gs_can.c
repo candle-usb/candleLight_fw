@@ -412,12 +412,8 @@ static const led_seq_step_t led_identify_seq[] = {
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-
-	struct gs_device_bittiming *timing;
-	struct gs_device_mode *mode;
 	can_data_t *ch;
 	uint32_t param_u32;
-
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
 	switch (req->bRequest) {
@@ -433,7 +429,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			 */
 			break;
 
-		case GS_USB_BREQ_BITTIMING:
+		case GS_USB_BREQ_BITTIMING: {
+			struct gs_device_bittiming *timing;
+
 			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
 			if (req->wValue < NUM_CAN_CHANNEL) {
 				can_set_bittiming(
@@ -445,8 +443,10 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					);
 			}
 			break;
+		}
+		case GS_USB_BREQ_MODE: {
+			struct gs_device_mode *mode;
 
-		case GS_USB_BREQ_MODE:
 			if (req->wValue < NUM_CAN_CHANNEL) {
 
 				mode = (struct gs_device_mode*)hcan->ep0_buf;
@@ -473,7 +473,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				}
 			}
 			break;
-
+		}
 		case GS_USB_BREQ_IDENTIFY:
 			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
 			if (param_u32) {

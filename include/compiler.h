@@ -32,6 +32,14 @@
 #ifndef _LINUXKPI_LINUX_COMPILER_H_
 #define _LINUXKPI_LINUX_COMPILER_H_
 
+#ifndef __aligned
+#define __aligned(x) __attribute__((__aligned__(x)))
+#endif
+
+#ifndef __packed
+#define __packed __attribute__((__packed__))
+#endif
+
 #define barrier()	   __asm__ __volatile__ ("" : : : "memory")
 
 #define ACCESS_ONCE(x) (*(volatile __typeof(x) *)&(x))
@@ -59,5 +67,13 @@
 #define __must_be_array(a)		__same_type(a, &(a)[0])
 
 #define sizeof_field(_s, _m)	sizeof(((_s *)0)->_m)
+
+#define container_of(ptr, type, member) \
+	({ \
+		__typeof(((type *)0)->member) *_p = (ptr); \
+		(type *)((char *)_p - offsetof(type, member)); \
+	})
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 #endif /* _LINUXKPI_LINUX_COMPILER_H_ */

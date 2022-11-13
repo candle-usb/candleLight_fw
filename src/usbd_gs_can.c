@@ -235,14 +235,6 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 	.brp_inc = 1,
 };
 
-static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
-{
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	struct gs_host_frame *frame = &hcan->from_host_buf->frame;
-
-	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t *)frame, sizeof(*frame));
-}
-
 /* It's unclear from the documentation, but it appears that the USB library is
  * not safely reentrant. It attempts to signal errors via return values if it is
  * reentered, but that code is not interrupt-safe and the error values are
@@ -252,15 +244,13 @@ static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
  * within other calls, which means the USB interrupt is already disabled and we
  * don't have any other interrupts to worry about. */
 
-uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds)
+static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
-	hcan->leds = leds;
-	pdev->pClassData = hcan;
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	struct gs_host_frame *frame = &hcan->from_host_buf->frame;
 
-	return USBD_OK;
+	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t *)frame, sizeof(*frame));
 }
-
-
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
@@ -282,112 +272,6 @@ static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_IN);
 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
 
-	return USBD_OK;
-}
-
-static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
-{
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-	hcan->sof_timestamp_us = timer_get();
-	return USBD_OK;
-}
-
-static const led_seq_step_t led_identify_seq[] = {
-	{ .state = 0x01, .time_in_10ms = 10 },
-	{ .state = 0x02, .time_in_10ms = 10 },
-	{ .state = 0x00, .time_in_10ms = 0 }
-};
-
-static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
-
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-
-	struct gs_device_bittiming *timing;
-	struct gs_device_mode *mode;
-	can_data_t *ch;
-	uint32_t param_u32;
-
-	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
-
-	switch (req->bRequest) {
-
-		case GS_USB_BREQ_HOST_FORMAT:
-			/* The firmware on the original USB2CAN by Geschwister Schneider
-			 * Technologie Entwicklungs- und Vertriebs UG exchanges all data
-			 * between the host and the device in host byte order. This is done
-			 * with the struct gs_host_config::byte_order member, which is sent
-			 * first to indicate the desired byte order.
-			 *
-			 * The widely used open source firmware candleLight doesn't support
-			 * this feature and exchanges the data in little endian byte order.
-			 */
-			break;
-
-		case GS_USB_BREQ_IDENTIFY:
-			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-			if (param_u32) {
-				led_run_sequence(hcan->leds, led_identify_seq, -1);
-			} else {
-				ch = &hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
-				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
-			}
-			break;
-
-		case GS_USB_BREQ_SET_TERMINATION:
-			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
-				memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-				if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
-					USBD_CtlError(pdev, req);
-				}
-			}
-			break;
-
-		case GS_USB_BREQ_MODE:
-			if (req->wValue < NUM_CAN_CHANNEL) {
-
-				mode = (struct gs_device_mode*)hcan->ep0_buf;
-				ch = &hcan->channels[req->wValue];
-
-				if (mode->mode == GS_CAN_MODE_RESET) {
-
-					can_disable(ch);
-					led_set_mode(hcan->leds, led_mode_off);
-
-				} else if (mode->mode == GS_CAN_MODE_START) {
-
-					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
-					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
-
-					can_enable(ch,
-							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
-							   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
-							   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
-					           // triple sampling not supported on bxCAN
-							   );
-
-					led_set_mode(hcan->leds, led_mode_normal);
-				}
-			}
-			break;
-
-		case GS_USB_BREQ_BITTIMING:
-			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-			if (req->wValue < NUM_CAN_CHANNEL) {
-				can_set_bittiming(
-					&hcan->channels[req->wValue],
-					timing->brp,
-					timing->prop_seg + timing->phase_seg1,
-					timing->phase_seg2,
-					timing->sjw
-					);
-			}
-			break;
-
-		default:
-			break;
-	}
-
-	req->bRequest = 0xFF;
 	return USBD_OK;
 }
 
@@ -490,37 +374,6 @@ static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 	}
 }
 
-bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
-{
-	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
-
-		switch (req->wIndex) {
-
-			case 0x0004:
-				memcpy(USBD_DescBuf, USBD_MS_COMP_ID_FEATURE_DESC, sizeof(USBD_MS_COMP_ID_FEATURE_DESC));
-				USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
-				return true;
-
-			case 0x0005:
-				if (req->wValue==0) { // only return our GUID for interface #0
-					memcpy(USBD_DescBuf, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
-					USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength));
-					return true;
-				}
-				break;
-
-		}
-
-	}
-
-	return false;
-}
-
-bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
-{
-	return USBD_GS_CAN_CustomDeviceRequest(pdev, req);
-}
-
 static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	static uint8_t ifalt = 0;
@@ -546,6 +399,105 @@ static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef 
 		default:
 			break;
 	}
+	return USBD_OK;
+}
+
+static const led_seq_step_t led_identify_seq[] = {
+	{ .state = 0x01, .time_in_10ms = 10 },
+	{ .state = 0x02, .time_in_10ms = 10 },
+	{ .state = 0x00, .time_in_10ms = 0 }
+};
+
+static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
+
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+
+	struct gs_device_bittiming *timing;
+	struct gs_device_mode *mode;
+	can_data_t *ch;
+	uint32_t param_u32;
+
+	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+
+	switch (req->bRequest) {
+
+		case GS_USB_BREQ_HOST_FORMAT:
+			/* The firmware on the original USB2CAN by Geschwister Schneider
+			 * Technologie Entwicklungs- und Vertriebs UG exchanges all data
+			 * between the host and the device in host byte order. This is done
+			 * with the struct gs_host_config::byte_order member, which is sent
+			 * first to indicate the desired byte order.
+			 *
+			 * The widely used open source firmware candleLight doesn't support
+			 * this feature and exchanges the data in little endian byte order.
+			 */
+			break;
+
+		case GS_USB_BREQ_IDENTIFY:
+			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+			if (param_u32) {
+				led_run_sequence(hcan->leds, led_identify_seq, -1);
+			} else {
+				ch = &hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
+				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+			}
+			break;
+
+		case GS_USB_BREQ_SET_TERMINATION:
+			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
+				memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+				if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
+					USBD_CtlError(pdev, req);
+				}
+			}
+			break;
+
+		case GS_USB_BREQ_MODE:
+			if (req->wValue < NUM_CAN_CHANNEL) {
+
+				mode = (struct gs_device_mode*)hcan->ep0_buf;
+				ch = &hcan->channels[req->wValue];
+
+				if (mode->mode == GS_CAN_MODE_RESET) {
+
+					can_disable(ch);
+					led_set_mode(hcan->leds, led_mode_off);
+
+				} else if (mode->mode == GS_CAN_MODE_START) {
+
+					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
+					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+
+					can_enable(ch,
+							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+							   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
+							   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
+					           // triple sampling not supported on bxCAN
+							   );
+
+					led_set_mode(hcan->leds, led_mode_normal);
+				}
+			}
+			break;
+
+		case GS_USB_BREQ_BITTIMING:
+			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+			if (req->wValue < NUM_CAN_CHANNEL) {
+				can_set_bittiming(
+					&hcan->channels[req->wValue],
+					timing->brp,
+					timing->prop_seg + timing->phase_seg1,
+					timing->phase_seg2,
+					timing->sjw
+					);
+			}
+			break;
+
+		default:
+			break;
+	}
+
+	req->bRequest = 0xFF;
 	return USBD_OK;
 }
 
@@ -593,11 +545,91 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	return USBD_OK;
 }
 
+static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	hcan->sof_timestamp_us = timer_get();
+	return USBD_OK;
+}
+
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 {
 	*len = sizeof(USBD_GS_CAN_CfgDesc);
 	memcpy(USBD_DescBuf, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
 	return USBD_DescBuf;
+}
+
+uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)
+{
+	UNUSED(pdev);
+
+	switch (index) {
+		case DFU_INTERFACE_STR_INDEX:
+			USBD_GetString(DFU_INTERFACE_STRING_FS, USBD_DescBuf, length);
+			return USBD_DescBuf;
+		case 0xEE:
+			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
+			memcpy(USBD_DescBuf, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+			return USBD_DescBuf;
+		default:
+			*length = 0;
+			USBD_CtlError(pdev, 0);
+			return 0;
+	}
+}
+
+/* CAN interface class callbacks structure */
+USBD_ClassTypeDef USBD_GS_CAN = {
+	.Init = USBD_GS_CAN_Start,
+	.DeInit = USBD_GS_CAN_DeInit,
+	.Setup = USBD_GS_CAN_Setup,
+	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
+	.DataIn = USBD_GS_CAN_DataIn,
+	.DataOut = USBD_GS_CAN_DataOut,
+	.SOF = USBD_GS_CAN_SOF,
+	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
+};
+
+uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds)
+{
+	hcan->leds = leds;
+	pdev->pClassData = hcan;
+
+	return USBD_OK;
+}
+
+bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	if (req->bRequest == USBD_GS_CAN_VENDOR_CODE) {
+
+		switch (req->wIndex) {
+
+			case 0x0004:
+				memcpy(USBD_DescBuf, USBD_MS_COMP_ID_FEATURE_DESC, sizeof(USBD_MS_COMP_ID_FEATURE_DESC));
+				USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
+				return true;
+
+			case 0x0005:
+				if (req->wValue==0) { // only return our GUID for interface #0
+					memcpy(USBD_DescBuf, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+					USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength));
+					return true;
+				}
+				break;
+
+		}
+
+	}
+
+	return false;
+}
+
+bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+	return USBD_GS_CAN_CustomDeviceRequest(pdev, req);
 }
 
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
@@ -661,40 +693,6 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 	restore_irq(was_irq_enabled);
 	return result;
 }
-
-uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)
-{
-	UNUSED(pdev);
-
-	switch (index) {
-		case DFU_INTERFACE_STR_INDEX:
-			USBD_GetString(DFU_INTERFACE_STRING_FS, USBD_DescBuf, length);
-			return USBD_DescBuf;
-		case 0xEE:
-			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
-			memcpy(USBD_DescBuf, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
-			return USBD_DescBuf;
-		default:
-			*length = 0;
-			USBD_CtlError(pdev, 0);
-			return 0;
-	}
-}
-
-/* CAN interface class callbacks structure */
-USBD_ClassTypeDef USBD_GS_CAN = {
-	.Init = USBD_GS_CAN_Start,
-	.DeInit = USBD_GS_CAN_DeInit,
-	.Setup = USBD_GS_CAN_Setup,
-	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
-	.DataIn = USBD_GS_CAN_DataIn,
-	.DataOut = USBD_GS_CAN_DataOut,
-	.SOF = USBD_GS_CAN_SOF,
-	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
-};
 
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
 {

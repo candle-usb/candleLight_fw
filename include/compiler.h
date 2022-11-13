@@ -29,33 +29,35 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUXKPI_LINUX_COMPILER_H_
-#define	_LINUXKPI_LINUX_COMPILER_H_
+#ifndef _LINUXKPI_LINUX_COMPILER_H_
+#define _LINUXKPI_LINUX_COMPILER_H_
 
-#define	barrier()			__asm__ __volatile__("": : :"memory")
+#define barrier()	   __asm__ __volatile__ ("" : : : "memory")
 
-#define	ACCESS_ONCE(x)			(*(volatile __typeof(x) *)&(x))
+#define ACCESS_ONCE(x) (*(volatile __typeof(x) *)&(x))
 
-#define	WRITE_ONCE(x,v) do {		\
-	barrier();			\
-	ACCESS_ONCE(x) = (v);		\
-	barrier();			\
-} while (0)
+#define WRITE_ONCE(x,v) \
+	do { \
+		barrier(); \
+		ACCESS_ONCE(x) = (v); \
+		barrier(); \
+	} while (0)
 
-#define	READ_ONCE(x) ({			\
-	__typeof(x) __var = ({		\
-		barrier();		\
-		ACCESS_ONCE(x);		\
-	});				\
-	barrier();			\
-	__var;				\
-})
+#define READ_ONCE(x) \
+	({ \
+		__typeof(x) __var = ({ \
+			barrier(); \
+			ACCESS_ONCE(x); \
+		}); \
+		barrier(); \
+		__var; \
+	})
 
-#define	lockless_dereference(p) READ_ONCE(p)
+#define lockless_dereference(p) READ_ONCE(p)
 
-#define	__same_type(a, b)	__builtin_types_compatible_p(typeof(a), typeof(b))
-#define	__must_be_array(a)	__same_type(a, &(a)[0])
+#define __same_type(a, b)		__builtin_types_compatible_p(typeof(a), typeof(b))
+#define __must_be_array(a)		__same_type(a, &(a)[0])
 
-#define	sizeof_field(_s, _m)	sizeof(((_s *)0)->_m)
+#define sizeof_field(_s, _m)	sizeof(((_s *)0)->_m)
 
-#endif	/* _LINUXKPI_LINUX_COMPILER_H_ */
+#endif /* _LINUXKPI_LINUX_COMPILER_H_ */

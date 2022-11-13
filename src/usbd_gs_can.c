@@ -308,7 +308,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 	uint32_t d32;
 
 	switch (req->bRequest) {
-
+		// Host -> Device
 		case GS_USB_BREQ_SET_TERMINATION:
 			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
 				USBD_CtlError(pdev, req);
@@ -316,11 +316,27 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			}
 		// fall-through
 		case GS_USB_BREQ_HOST_FORMAT:
-		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_BITTIMING:
+		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_IDENTIFY:
 			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+			break;
+
+		// Device -> Host
+		case GS_USB_BREQ_BT_CONST:
+			memcpy(hcan->ep0_buf, &USBD_GS_CAN_btconst, sizeof(USBD_GS_CAN_btconst));
+			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+			break;
+
+		case GS_USB_BREQ_DEVICE_CONFIG:
+			memcpy(hcan->ep0_buf, &USBD_GS_CAN_dconf, sizeof(USBD_GS_CAN_dconf));
+			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
+			break;
+
+		case GS_USB_BREQ_TIMESTAMP:
+			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
+			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
 			break;
 
 		case GS_USB_BREQ_GET_TERMINATION:
@@ -334,21 +350,6 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 				USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
 			}
 
-			break;
-
-		case GS_USB_BREQ_DEVICE_CONFIG:
-			memcpy(hcan->ep0_buf, &USBD_GS_CAN_dconf, sizeof(USBD_GS_CAN_dconf));
-			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
-			break;
-
-		case GS_USB_BREQ_BT_CONST:
-			memcpy(hcan->ep0_buf, &USBD_GS_CAN_btconst, sizeof(USBD_GS_CAN_btconst));
-			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
-			break;
-
-		case GS_USB_BREQ_TIMESTAMP:
-			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
-			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
 			break;
 
 		default:
@@ -420,7 +421,6 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
 	switch (req->bRequest) {
-
 		case GS_USB_BREQ_HOST_FORMAT:
 			/* The firmware on the original USB2CAN by Geschwister Schneider
 			 * Technologie Entwicklungs- und Vertriebs UG exchanges all data
@@ -433,22 +433,16 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			 */
 			break;
 
-		case GS_USB_BREQ_IDENTIFY:
-			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-			if (param_u32) {
-				led_run_sequence(hcan->leds, led_identify_seq, -1);
-			} else {
-				ch = &hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
-				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
-			}
-			break;
-
-		case GS_USB_BREQ_SET_TERMINATION:
-			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
-				memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-				if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
-					USBD_CtlError(pdev, req);
-				}
+		case GS_USB_BREQ_BITTIMING:
+			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
+			if (req->wValue < NUM_CAN_CHANNEL) {
+				can_set_bittiming(
+					&hcan->channels[req->wValue],
+					timing->brp,
+					timing->prop_seg + timing->phase_seg1,
+					timing->phase_seg2,
+					timing->sjw
+					);
 			}
 			break;
 
@@ -480,16 +474,22 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			}
 			break;
 
-		case GS_USB_BREQ_BITTIMING:
-			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-			if (req->wValue < NUM_CAN_CHANNEL) {
-				can_set_bittiming(
-					&hcan->channels[req->wValue],
-					timing->brp,
-					timing->prop_seg + timing->phase_seg1,
-					timing->phase_seg2,
-					timing->sjw
-					);
+		case GS_USB_BREQ_IDENTIFY:
+			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+			if (param_u32) {
+				led_run_sequence(hcan->leds, led_identify_seq, -1);
+			} else {
+				ch = &hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
+				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+			}
+			break;
+
+		case GS_USB_BREQ_SET_TERMINATION:
+			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
+				memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
+				if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
+					USBD_CtlError(pdev, req);
+				}
 			}
 			break;
 

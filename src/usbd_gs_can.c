@@ -301,19 +301,48 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 	return USBD_OK;
 }
 
+static can_data_t *USBD_GS_CAN_GetChannel(USBD_GS_CAN_HandleTypeDef *hcan,
+										  const uint16_t ch)
+{
+	if (ch < ARRAY_SIZE(hcan->channels)) {
+		return &hcan->channels[ch];
+	}
+
+	return NULL;
+}
+
 static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	can_data_t *channel;
 	enum gs_can_termination_state term_state;
 	uint32_t d32;
+
+	/*
+	 * For all "per device" USB control messages
+	 * (GS_USB_BREQ_HOST_FORMAT and GS_USB_BREQ_DEVICE_CONFIG) the
+	 * Linux gs_usb driver uses a req->wValue = 1.
+	 *
+	 * All other control messages are "per channel" and specify the
+	 * channel number in req->wValue. So check req->wValue for valid
+	 * CAN channel.
+	 *
+	 */
+	if (!(req->bRequest == GS_USB_BREQ_HOST_FORMAT ||
+		  req->bRequest == GS_USB_BREQ_DEVICE_CONFIG)) {
+		channel = USBD_GS_CAN_GetChannel(hcan, req->wValue);
+		if (!channel) {
+			goto out_fail;
+		}
+	}
 
 	switch (req->bRequest) {
 		// Host -> Device
 		case GS_USB_BREQ_SET_TERMINATION:
 			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
-				USBD_CtlError(pdev, req);
-				break;
+				goto out_fail;
 			}
+
 			fallthrough;
 		case GS_USB_BREQ_HOST_FORMAT:
 		case GS_USB_BREQ_BITTIMING:
@@ -343,7 +372,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			term_state = get_term(req->wValue);
 
 			if (term_state == GS_CAN_TERMINATION_UNSUPPORTED) {
-				USBD_CtlError(pdev, req);
+				goto out_fail;
 			} else {
 				d32 = (uint32_t)term_state;
 				memcpy(hcan->ep0_buf, &d32, sizeof(d32));
@@ -353,10 +382,14 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			break;
 
 		default:
-			USBD_CtlError(pdev, req);
+			goto out_fail;
 	}
 
 	return USBD_OK;
+
+out_fail:
+	USBD_CtlError(pdev, req);
+	return USBD_FAIL;
 }
 
 static uint8_t USBD_GS_CAN_Vendor_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)

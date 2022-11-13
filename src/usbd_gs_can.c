@@ -445,9 +445,19 @@ static const led_seq_step_t led_identify_seq[] = {
 static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-	can_data_t *ch;
+	can_data_t *channel = NULL;
 	uint32_t param_u32;
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+
+	/*
+	 * The control messages GS_USB_BREQ_HOST_FORMAT and
+	 * GS_USB_BREQ_DEVICE_CONFIG are per device, all others are per
+	 * channel. The validity of req->wValue has been checked in
+	 * USBD_GS_CAN_Config_Request() already.
+	 */
+	if (!(req->bRequest == GS_USB_BREQ_HOST_FORMAT ||
+		  req->bRequest == GS_USB_BREQ_DEVICE_CONFIG))
+		channel = USBD_GS_CAN_GetChannel(hcan, req->wValue);
 
 	switch (req->bRequest) {
 		case GS_USB_BREQ_HOST_FORMAT:
@@ -466,44 +476,32 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			struct gs_device_bittiming *timing;
 
 			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-			if (req->wValue < NUM_CAN_CHANNEL) {
-				can_set_bittiming(
-					&hcan->channels[req->wValue],
-					timing->brp,
-					timing->prop_seg + timing->phase_seg1,
-					timing->phase_seg2,
-					timing->sjw
-					);
-			}
+			can_set_bittiming(channel, timing->brp,
+							  timing->prop_seg + timing->phase_seg1,
+							  timing->phase_seg2,
+							  timing->sjw);
 			break;
 		}
 		case GS_USB_BREQ_MODE: {
 			struct gs_device_mode *mode;
 
-			if (req->wValue < NUM_CAN_CHANNEL) {
+			mode = (struct gs_device_mode*)hcan->ep0_buf;
 
-				mode = (struct gs_device_mode*)hcan->ep0_buf;
-				ch = &hcan->channels[req->wValue];
+			if (mode->mode == GS_CAN_MODE_RESET) {
+				can_disable(channel);
+				led_set_mode(hcan->leds, led_mode_off);
+			} else if (mode->mode == GS_CAN_MODE_START) {
+				hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
+				hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
 
-				if (mode->mode == GS_CAN_MODE_RESET) {
+				can_enable(channel,
+						   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
+						   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
+						   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
+				           // triple sampling not supported on bxCAN
+						   );
 
-					can_disable(ch);
-					led_set_mode(hcan->leds, led_mode_off);
-
-				} else if (mode->mode == GS_CAN_MODE_START) {
-
-					hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
-					hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
-
-					can_enable(ch,
-							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
-							   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
-							   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
-					           // triple sampling not supported on bxCAN
-							   );
-
-					led_set_mode(hcan->leds, led_mode_normal);
-				}
+				led_set_mode(hcan->leds, led_mode_normal);
 			}
 			break;
 		}
@@ -512,8 +510,8 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			if (param_u32) {
 				led_run_sequence(hcan->leds, led_identify_seq, -1);
 			} else {
-				ch = &hcan->channels[req->wValue]; // TODO verify wValue input data (implement getChannelData() ?)
-				led_set_mode(hcan->leds, can_is_enabled(ch) ? led_mode_normal : led_mode_off);
+				led_set_mode(hcan->leds, can_is_enabled(channel) ?
+							 led_mode_normal : led_mode_off);
 			}
 			break;
 

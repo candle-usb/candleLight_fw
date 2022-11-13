@@ -44,32 +44,6 @@ THE SOFTWARE.
 
 static volatile bool is_usb_suspend_cb = false;
 
-static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
-static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
-static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
-static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev);
-static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
-static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len);
-static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
-static uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length);
-static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev);
-
-/* CAN interface class callbacks structure */
-USBD_ClassTypeDef USBD_GS_CAN = {
-	.Init = USBD_GS_CAN_Start,
-	.DeInit = USBD_GS_CAN_DeInit,
-	.Setup = USBD_GS_CAN_Setup,
-	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
-	.DataIn = USBD_GS_CAN_DataIn,
-	.DataOut = USBD_GS_CAN_DataOut,
-	.SOF = USBD_GS_CAN_SOF,
-	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
-	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
-};
-
-
 /* Configuration Descriptor */
 static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
 {
@@ -706,6 +680,21 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 			return 0;
 	}
 }
+
+/* CAN interface class callbacks structure */
+USBD_ClassTypeDef USBD_GS_CAN = {
+	.Init = USBD_GS_CAN_Start,
+	.DeInit = USBD_GS_CAN_DeInit,
+	.Setup = USBD_GS_CAN_Setup,
+	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
+	.DataIn = USBD_GS_CAN_DataIn,
+	.DataOut = USBD_GS_CAN_DataOut,
+	.SOF = USBD_GS_CAN_SOF,
+	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
+};
 
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
 {

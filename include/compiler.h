@@ -42,6 +42,12 @@
 #define __packed __attribute__((__packed__))
 #endif
 
+#if __has_attribute(__fallthrough__)
+#define fallthrough __attribute__((__fallthrough__))
+#else
+#define fallthrough do {} while (0) /* fallthrough */
+#endif
+
 #define barrier()	   __asm__ __volatile__ ("" : : : "memory")
 
 #define ACCESS_ONCE(x) (*(volatile __typeof(x) *)&(x))

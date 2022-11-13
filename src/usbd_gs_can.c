@@ -314,7 +314,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 				USBD_CtlError(pdev, req);
 				break;
 			}
-		// fall-through
+			fallthrough;
 		case GS_USB_BREQ_HOST_FORMAT:
 		case GS_USB_BREQ_BITTIMING:
 		case GS_USB_BREQ_MODE:

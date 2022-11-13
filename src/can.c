@@ -260,13 +260,15 @@ static bool status_is_active(uint32_t err)
 	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
 }
 
-bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame)
+bool can_parse_error_status(can_data_t *hcan, struct gs_host_frame *frame, uint32_t err)
 {
+	uint32_t last_err = hcan->reg_esr_old;
 	/* We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final
 	 * result. */
 	bool should_send = false;
-	(void) hcan;
+
+	hcan->reg_esr_old = err;
 
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;

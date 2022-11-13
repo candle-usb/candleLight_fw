@@ -55,7 +55,6 @@ static led_data_t hLED = {0};
 int main(void)
 {
 	can_data_t *channel = &hGS_CAN.channels[0];
-	uint32_t last_can_error_status = 0;
 
 	HAL_Init();
 	SystemClock_Config();
@@ -174,10 +173,8 @@ int main(void)
 				restore_irq(was_irq_enabled);
 
 				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(can_err, last_can_error_status, channel, frame)) {
+				if (can_parse_error_status(channel, frame, can_err)) {
 					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-
-					last_can_error_status = can_err;
 				} else {
 					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
 				}

@@ -34,6 +34,7 @@ THE SOFTWARE.
 
 typedef struct {
 	CAN_TypeDef *instance;
+	uint32_t reg_esr_old;
 	uint16_t brp;
 	uint8_t phase_seg1;
 	uint8_t phase_seg2;
@@ -58,6 +59,7 @@ uint32_t can_get_error_status(can_data_t *hcan);
 
 /** parse status value returned by can_get_error_status().
  * @param frame : will hold the generated error frame
+ * @param err : holds the contents of the ESR register
  * @return 1 when status changes (if any) need a new error frame sent
  */
-bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame);
+bool can_parse_error_status(can_data_t *hcan, struct gs_host_frame *frame, uint32_t err);

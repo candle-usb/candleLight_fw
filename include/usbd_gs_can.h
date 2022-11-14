@@ -73,7 +73,6 @@ typedef struct {
 
 	can_data_t channels[NUM_CAN_CHANNEL];
 
-	led_data_t *leds;
 	bool dfu_detach_requested;
 
 	bool timestamps_enabled;
@@ -97,7 +96,7 @@ typedef struct {
 # define USB_RX_FIFO_SIZE ((256U / 4U) + 1U)
 #endif
 
-uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds);
+uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev);

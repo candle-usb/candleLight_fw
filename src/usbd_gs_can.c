@@ -519,7 +519,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 			if (mode->mode == GS_CAN_MODE_RESET) {
 				can_disable(channel);
-				led_set_mode(hcan->leds, led_mode_off);
+				led_set_mode(&channel->leds, led_mode_off);
 			} else if (mode->mode == GS_CAN_MODE_START) {
 				hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
 				hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
@@ -531,7 +531,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				           // triple sampling not supported on bxCAN
 						   );
 
-				led_set_mode(hcan->leds, led_mode_normal);
+				led_set_mode(&channel->leds, led_mode_normal);
 			}
 			break;
 		}
@@ -540,9 +540,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 			imode = (struct gs_identify_mode *)hcan->ep0_buf;
 			if (imode->mode) {
-				led_run_sequence(hcan->leds, led_identify_seq, -1);
+				led_run_sequence(&channel->leds, led_identify_seq, -1);
 			} else {
-				led_set_mode(hcan->leds, can_is_enabled(channel) ?
+				led_set_mode(&channel->leds, can_is_enabled(channel) ?
 							 led_mode_normal : led_mode_off);
 			}
 			break;
@@ -658,9 +658,8 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
 };
 
-uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds)
+uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev)
 {
-	hcan->leds = leds;
 	pdev->pClassData = hcan;
 
 	return USBD_OK;
@@ -775,9 +774,8 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 		can_data_t *channel = &hcan->channels[i];
 
 		can_disable(channel);
+		led_set_mode(&channel->leds, led_mode_off);
 	}
-
-	led_set_mode(hcan->leds, led_mode_off);
 
 	is_usb_suspend_cb = true;
 }

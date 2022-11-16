@@ -53,30 +53,11 @@ static USBD_HandleTypeDef hUSB = {0};
 
 int main(void)
 {
-	can_data_t *channel = &hGS_CAN.channels[0];
-
 	HAL_Init();
 	SystemClock_Config();
 
 	gpio_init();
-
-	led_init(&channel->leds,
-			 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
-			 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
-
-	/* nice wake-up pattern */
-	for (uint8_t i=0; i<10; i++)
-	{
-		HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
-		HAL_Delay(50);
-		HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
-	}
-
-	led_set_mode(&channel->leds, led_mode_off);
 	timer_init();
-
-	can_init(channel, CAN_INTERFACE);
-	can_disable(channel);
 
 	INIT_LIST_HEAD(&hGS_CAN.list_frame_pool);
 	INIT_LIST_HEAD(&hGS_CAN.list_from_host);
@@ -86,16 +67,37 @@ int main(void)
 		list_add_tail(&hGS_CAN.msgbuf[i].list, &hGS_CAN.list_frame_pool);
 	}
 
+	for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+		can_data_t *channel = &hGS_CAN.channels[i];
+
+		led_init(&channel->leds,
+				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
+				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
+
+		/* nice wake-up pattern */
+		for (uint8_t j = 0; j < 10; j++) {
+			HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
+			HAL_Delay(50);
+			HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
+		}
+
+		led_set_mode(&channel->leds, led_mode_off);
+
+		can_init(channel, CAN_INTERFACE);
+		can_disable(channel);
+
+#ifdef CAN_S_GPIO_Port
+		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
+#endif
+	}
+
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hGS_CAN, &hUSB);
 	USBD_Start(&hUSB);
 
-#ifdef CAN_S_GPIO_Port
-	HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
-#endif
-
 	while (1) {
+		can_data_t *channel = &hGS_CAN.channels[0];
 		struct gs_host_frame_object *frame_object;
 
 		bool was_irq_enabled = disable_irq();

@@ -34,10 +34,18 @@ THE SOFTWARE.
 #include "gs_usb.h"
 
 typedef struct {
+#if defined(FDCAN1)
+	FDCAN_HandleTypeDef channel;
+#else
 	CAN_HandleTypeDef channel;
+#endif
 } can_data_t;
 
+#if defined(FDCAN1)
+void can_init(can_data_t *hcan, FDCAN_GlobalTypeDef *instance);
+#else
 void can_init(can_data_t *hcan, CAN_TypeDef *instance);
+#endif
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
 void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot);
 void can_disable(can_data_t *hcan);

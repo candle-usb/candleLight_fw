@@ -50,11 +50,13 @@ typedef struct {
 
 #if defined(FDCAN1)
 void can_init(can_data_t *hcan, FDCAN_GlobalTypeDef *instance);
+void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot, bool can_mode_fd);
+bool can_set_data_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
 #else
 void can_init(can_data_t *hcan, CAN_TypeDef *instance);
+void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot);
 #endif
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
-void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot);
 void can_disable(can_data_t *hcan);
 bool can_is_enabled(can_data_t *hcan);
 

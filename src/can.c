@@ -161,15 +161,35 @@ bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8
 	}
 }
 
-void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot)
-{
 #if defined(FDCAN1)
+bool can_set_data_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
+{
+	if (  (brp>0) && (brp<=1024)
+	   && (phase_seg1>0) && (phase_seg1<=16)
+	   && (phase_seg2>0) && (phase_seg2<=8)
+	   && (sjw>0) && (sjw<=4)
+		  ) {
+
+		hcan->channel.Init.DataSyncJumpWidth = sjw;
+		hcan->channel.Init.DataTimeSeg1 = phase_seg1;
+		hcan->channel.Init.DataTimeSeg2 = phase_seg2;
+		hcan->channel.Init.DataPrescaler = brp;
+		return true;
+	} else {
+		return false;
+	}
+}
+#endif
+
+#if defined(FDCAN1)
+void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot, bool can_mode_fd)
+{
 	hcan->channel.Init.AutoRetransmission = one_shot ? DISABLE : ENABLE;
 	if (loop_back && listen_only) hcan->channel.Init.Mode = FDCAN_MODE_INTERNAL_LOOPBACK;
 	else if (loop_back) hcan->channel.Init.Mode = FDCAN_MODE_EXTERNAL_LOOPBACK;
 	else if (listen_only) hcan->channel.Init.Mode = FDCAN_MODE_BUS_MONITORING;
 	else hcan->channel.Init.Mode = FDCAN_MODE_NORMAL;
-	hcan->channel.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
+	hcan->channel.Init.FrameFormat = can_mode_fd ? FDCAN_FRAME_FD_BRS : FDCAN_FRAME_CLASSIC;
 
 	HAL_FDCAN_Init(&hcan->channel);
 
@@ -192,6 +212,8 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	// Start CAN using HAL
 	HAL_FDCAN_Start(&hcan->channel);
 #else
+void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot)
+{
 	CAN_TypeDef *can = hcan->channel.Instance;
 
 	uint32_t mcr = CAN_MCR_INRQ

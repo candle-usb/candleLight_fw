@@ -36,8 +36,13 @@ THE SOFTWARE.
 
 /* Define these here so they can be referenced in other files */
 
+#if defined(FDCAN1)
+#define CAN_DATA_MAX_PACKET_SIZE 64    /* Endpoint IN & OUT Packet size */
+#define CAN_CMD_PACKET_SIZE		 72    /* Control Endpoint Packet size */
+#else
 #define CAN_DATA_MAX_PACKET_SIZE 32    /* Endpoint IN & OUT Packet size */
 #define CAN_CMD_PACKET_SIZE		 64    /* Control Endpoint Packet size */
+#endif
 #define USB_CAN_CONFIG_DESC_SIZ	 50
 #define NUM_CAN_CHANNEL			 1
 #define USBD_GS_CAN_VENDOR_CODE	 0x20

@@ -33,6 +33,8 @@ THE SOFTWARE.
 
 #include "gs_usb.h"
 
+#define GS_HOST_FRAME gs_host_frame
+
 typedef struct {
 #if defined(FDCAN1)
 	FDCAN_HandleTypeDef channel;
@@ -51,10 +53,10 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 void can_disable(can_data_t *hcan);
 bool can_is_enabled(can_data_t *hcan);
 
-bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame);
+bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame);
 bool can_is_rx_pending(can_data_t *hcan);
 
-bool can_send(can_data_t *hcan, struct gs_host_frame *frame);
+bool can_send(can_data_t *hcan, struct GS_HOST_FRAME *frame);
 
 /** return CAN->ESR register which contains tx/rx error counters and
  * LEC (last error code).
@@ -65,4 +67,4 @@ uint32_t can_get_error_status(can_data_t *hcan);
  * @param frame : will hold the generated error frame
  * @return 1 when status changes (if any) need a new error frame sent
  */
-bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame);
+bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct GS_HOST_FRAME *frame);

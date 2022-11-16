@@ -275,7 +275,7 @@ bool can_is_rx_pending(can_data_t *hcan)
 #endif
 }
 
-bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
+bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 {
 #if defined(FDCAN1)
 	FDCAN_RxHeaderTypeDef RxHeader;
@@ -364,7 +364,7 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
 }
 #endif
 
-bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
+bool can_send(can_data_t *hcan, struct GS_HOST_FRAME *frame)
 {
 #if defined(FDCAN1)
 	FDCAN_TxHeaderTypeDef TxHeader;
@@ -478,7 +478,7 @@ static bool status_is_active(uint32_t err)
 	
 }
 
-bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame)
+bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct GS_HOST_FRAME *frame)
 {
 	/* We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final

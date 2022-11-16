@@ -46,7 +46,7 @@ THE SOFTWARE.
 
 void HAL_MspInit(void);
 static void SystemClock_Config(void);
-static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
+static bool send_to_host_or_enqueue(struct GS_HOST_FRAME *frame);
 static void send_to_host(void);
 
 static can_data_t hCAN = {0};
@@ -88,7 +88,7 @@ int main(void)
 	q_to_host    = queue_create(CAN_QUEUE_SIZE);
 	assert_basic(q_frame_pool && q_from_host && q_to_host);
 
-	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
+	struct GS_HOST_FRAME *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct GS_HOST_FRAME));
 	assert_basic(msgbuf);
 
 	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
@@ -106,7 +106,7 @@ int main(void)
 #endif
 
 	while (1) {
-		struct gs_host_frame *frame = queue_pop_front(q_from_host);
+		struct GS_HOST_FRAME *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
 			if (can_send(&hCAN, frame)) {
 				// Echo sent frame back to host
@@ -126,7 +126,7 @@ int main(void)
 		}
 
 		if (can_is_rx_pending(&hCAN)) {
-			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			struct GS_HOST_FRAME *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0)
 			{
 				if (can_receive(&hCAN, frame)) {
@@ -152,7 +152,7 @@ int main(void)
 			// to report even if multiple pass by.
 		} else {
 			uint32_t can_err = can_get_error_status(&hCAN);
-			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			struct GS_HOST_FRAME *frame = queue_pop_front(q_frame_pool);
 			if (frame != 0) {
 				frame->timestamp_us = timer_get();
 				if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
@@ -284,7 +284,7 @@ void SystemClock_Config(void)
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-bool send_to_host_or_enqueue(struct gs_host_frame *frame)
+bool send_to_host_or_enqueue(struct GS_HOST_FRAME *frame)
 {
 	queue_push_back(q_to_host, frame);
 	return true;
@@ -292,7 +292,7 @@ bool send_to_host_or_enqueue(struct gs_host_frame *frame)
 
 void send_to_host(void)
 {
-	struct gs_host_frame *frame = queue_pop_front(q_to_host);
+	struct GS_HOST_FRAME *frame = queue_pop_front(q_to_host);
 
 	if (!frame)
 		return;

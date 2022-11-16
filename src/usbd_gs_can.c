@@ -552,6 +552,9 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_DATA_BITTIMING:
 #endif
 		case GS_USB_BREQ_IDENTIFY:
+			hcan->last_setup_request = *req;
+			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
+			break;
 
 		case GS_USB_BREQ_GET_TERMINATION:
 			term_state = get_term(req->wValue);

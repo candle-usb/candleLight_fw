@@ -60,7 +60,6 @@ int main(void)
 	timer_init();
 
 	INIT_LIST_HEAD(&hGS_CAN.list_frame_pool);
-	INIT_LIST_HEAD(&hGS_CAN.list_from_host);
 	INIT_LIST_HEAD(&hGS_CAN.list_to_host);
 
 	for (unsigned i = 0; i < ARRAY_SIZE(hGS_CAN.msgbuf); i++) {
@@ -69,6 +68,8 @@ int main(void)
 
 	for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
 		can_data_t *channel = &hGS_CAN.channels[i];
+
+		INIT_LIST_HEAD(&channel->list_from_host);
 
 		led_init(&channel->leds,
 				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
@@ -101,7 +102,7 @@ int main(void)
 		struct gs_host_frame_object *frame_object;
 
 		bool was_irq_enabled = disable_irq();
-		frame_object = list_first_entry_or_null(&hGS_CAN.list_from_host,
+		frame_object = list_first_entry_or_null(&channel->list_from_host,
 												struct gs_host_frame_object,
 												list);
 		if (frame_object) { // send CAN message from host
@@ -120,7 +121,7 @@ int main(void)
 
 				led_indicate_trx(&channel->leds, led_tx);
 			} else {
-				list_add_locked(&frame_object->list, &hGS_CAN.list_from_host);
+				list_add_locked(&frame_object->list, &channel->list_from_host);
 			}
 		} else {
 			restore_irq(was_irq_enabled);

@@ -66,7 +66,6 @@ typedef struct {
 	USBD_SetupReqTypedef last_setup_request;
 
 	struct list_head list_frame_pool;
-	struct list_head list_from_host;
 	struct list_head list_to_host;
 
 	struct gs_host_frame_object *from_host_buf;

@@ -32,9 +32,11 @@ THE SOFTWARE.
 #include "gs_usb.h"
 #include "hal_include.h"
 #include "led.h"
+#include "list.h"
 
 typedef struct {
 	CAN_TypeDef *instance;
+	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t reg_esr_old;
 	uint16_t brp;

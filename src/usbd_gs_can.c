@@ -577,6 +577,7 @@ static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 // Note that the return value is completely ignored by the stack.
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	can_data_t *channel;
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen < (sizeof(struct gs_host_frame)-4)) {
@@ -585,9 +586,14 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		goto out_prepare_receive;
 	}
 
+	channel = USBD_GS_CAN_GetChannel(hcan, hcan->from_host_buf->frame.channel);
+	if (!channel) {
+		goto out_prepare_receive;
+	}
+
 	bool was_irq_enabled = disable_irq();
 	// Enqueue the frame we just received.
-	list_add_tail(&hcan->from_host_buf->list, &hcan->list_from_host);
+	list_add_tail(&hcan->from_host_buf->list, &channel->list_from_host);
 
 	// Grab a buffer for the next frame from the pool.
 	hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,

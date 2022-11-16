@@ -33,7 +33,12 @@ THE SOFTWARE.
 
 #include "gs_usb.h"
 
+#if defined(FDCAN1)
+#define GS_HOST_FRAME gs_host_frame_canfd
+#define GS_HOST_FRAME_CLASSIC gs_host_frame
+#else
 #define GS_HOST_FRAME gs_host_frame
+#endif
 
 typedef struct {
 #if defined(FDCAN1)

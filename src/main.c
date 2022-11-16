@@ -133,8 +133,6 @@ int main(void)
 
 					frame->timestamp_us = timer_get();
 					frame->echo_id = 0xFFFFFFFF; // not a echo frame
-					frame->channel = 0;
-					frame->flags = 0;
 					frame->reserved = 0;
 
 					send_to_host_or_enqueue(frame);

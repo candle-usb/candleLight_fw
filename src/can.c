@@ -307,6 +307,8 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 	}
 
 	rx_frame->channel = 0;
+	rx_frame->flags = 0;
+	
 	rx_frame->can_id = RxHeader.Identifier;
 
 	if (RxHeader.IdType == FDCAN_EXTENDED_ID) {
@@ -325,7 +327,7 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 		if (RxHeader.BitRateSwitch == FDCAN_BRS_ON) {
 			rx_frame->flags |= GS_CAN_FLAG_BRS;
 		}
-		memcpy(rx_frame->data, can_rx_data_buff, 8);
+		memcpy(rx_frame->data, can_rx_data_buff, 64);
 	}
 	else {
 		memcpy(rx_frame->data, can_rx_data_buff, 8);
@@ -337,6 +339,9 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 
 	if (can_is_rx_pending(hcan)) {
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
+
+		rx_frame->channel = 0;
+		rx_frame->flags = 0;
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {
 			rx_frame->can_id = CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);
@@ -416,7 +421,7 @@ bool can_send(can_data_t *hcan, struct GS_HOST_FRAME *frame)
 		else {
 			TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
 		}
-		memcpy(can_tx_data_buff, frame->data, 8);
+		memcpy(can_tx_data_buff, frame->data, 64);
 	}
 	else {
 		TxHeader.BitRateSwitch = FDCAN_BRS_OFF;

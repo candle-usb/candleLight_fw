@@ -37,6 +37,9 @@
 struct can_drv_reg_status {
 #if defined (CONFIG_BXCAN)
 	uint32_t esr;
+#elif defined(CONFIG_M_CAN)
+	uint32_t ecr;
+	uint32_t psr;
 #endif
 };
 
@@ -51,6 +54,8 @@ enum can_channel_flag {
 typedef struct can_channel {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
+#elif defined(CONFIG_M_CAN)
+	FDCAN_HandleTypeDef channel;
 #endif
 	struct can_drv_reg_status reg_status;
 	struct list_head list_from_host;

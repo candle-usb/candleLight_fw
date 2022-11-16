@@ -308,7 +308,7 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 
 	rx_frame->channel = 0;
 	rx_frame->flags = 0;
-	
+
 	rx_frame->can_id = RxHeader.Identifier;
 
 	if (RxHeader.IdType == FDCAN_EXTENDED_ID) {

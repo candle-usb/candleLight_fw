@@ -34,11 +34,7 @@ THE SOFTWARE.
 #include "gs_usb.h"
 
 typedef struct {
-	CAN_TypeDef *instance;
-	uint16_t brp;
-	uint8_t phase_seg1;
-	uint8_t phase_seg2;
-	uint8_t sjw;
+	CAN_HandleTypeDef channel;
 } can_data_t;
 
 void can_init(can_data_t *hcan, CAN_TypeDef *instance);

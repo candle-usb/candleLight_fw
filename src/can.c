@@ -74,15 +74,19 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 	HAL_GPIO_Init(GPIOD, &itd);
 #endif
 
-	hcan->instance   = instance;
-	hcan->brp        = 6;
-	hcan->sjw        = 1;
+	hcan->channel.Instance = instance;
+
+	/* all values for the bxCAN init are -1 and shifted */
 #if defined(STM32F0)
-	hcan->phase_seg1 = 13;
-	hcan->phase_seg2 = 2;
+	hcan->channel.Init.SyncJumpWidth = ((1)-1) << CAN_BTR_SJW_Pos;
+	hcan->channel.Init.Prescaler = ((6)-1);
+	hcan->channel.Init.TimeSeg1 = ((13)-1) << CAN_BTR_TS1_Pos;
+	hcan->channel.Init.TimeSeg2 = ((2)-1) << CAN_BTR_TS2_Pos;
 #elif defined(STM32F4)
-	hcan->phase_seg1 = 12;
-	hcan->phase_seg2 = 1;
+	hcan->channel.Init.SyncJumpWidth = ((1)-1) << CAN_BTR_SJW_Pos;
+	hcan->channel.Init.Prescaler = ((6)-1);
+	hcan->channel.Init.TimeSeg1 = ((12)-1) << CAN_BTR_TS1_Pos;
+	hcan->channel.Init.TimeSeg2 = ((1)-1) << CAN_BTR_TS2_Pos;
 #endif
 }
 
@@ -93,10 +97,10 @@ bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8
 	   && (phase_seg2>0) && (phase_seg2<=8)
 	   && (sjw>0) && (sjw<=4)
 		  ) {
-		hcan->brp = brp & 0x3FF;
-		hcan->phase_seg1 = phase_seg1;
-		hcan->phase_seg2 = phase_seg2;
-		hcan->sjw = sjw;
+		hcan->channel.Init.SyncJumpWidth = (sjw-1) << CAN_BTR_SJW_Pos;
+		hcan->channel.Init.TimeSeg1 = (phase_seg1-1) << CAN_BTR_TS1_Pos;
+		hcan->channel.Init.TimeSeg2 = (phase_seg2-1) << CAN_BTR_TS2_Pos;
+		hcan->channel.Init.Prescaler = (brp-1);
 		return true;
 	} else {
 		return false;
@@ -105,19 +109,19 @@ bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8
 
 void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 
 	uint32_t mcr = CAN_MCR_INRQ
 				   | CAN_MCR_ABOM
 				   | CAN_MCR_TXFP
 				   | (one_shot ? CAN_MCR_NART : 0);
 
-	uint32_t btr = ((uint32_t)(hcan->sjw-1)) << 24
-				   | ((uint32_t)(hcan->phase_seg1-1)) << 16
-				   | ((uint32_t)(hcan->phase_seg2-1)) << 20
-				   | (hcan->brp - 1)
+	uint32_t btr = (uint32_t)(hcan->channel.Init.SyncJumpWidth
+				   | hcan->channel.Init.TimeSeg1
+				   | hcan->channel.Init.TimeSeg2
+				   | hcan->channel.Init.Prescaler
 				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
-				   | (listen_only ? CAN_MODE_SILENT : 0);
+				   | (listen_only ? CAN_MODE_SILENT : 0));
 
 
 	// Reset CAN peripheral
@@ -156,7 +160,7 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 
 void can_disable(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 #ifdef nCANSTBY_Pin
 	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
 #endif
@@ -165,19 +169,19 @@ void can_disable(can_data_t *hcan)
 
 bool can_is_enabled(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 	return (can->MCR & CAN_MCR_INRQ) == 0;
 }
 
 bool can_is_rx_pending(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
 bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 
 	if (can_is_rx_pending(hcan)) {
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
@@ -213,7 +217,7 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 
 static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 
 	uint32_t tsr = can->TSR;
 	if ( tsr & CAN_TSR_TME0 ) {
@@ -271,7 +275,7 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 
 uint32_t can_get_error_status(can_data_t *hcan)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = hcan->channel.Instance;
 
 	uint32_t err = can->ESR;
 

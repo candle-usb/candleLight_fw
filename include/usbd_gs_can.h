@@ -64,8 +64,8 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 // using (largest packet size / 4) + 1
 # define USB_RX_FIFO_SIZE ((256U / 4U) + 1U)
 #elif defined(STM32G0)
-# define USB_INTERFACE USB_DRD_FS
-# define USB_INTERRUPT USB_UCPD1_2_IRQn
+# define USB_INTERFACE	  USB_DRD_FS
+# define USB_INTERRUPT	  USB_UCPD1_2_IRQn
 #endif
 
 uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds);

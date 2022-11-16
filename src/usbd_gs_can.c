@@ -460,10 +460,10 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 							   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
 							   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
 							   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
-							   // triple sampling not supported on bxCAN
+					           // triple sampling not supported on bxCAN
 #if defined(FDCAN1)
-								,((mode->flags & GS_CAN_MODE_FD) != 0)
-#endif					           
+							   ,((mode->flags & GS_CAN_MODE_FD) != 0)
+#endif
 							   );
 
 					led_set_mode(hcan->leds, led_mode_normal);

@@ -98,7 +98,7 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 	itd.Pull = GPIO_NOPULL;
 	itd.Speed = GPIO_SPEED_FREQ_LOW;
 	itd.Alternate = GPIO_AF3_FDCAN1;
-    HAL_GPIO_Init(GPIOB, &itd);
+	HAL_GPIO_Init(GPIOB, &itd);
 #endif /* STM32G0 */
 
 	hcan->channel.Instance = instance;
@@ -222,11 +222,11 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 				   | (one_shot ? CAN_MCR_NART : 0);
 
 	uint32_t btr = (uint32_t)(hcan->channel.Init.SyncJumpWidth
-				   | hcan->channel.Init.TimeSeg1
-				   | hcan->channel.Init.TimeSeg2
-				   | hcan->channel.Init.Prescaler
-				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
-				   | (listen_only ? CAN_MODE_SILENT : 0));
+							  | hcan->channel.Init.TimeSeg1
+							  | hcan->channel.Init.TimeSeg2
+							  | hcan->channel.Init.Prescaler
+							  | (loop_back ? CAN_MODE_LOOPBACK : 0)
+							  | (listen_only ? CAN_MODE_SILENT : 0));
 
 
 	// Reset CAN peripheral
@@ -303,7 +303,7 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 	FDCAN_RxHeaderTypeDef RxHeader;
 
 	if (HAL_FDCAN_GetRxMessage(&hcan->channel, FDCAN_RX_FIFO0, &RxHeader, can_rx_data_buff) != HAL_OK) {
-		 return false;
+		return false;
 	}
 
 	rx_frame->channel = 0;
@@ -476,8 +476,8 @@ uint32_t can_get_error_status(can_data_t *hcan)
 {
 #if defined(FDCAN1)
 	uint32_t err = hcan->channel.Instance->PSR;
-  	/* Write 7 to LEC so we know if it gets set to the same thing again */
-  	hcan->channel.Instance->PSR = 7;
+	/* Write 7 to LEC so we know if it gets set to the same thing again */
+	hcan->channel.Instance->PSR = 7;
 #else
 	CAN_TypeDef *can = hcan->channel.Instance;
 
@@ -497,7 +497,7 @@ static bool status_is_active(uint32_t err)
 #else
 	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
 #endif
-	
+
 }
 
 bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct GS_HOST_FRAME *frame)
@@ -548,7 +548,7 @@ bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, s
 			frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
-	} 
+	}
 	else if (err & FDCAN_PSR_EW) {
 		if (!(last_err & FDCAN_PSR_EW)) {
 			frame->can_id |= CAN_ERR_CRTL;

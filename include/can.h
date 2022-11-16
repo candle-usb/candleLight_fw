@@ -36,7 +36,11 @@ THE SOFTWARE.
 #include "list.h"
 
 typedef struct {
+#if defined(STM32G0)
+	FDCAN_HandleTypeDef channel;
+#else
 	CAN_TypeDef *instance;
+#endif
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t reg_esr_old;
@@ -50,7 +54,11 @@ typedef struct {
 extern const struct gs_device_bt_const CAN_btconst;
 extern const struct gs_device_bt_const_extended CAN_btconst_ext;
 
+#if defined(STM32G0)
+void can_init(can_data_t *channel, FDCAN_GlobalTypeDef *instance);
+#else
 void can_init(can_data_t *channel, CAN_TypeDef *instance);
+#endif
 void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
 
 #ifdef CONFIG_CANFD

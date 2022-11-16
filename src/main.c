@@ -103,7 +103,7 @@ int main(void)
 												struct gs_host_frame_object,
 												list);
 		if (frame_object) { // send CAN message from host
-			struct gs_host_frame *frame = &frame_object->frame;
+			struct GS_HOST_FRAME *frame = &frame_object->frame;
 
 			list_del(&frame_object->list);
 			restore_irq(was_irq_enabled);
@@ -134,13 +134,12 @@ int main(void)
 													struct gs_host_frame_object,
 													list);
 			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
+				struct GS_HOST_FRAME *frame = &frame_object->frame;
 
 				list_del(&frame_object->list);
 				restore_irq(was_irq_enabled);
 
 				if (can_receive(channel, frame)) {
-
 					frame->timestamp_us = timer_get();
 					frame->echo_id = 0xFFFFFFFF; // not a echo frame
 					frame->channel = 0;
@@ -168,7 +167,7 @@ int main(void)
 													struct gs_host_frame_object,
 													list);
 			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
+				struct GS_HOST_FRAME *frame = &frame_object->frame;
 
 				list_del(&frame_object->list);
 				restore_irq(was_irq_enabled);

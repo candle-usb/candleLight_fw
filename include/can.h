@@ -38,6 +38,8 @@ THE SOFTWARE.
 typedef struct {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
+#elif defined(CONFIG_M_CAN)
+	FDCAN_HandleTypeDef channel;
 #endif
 	struct list_head list_from_host;
 	led_data_t leds;

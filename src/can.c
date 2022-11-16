@@ -150,7 +150,7 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FMR &= ~CAN_FMR_FINIT;
 
 #ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, nCANSTBY_Active_High == 0 ? GPIO_PIN_RESET : GPIO_PIN_RESET);
 #endif
 }
 
@@ -158,7 +158,7 @@ void can_disable(can_data_t *hcan)
 {
 	CAN_TypeDef *can = hcan->instance;
 #ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, nCANSTBY_Active_High == 0 ? GPIO_PIN_RESET : GPIO_PIN_RESET);
 #endif
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }

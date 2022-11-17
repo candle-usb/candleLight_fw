@@ -644,7 +644,7 @@ bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 	return result;
 }
 
-uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
+static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	if (hcan->TxState == 0 && (false == is_usb_suspend_cb)) {

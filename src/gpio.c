@@ -27,8 +27,6 @@ THE SOFTWARE.
 #include "gpio.h"
 #include "hal_include.h"
 
-#define GPIO_INIT_STATE(ACTIVE_HIGH) (((ACTIVE_HIGH) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
-
 #ifdef TERM_Pin
 static int term_state = 0;
 

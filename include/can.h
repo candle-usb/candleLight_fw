@@ -33,24 +33,37 @@ THE SOFTWARE.
 
 #include "gs_usb.h"
 
+#if defined(FDCAN1)
+#define GS_HOST_FRAME		  gs_host_frame_canfd
+#define GS_HOST_FRAME_CLASSIC gs_host_frame
+#else
+#define GS_HOST_FRAME		  gs_host_frame
+#endif
+
 typedef struct {
-	CAN_TypeDef *instance;
-	uint16_t brp;
-	uint8_t phase_seg1;
-	uint8_t phase_seg2;
-	uint8_t sjw;
+#if defined(FDCAN1)
+	FDCAN_HandleTypeDef channel;
+#else
+	CAN_HandleTypeDef channel;
+#endif
 } can_data_t;
 
+#if defined(FDCAN1)
+void can_init(can_data_t *hcan, FDCAN_GlobalTypeDef *instance);
+void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot, bool can_mode_fd);
+bool can_set_data_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
+#else
 void can_init(can_data_t *hcan, CAN_TypeDef *instance);
-bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
 void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot);
+#endif
+bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
 void can_disable(can_data_t *hcan);
 bool can_is_enabled(can_data_t *hcan);
 
-bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame);
+bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame);
 bool can_is_rx_pending(can_data_t *hcan);
 
-bool can_send(can_data_t *hcan, struct gs_host_frame *frame);
+bool can_send(can_data_t *hcan, struct GS_HOST_FRAME *frame);
 
 /** return CAN->ESR register which contains tx/rx error counters and
  * LEC (last error code).
@@ -61,4 +74,4 @@ uint32_t can_get_error_status(can_data_t *hcan);
  * @param frame : will hold the generated error frame
  * @return 1 when status changes (if any) need a new error frame sent
  */
-bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame);
+bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct GS_HOST_FRAME *frame);

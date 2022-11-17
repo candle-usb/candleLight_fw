@@ -1,14 +1,26 @@
-__STACK_SIZE = 32K;
-__HEAP_SIZE  = 64K;
+/**
+ * The following is a template linker script since most of this is identical accross targets.
+ *
+ * the cmake build sys will process this with 'configure_file()' into a cpu-specific header.
+ *
+ * It would be possible to use gcc to preprocess a common .ld file (and therefore leverage
+ * #ifdef and other mechanisms), but has certain limitations and challenges that I decided to avoid.
+ *
+ *
+ * fenugrec 2022
+ */
 
-__FLASH_SIZE = 512K;
+__STACK_SIZE = @LDV_STACK_SIZE@;
+__HEAP_SIZE  = @LDV_HEAP_SIZE@;
+
+__FLASH_SIZE = @LDV_FLASH_SIZE@;
+__RAM_SIZE = @LDV_RAM_SIZE@;
 
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = __FLASH_SIZE
-  RAM   (rw) : ORIGIN = 0x20000000, LENGTH = 128K
+  FLASH (rx)  : ORIGIN = @LDV_FLASH_START@, LENGTH = __FLASH_SIZE
+  RAM   (rwx) : ORIGIN = @LDV_RAM_START@, LENGTH = __RAM_SIZE
 }
-
 
 ENTRY(Reset_Handler)
 

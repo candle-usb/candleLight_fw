@@ -128,17 +128,91 @@ function(dfu_flash target)
 endfunction()
 
 
+
+######### ldscripts are mostly identical.
+# There's many ways of handling this :
+# - external script (e.g. python), see e.g. libopencm3
+# - preprocess .ldscript with gcc (some caveats, since .ld syntax != C)
+# - concatenate files with file(APPEND...) : I wasn't able to make this work
+# - configure_file().
+#
+# With configure_file(), the ldscripts are generated
+# at configure time.
+
+function(populate_ldscript)
+    set(prefix LDV)
+    set(options)
+    set(oneValueArgs
+		CPU_FAMILY
+		FLASH_START
+		FLASH_SIZE
+		RAM_START
+		RAM_SIZE
+		STACK_SIZE
+		HEAP_SIZE)
+	set(multiValueArgs)
+	cmake_parse_arguments("${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	# now we should have function-scope vars like LDV_FLASH_SIZE etc.
+	# Produce a new file in the current builddir
+
+	configure_file(ldscripts/ldscript_base.inc ${${prefix}_CPU_FAMILY}_processed.ld)
+endfunction()
+
+
+##################
+# generate ldscripts for all supported targets.
+# If this gets out of hand, an external solution may be better
+# (e.g. like libopencm3 does with a python script)
+
+populate_ldscript(CPU_FAMILY STM32F042X6
+	FLASH_START 0x08000000
+	FLASH_SIZE 32k
+	RAM_START 0x20000000
+	RAM_SIZE 6k
+	STACK_SIZE 1k
+	HEAP_SIZE 2k
+)
+
+populate_ldscript(CPU_FAMILY STM32F072XB
+	FLASH_START 0x08000000
+	FLASH_SIZE 128k
+	RAM_START 0x20000000
+	RAM_SIZE 16k
+	STACK_SIZE 2k
+	HEAP_SIZE 2k
+)
+
+populate_ldscript(CPU_FAMILY STM32F407XE
+	FLASH_START 0x08000000
+	FLASH_SIZE 512k
+	RAM_START 0x20000000
+	RAM_SIZE 128k
+	STACK_SIZE 2k
+	HEAP_SIZE 2k
+)
+
+populate_ldscript(CPU_FAMILY STM32G0B1XK
+	FLASH_START 0x08000000
+	FLASH_SIZE 512k
+	RAM_START 0x20000000
+	RAM_SIZE 144k
+	STACK_SIZE 2k
+	HEAP_SIZE 2k
+)
+
 ######### commands for adding each target have a lot in common: make helper func.
 # Split into two categories, F042-based and F072-based.
 
 function(add_f042_target TGTNAME)
+	set(CPU_FAMILY STM32F042X6)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0)
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F042X6.ld)
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld)
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F042x6 STM32_USB_Device_Library_STM32F042x6)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)
@@ -146,13 +220,14 @@ function(add_f042_target TGTNAME)
 endfunction()
 
 function(add_f072_target TGTNAME)
+	set(CPU_FAMILY STM32F072XB)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0)
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F072XB.ld)
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld)
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)
@@ -160,13 +235,14 @@ function(add_f072_target TGTNAME)
 endfunction()
 
 function(add_f407_target TGTNAME)
+	set(CPU_FAMILY STM32F407XE)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F4)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32F407XE.ld)
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld)
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F407xE STM32_USB_Device_Library_STM32F407xE)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)
@@ -174,13 +250,14 @@ function(add_f407_target TGTNAME)
 endfunction()
 
 function(add_g0b1_target TGTNAME)
+	set(CPU_FAMILY STM32G0B1XK)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32G0)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CMAKE_SOURCE_DIR}/ldscripts/STM32G0B1XK.ld)
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld)
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32G0B1xK STM32_USB_Device_Library_STM32G0B1xK)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)

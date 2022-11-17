@@ -63,13 +63,6 @@ SECTIONS
     __copy_table_end__ = .;
   } > FLASH
 
-  .zero.table :
-  {
-    . = ALIGN(4);
-    __zero_table_start__ = .;
-    __zero_table_end__ = .;
-  } > FLASH
-
   __etext = ALIGN (4);
 
 

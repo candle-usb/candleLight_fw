@@ -26,6 +26,7 @@
 
 #include "can.h"
 #include "config.h"
+#include "gpio.h"
 #include "gs_usb.h"
 #include "hal_include.h"
 
@@ -150,7 +151,7 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FMR &= ~CAN_FMR_FINIT;
 
 #ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, ~GPIO_INIT_STATE(nCANSTBY_Active_High));
 #endif
 }
 
@@ -158,7 +159,7 @@ void can_disable(can_data_t *hcan)
 {
 	CAN_TypeDef *can = hcan->instance;
 #ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
 #endif
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }

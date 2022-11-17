@@ -31,11 +31,6 @@
 #include "hal_include.h"
 
 
-#if defined(FDCAN1)
-uint8_t can_rx_data_buff[64];
-uint8_t can_tx_data_buff[64];
-#endif
-
 #if !defined(FDCAN1)
 // The STM32F0 only has one CAN interface, define it as CAN1 as
 // well, so it doesn't need to be handled separately.
@@ -302,7 +297,7 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 #if defined(FDCAN1)
 	FDCAN_RxHeaderTypeDef RxHeader;
 
-	if (HAL_FDCAN_GetRxMessage(&hcan->channel, FDCAN_RX_FIFO0, &RxHeader, can_rx_data_buff) != HAL_OK) {
+	if (HAL_FDCAN_GetRxMessage(&hcan->channel, FDCAN_RX_FIFO0, &RxHeader, rx_frame->data) != HAL_OK) {
 		return false;
 	}
 
@@ -327,12 +322,7 @@ bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 		if (RxHeader.BitRateSwitch == FDCAN_BRS_ON) {
 			rx_frame->flags |= GS_CAN_FLAG_BRS;
 		}
-		memcpy(rx_frame->data, can_rx_data_buff, 64);
 	}
-	else {
-		memcpy(rx_frame->data, can_rx_data_buff, 8);
-	}
-
 	return true;
 #else
 	CAN_TypeDef *can = hcan->channel.Instance;
@@ -421,15 +411,13 @@ bool can_send(can_data_t *hcan, struct GS_HOST_FRAME *frame)
 		else {
 			TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
 		}
-		memcpy(can_tx_data_buff, frame->data, 64);
 	}
 	else {
 		TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
 		TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-		memcpy(can_tx_data_buff, frame->data, 8);
 	}
 
-	if (HAL_FDCAN_AddMessageToTxFifoQ(&hcan->channel, &TxHeader, can_tx_data_buff) != HAL_OK) {
+	if (HAL_FDCAN_AddMessageToTxFifoQ(&hcan->channel, &TxHeader, frame->data) != HAL_OK) {
 		return false;
 	}
 	else {

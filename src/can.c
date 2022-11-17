@@ -98,19 +98,17 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 
 	hcan->channel.Instance = instance;
 
-	/* all values for the bxCAN init are -1 and shifted */
 #if defined(STM32F0)
-	hcan->channel.Init.SyncJumpWidth = ((1)-1) << CAN_BTR_SJW_Pos;
-	hcan->channel.Init.Prescaler = ((6)-1);
-	hcan->channel.Init.TimeSeg1 = ((13)-1) << CAN_BTR_TS1_Pos;
-	hcan->channel.Init.TimeSeg2 = ((2)-1) << CAN_BTR_TS2_Pos;
+	hcan->channel.Init.SyncJumpWidth = 1;
+	hcan->channel.Init.Prescaler = 6;
+	hcan->channel.Init.TimeSeg1 = 13;
+	hcan->channel.Init.TimeSeg2 = 2;
 #elif defined(STM32F4)
-	hcan->channel.Init.SyncJumpWidth = ((1)-1) << CAN_BTR_SJW_Pos;
-	hcan->channel.Init.Prescaler = ((6)-1);
-	hcan->channel.Init.TimeSeg1 = ((12)-1) << CAN_BTR_TS1_Pos;
-	hcan->channel.Init.TimeSeg2 = ((1)-1) << CAN_BTR_TS2_Pos;
+	hcan->channel.Init.SyncJumpWidth = 1;
+	hcan->channel.Init.Prescaler = 6;
+	hcan->channel.Init.TimeSeg1 = 12;
+	hcan->channel.Init.TimeSeg2 = 1;
 #elif defined(STM32G0)
-	hcan->channel.Instance = instance;
 	hcan->channel.Init.ClockDivider = FDCAN_CLOCK_DIV1;
 	hcan->channel.Init.FrameFormat = FDCAN_FRAME_FD_BRS;
 	hcan->channel.Init.Mode = FDCAN_MODE_NORMAL;
@@ -145,10 +143,10 @@ bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8
 		hcan->channel.Init.NominalTimeSeg2 = phase_seg2;
 		hcan->channel.Init.NominalPrescaler = brp;
 #else
-		hcan->channel.Init.SyncJumpWidth = (sjw-1) << CAN_BTR_SJW_Pos;
-		hcan->channel.Init.TimeSeg1 = (phase_seg1-1) << CAN_BTR_TS1_Pos;
-		hcan->channel.Init.TimeSeg2 = (phase_seg2-1) << CAN_BTR_TS2_Pos;
-		hcan->channel.Init.Prescaler = (brp-1);
+		hcan->channel.Init.SyncJumpWidth = sjw;
+		hcan->channel.Init.TimeSeg1 = phase_seg1;
+		hcan->channel.Init.TimeSeg2 = phase_seg2;
+		hcan->channel.Init.Prescaler = brp;
 #endif
 		return true;
 	} else {
@@ -164,7 +162,6 @@ bool can_set_data_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, 
 	   && (phase_seg2>0) && (phase_seg2<=8)
 	   && (sjw>0) && (sjw<=4)
 		  ) {
-
 		hcan->channel.Init.DataSyncJumpWidth = sjw;
 		hcan->channel.Init.DataTimeSeg1 = phase_seg1;
 		hcan->channel.Init.DataTimeSeg2 = phase_seg2;
@@ -216,12 +213,12 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 				   | CAN_MCR_TXFP
 				   | (one_shot ? CAN_MCR_NART : 0);
 
-	uint32_t btr = (uint32_t)(hcan->channel.Init.SyncJumpWidth
-							  | hcan->channel.Init.TimeSeg1
-							  | hcan->channel.Init.TimeSeg2
-							  | hcan->channel.Init.Prescaler
-							  | (loop_back ? CAN_MODE_LOOPBACK : 0)
-							  | (listen_only ? CAN_MODE_SILENT : 0));
+	uint32_t btr = ((uint32_t)(hcan->channel.Init.SyncJumpWidth - 1)) << 24
+				   | ((uint32_t)(hcan->channel.Init.TimeSeg1 - 1)) << 16
+				   | ((uint32_t)(hcan->channel.Init.TimeSeg2 - 1)) << 20
+				   | (hcan->channel.Init.Prescaler - 1)
+				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
+				   | (listen_only ? CAN_MODE_SILENT : 0);
 
 
 	// Reset CAN peripheral

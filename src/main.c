@@ -46,7 +46,6 @@ THE SOFTWARE.
 
 void HAL_MspInit(void);
 static void SystemClock_Config(void);
-static void send_to_host(void);
 
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
@@ -128,7 +127,7 @@ int main(void)
 		}
 
 		if (USBD_GS_CAN_TxReady(&hUSB)) {
-			send_to_host();
+			USBD_GS_CAN_SendToHost(&hUSB);
 		}
 
 		if (can_is_rx_pending(channel)) {
@@ -212,26 +211,4 @@ void HAL_MspInit(void)
 void SystemClock_Config(void)
 {
 	device_sysclock_config();
-}
-
-void send_to_host(void)
-{
-	struct gs_host_frame_object *frame_object;
-
-	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hGS_CAN.list_to_host,
-											struct gs_host_frame_object,
-											list);
-	if (!frame_object) {
-		restore_irq(was_irq_enabled);
-		return;
-	}
-	list_del(&frame_object->list);
-	restore_irq(was_irq_enabled);
-
-	if (USBD_GS_CAN_SendFrame(&hUSB, &frame_object->frame) == USBD_OK) {
-		list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
-	} else {
-		list_add_locked(&frame_object->list, &hGS_CAN.list_to_host);
-	}
 }

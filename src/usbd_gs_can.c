@@ -735,7 +735,7 @@ static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint
 	}
 }
 
-uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
+static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
 {
 	uint8_t buf[CAN_DATA_MAX_PACKET_SIZE],*send_addr;
 
@@ -765,6 +765,29 @@ uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *fr
 	uint8_t result = USBD_GS_CAN_Transmit(pdev, send_addr, len);
 	restore_irq(was_irq_enabled);
 	return result;
+}
+
+void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	struct gs_host_frame_object *frame_object;
+
+	bool was_irq_enabled = disable_irq();
+	frame_object = list_first_entry_or_null(&hcan->list_to_host,
+											struct gs_host_frame_object,
+											list);
+	if (!frame_object) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
+	list_del(&frame_object->list);
+	restore_irq(was_irq_enabled);
+
+	if (USBD_GS_CAN_SendFrame(pdev, &frame_object->frame) == USBD_OK) {
+		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
+	} else {
+		list_add_locked(&frame_object->list, &hcan->list_to_host);
+	}
 }
 
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)

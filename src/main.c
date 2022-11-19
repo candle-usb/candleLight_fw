@@ -98,18 +98,23 @@ int main(void)
 	USBD_Start(&hUSB);
 
 	while (1) {
-		can_data_t *channel = &hGS_CAN.channels[0];
+		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+			can_data_t *channel = &hGS_CAN.channels[i];
 
-		CAN_SendFrame(&hGS_CAN, channel);
+			CAN_SendFrame(&hGS_CAN, channel);
+		}
 
 		USBD_GS_CAN_ReceiveFromHost(&hUSB);
-
 		USBD_GS_CAN_SendToHost(&hUSB);
 
-		CAN_ReceiveFrame(&hGS_CAN, channel);
-		CAN_HandleError(&hGS_CAN, channel);
+		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+			can_data_t *channel = &hGS_CAN.channels[i];
 
-		led_update(&channel->leds);
+			CAN_ReceiveFrame(&hGS_CAN, channel);
+			CAN_HandleError(&hGS_CAN, channel);
+
+			led_update(&channel->leds);
+		}
 
 		if (USBD_GS_CAN_DfuDetachRequested(&hUSB)) {
 			dfu_run_bootloader();

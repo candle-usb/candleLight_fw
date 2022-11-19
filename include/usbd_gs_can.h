@@ -61,14 +61,13 @@ struct gs_host_frame_object {
 typedef struct {
 	uint8_t __aligned(4) ep0_buf[GS_CAN_EP0_BUF_SIZE];
 
-	__IO uint32_t TxState;
-
 	USBD_SetupReqTypedef last_setup_request;
 
 	struct list_head list_frame_pool;
 	struct list_head list_to_host;
 
 	struct gs_host_frame_object *from_host_buf;
+	struct gs_host_frame_object *to_host_buf;
 
 	can_data_t channels[NUM_CAN_CHANNEL];
 
@@ -98,7 +97,7 @@ typedef struct {
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
-bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev);
+void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev);
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);

@@ -567,10 +567,14 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 }
 
 static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	(void) epnum;
 
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	hcan->TxState = 0;
+	bool was_irq_enabled = disable_irq();
+	list_add_tail(&hcan->to_host_buf->list, &hcan->list_frame_pool);
+	hcan->to_host_buf = NULL;
+	restore_irq(was_irq_enabled);
+
 	return USBD_OK;
 }
 
@@ -705,7 +709,7 @@ bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqT
 	return USBD_GS_CAN_CustomDeviceRequest(pdev, req);
 }
 
-bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
+void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	bool was_irq_enabled = disable_irq();
@@ -718,16 +722,13 @@ bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev)
 			USBD_GS_CAN_PrepareReceive(pdev);
 		}
 	}
-	bool result = hcan->TxState == 0;
+
 	restore_irq(was_irq_enabled);
-	return result;
 }
 
 static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)
 {
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	if (hcan->TxState == 0 && (false == is_usb_suspend_cb)) {
-		hcan->TxState = 1;
+	if (false == is_usb_suspend_cb) {
 		USBD_LL_Transmit(pdev, GSUSB_ENDPOINT_IN, buf, len);
 		return USBD_OK;
 	} else {
@@ -770,24 +771,32 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	struct gs_host_frame_object *frame_object;
 
 	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hcan->list_to_host,
-											struct gs_host_frame_object,
-											list);
-	if (!frame_object) {
+	if (hcan->to_host_buf) {
 		restore_irq(was_irq_enabled);
 		return;
 	}
-	list_del(&frame_object->list);
+
+	hcan->to_host_buf = list_first_entry_or_null(&hcan->list_to_host,
+												 struct gs_host_frame_object,
+												 list);
+	if (!hcan->to_host_buf) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
+
+	list_del(&hcan->to_host_buf->list);
 	restore_irq(was_irq_enabled);
 
-	if (USBD_GS_CAN_SendFrame(pdev, &frame_object->frame) == USBD_OK) {
-		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
-	} else {
-		list_add_locked(&frame_object->list, &hcan->list_to_host);
-	}
+	uint8_t result = USBD_GS_CAN_SendFrame(pdev, &hcan->to_host_buf->frame);
+	if (result == USBD_OK)
+		return;
+
+	was_irq_enabled = disable_irq();
+	list_add(&hcan->to_host_buf->list, &hcan->list_frame_pool);
+	hcan->to_host_buf = NULL;
+	restore_irq(was_irq_enabled);
 }
 
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
@@ -814,7 +823,6 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev)
 {
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-	hcan->TxState = 0;
+	(void)pdev;
 	is_usb_suspend_cb = false;
 }

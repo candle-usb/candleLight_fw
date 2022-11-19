@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include <stdlib.h>
 
 #include "can.h"
+#include "can_common.h"
 #include "config.h"
 #include "device.h"
 #include "dfu.h"
@@ -98,99 +99,21 @@ int main(void)
 
 	while (1) {
 		can_data_t *channel = &hGS_CAN.channels[0];
-		struct gs_host_frame_object *frame_object;
 
-		bool was_irq_enabled = disable_irq();
-		frame_object = list_first_entry_or_null(&channel->list_from_host,
-												struct gs_host_frame_object,
-												list);
-		if (frame_object) { // send CAN message from host
-			struct gs_host_frame *frame = &frame_object->frame;
-
-			list_del(&frame_object->list);
-			restore_irq(was_irq_enabled);
-
-			if (can_send(channel, frame)) {
-				// Echo sent frame back to host
-				frame->flags = 0x0;
-				frame->reserved = 0x0;
-				frame->timestamp_us = timer_get();
-
-				list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-
-				led_indicate_trx(&channel->leds, led_tx);
-			} else {
-				list_add_locked(&frame_object->list, &channel->list_from_host);
-			}
-		} else {
-			restore_irq(was_irq_enabled);
-		}
+		CAN_SendFrame(&hGS_CAN, channel);
 
 		USBD_GS_CAN_ReceiveFromHost(&hUSB);
+
 		USBD_GS_CAN_SendToHost(&hUSB);
 
-		if (can_is_rx_pending(channel)) {
-			bool was_irq_enabled = disable_irq();
-			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
-													struct gs_host_frame_object,
-													list);
-			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
-
-				list_del(&frame_object->list);
-				restore_irq(was_irq_enabled);
-
-				if (can_receive(channel, frame)) {
-
-					frame->timestamp_us = timer_get();
-					frame->echo_id = 0xFFFFFFFF; // not a echo frame
-					frame->channel = 0;
-					frame->flags = 0;
-					frame->reserved = 0;
-
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-
-					led_indicate_trx(&channel->leds, led_rx);
-				} else {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
-				}
-			} else {
-				restore_irq(was_irq_enabled);
-			}
-			// If there are frames to receive, don't report any error frames. The
-			// best we can localize the errors to is "after the last successfully
-			// received frame", so wait until we get there. LEC will hold some error
-			// to report even if multiple pass by.
-		} else {
-			uint32_t can_err = can_get_error_status(channel);
-
-			bool was_irq_enabled = disable_irq();
-			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
-													struct gs_host_frame_object,
-													list);
-			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
-
-				list_del(&frame_object->list);
-				restore_irq(was_irq_enabled);
-
-				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(channel, frame, can_err)) {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-				} else {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
-				}
-			} else {
-				restore_irq(was_irq_enabled);
-			}
-		}
+		CAN_ReceiveFrame(&hGS_CAN, channel);
+		CAN_HandleError(&hGS_CAN, channel);
 
 		led_update(&channel->leds);
 
 		if (USBD_GS_CAN_DfuDetachRequested(&hUSB)) {
 			dfu_run_bootloader();
 		}
-
 	}
 }
 

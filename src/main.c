@@ -126,9 +126,8 @@ int main(void)
 			restore_irq(was_irq_enabled);
 		}
 
-		if (USBD_GS_CAN_TxReady(&hUSB)) {
-			USBD_GS_CAN_SendToHost(&hUSB);
-		}
+		USBD_GS_CAN_ReceiveFromHost(&hUSB);
+		USBD_GS_CAN_SendToHost(&hUSB);
 
 		if (can_is_rx_pending(channel)) {
 			bool was_irq_enabled = disable_irq();

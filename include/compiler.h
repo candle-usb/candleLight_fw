@@ -74,6 +74,15 @@
 		(type *)((char *)_p - offsetof(type, member)); \
 	})
 
+#define struct_size(ptr, field, num) \
+	(offsetof(__typeof(*(ptr)), field) + sizeof((ptr)->field[0]) * (num))
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
+#define DECLARE_FLEX_ARRAY(_t, _n) \
+	struct { \
+		struct { } __dummy_ ## _n; \
+		_t _n[0]; \
+	}
 
 #endif /* _LINUXKPI_LINUX_COMPILER_H_ */

@@ -55,41 +55,41 @@ static void rcc_reset(CAN_TypeDef *instance)
 #endif
 }
 
-void can_init(can_data_t *hcan, CAN_TypeDef *instance)
+void can_init(can_data_t *channel, CAN_TypeDef *instance)
 {
-	device_can_init(hcan, instance);
+	device_can_init(channel, instance);
 }
 
-bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
+bool can_set_bittiming(can_data_t *channel, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
 {
 	if (  (brp>0) && (brp<=1024)
 	   && (phase_seg1>0) && (phase_seg1<=16)
 	   && (phase_seg2>0) && (phase_seg2<=8)
 	   && (sjw>0) && (sjw<=4)
 		  ) {
-		hcan->brp = brp & 0x3FF;
-		hcan->phase_seg1 = phase_seg1;
-		hcan->phase_seg2 = phase_seg2;
-		hcan->sjw = sjw;
+		channel->brp = brp & 0x3FF;
+		channel->phase_seg1 = phase_seg1;
+		channel->phase_seg2 = phase_seg2;
+		channel->sjw = sjw;
 		return true;
 	} else {
 		return false;
 	}
 }
 
-void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot)
+void can_enable(can_data_t *channel, bool loop_back, bool listen_only, bool one_shot)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
 	uint32_t mcr = CAN_MCR_INRQ
 				   | CAN_MCR_ABOM
 				   | CAN_MCR_TXFP
 				   | (one_shot ? CAN_MCR_NART : 0);
 
-	uint32_t btr = ((uint32_t)(hcan->sjw-1)) << 24
-				   | ((uint32_t)(hcan->phase_seg1-1)) << 16
-				   | ((uint32_t)(hcan->phase_seg2-1)) << 20
-				   | (hcan->brp - 1)
+	uint32_t btr = ((uint32_t)(channel->sjw-1)) << 24
+				   | ((uint32_t)(channel->phase_seg1-1)) << 16
+				   | ((uint32_t)(channel->phase_seg2-1)) << 20
+				   | (channel->brp - 1)
 				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
 				   | (listen_only ? CAN_MODE_SILENT : 0);
 
@@ -128,32 +128,32 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 #endif
 }
 
-void can_disable(can_data_t *hcan)
+void can_disable(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 #ifdef nCANSTBY_Pin
 	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
 #endif
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 
-bool can_is_enabled(can_data_t *hcan)
+bool can_is_enabled(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 	return (can->MCR & CAN_MCR_INRQ) == 0;
 }
 
-bool can_is_rx_pending(can_data_t *hcan)
+bool can_is_rx_pending(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
-bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
+bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
-	if (can_is_rx_pending(hcan)) {
+	if (can_is_rx_pending(channel)) {
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {
@@ -185,9 +185,9 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 	}
 }
 
-static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
+static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
 	uint32_t tsr = can->TSR;
 	if ( tsr & CAN_TSR_TME0 ) {
@@ -201,9 +201,9 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
 	}
 }
 
-bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
+bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 {
-	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(hcan);
+	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(channel);
 	if (mb != 0) {
 
 		/* first, clear transmission request */
@@ -243,9 +243,9 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 	}
 }
 
-uint32_t can_get_error_status(can_data_t *hcan)
+uint32_t can_get_error_status(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
 	uint32_t err = can->ESR;
 
@@ -260,15 +260,15 @@ static bool status_is_active(uint32_t err)
 	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
 }
 
-bool can_parse_error_status(can_data_t *hcan, struct gs_host_frame *frame, uint32_t err)
+bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err)
 {
-	uint32_t last_err = hcan->reg_esr_old;
+	uint32_t last_err = channel->reg_esr_old;
 	/* We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final
 	 * result. */
 	bool should_send = false;
 
-	hcan->reg_esr_old = err;
+	channel->reg_esr_old = err;
 
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;

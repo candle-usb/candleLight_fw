@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "device.h"
 #include "hal_include.h"
 
-void device_can_init(can_data_t *hcan, CAN_TypeDef *instance) {
+void device_can_init(can_data_t *channel, CAN_TypeDef *instance) {
 	__HAL_RCC_CAN1_CLK_ENABLE();
 
 	GPIO_InitTypeDef itd;
@@ -41,11 +41,11 @@ void device_can_init(can_data_t *hcan, CAN_TypeDef *instance) {
 	itd.Alternate = GPIO_AF9_CAN1;
 	HAL_GPIO_Init(GPIOD, &itd);
 
-	hcan->instance   = instance;
-	hcan->brp        = 6;
-	hcan->sjw        = 1;
-	hcan->phase_seg1 = 12;
-	hcan->phase_seg2 = 1;
+	channel->instance   = instance;
+	channel->brp        = 6;
+	channel->sjw        = 1;
+	channel->phase_seg1 = 12;
+	channel->phase_seg2 = 1;
 	return;
 }
 

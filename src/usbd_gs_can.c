@@ -769,10 +769,7 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 		len = sizeof(buf);
 	}
 
-	bool was_irq_enabled = disable_irq();
-	uint8_t result = USBD_GS_CAN_Transmit(pdev, send_addr, len);
-	restore_irq(was_irq_enabled);
-	return result;
+	return USBD_GS_CAN_Transmit(pdev, send_addr, len);
 }
 
 void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)

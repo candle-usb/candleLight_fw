@@ -728,8 +728,9 @@ void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev)
 	}
 
 	list_del(&hcan->from_host_buf->list);
-	USBD_GS_CAN_PrepareReceive(pdev);
 	restore_irq(was_irq_enabled);
+
+	USBD_GS_CAN_PrepareReceive(pdev);
 }
 
 static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len)

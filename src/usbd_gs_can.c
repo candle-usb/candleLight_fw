@@ -712,17 +712,23 @@ bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqT
 void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+
 	bool was_irq_enabled = disable_irq();
-	if (!hcan->from_host_buf) {
-		hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,
-													   struct gs_host_frame_object,
-													   list);
-		if (hcan->from_host_buf) {
-			list_del(&hcan->from_host_buf->list);
-			USBD_GS_CAN_PrepareReceive(pdev);
-		}
+	if (hcan->from_host_buf) {
+		restore_irq(was_irq_enabled);
+		return;
 	}
 
+	hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,
+												   struct gs_host_frame_object,
+												   list);
+	if (!hcan->from_host_buf) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
+
+	list_del(&hcan->from_host_buf->list);
+	USBD_GS_CAN_PrepareReceive(pdev);
 	restore_irq(was_irq_enabled);
 }
 

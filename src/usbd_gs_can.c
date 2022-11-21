@@ -582,8 +582,7 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	if (rxlen < (sizeof(struct gs_host_frame)-4)) {
 		// Invalid frame length, just ignore it and receive into the same buffer
 		// again next time.
-		USBD_GS_CAN_PrepareReceive(pdev);
-		return USBD_OK;
+		goto out_prepare_receive;
 	}
 
 	bool was_irq_enabled = disable_irq();
@@ -607,6 +606,10 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		// will fill up its queue of packets awaiting ACKs and then hang. Instead,
 		// wait to call PrepareReceive until we have a frame to receive into.
 	}
+	return USBD_OK;
+
+out_prepare_receive:
+	USBD_GS_CAN_PrepareReceive(pdev);
 	return USBD_OK;
 }
 

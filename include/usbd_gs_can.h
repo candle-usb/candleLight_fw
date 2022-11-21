@@ -45,7 +45,11 @@ THE SOFTWARE.
 		 sizeof(struct gs_device_mode), \
 		 sizeof(struct gs_identify_mode), \
 		 sizeof(struct gs_device_termination_state))
+#ifdef CONFIG_CANFD
+#define CAN_DATA_MAX_PACKET_SIZE 64    /* Endpoint IN & OUT Packet size */
+#else
 #define CAN_DATA_MAX_PACKET_SIZE 32    /* Endpoint IN & OUT Packet size */
+#endif
 #define USB_CAN_CONFIG_DESC_SIZ	 50
 #define USBD_GS_CAN_VENDOR_CODE	 0x20
 #define DFU_INTERFACE_NUM		 1
@@ -53,7 +57,11 @@ THE SOFTWARE.
 
 extern USBD_ClassTypeDef USBD_GS_CAN;
 
+#ifdef CONFIG_CANFD
+#define GS_HOST_FRAME_SIZE struct_size((struct gs_host_frame *)NULL, canfd_ts, 1)
+#else
 #define GS_HOST_FRAME_SIZE struct_size((struct gs_host_frame *)NULL, classic_can_ts, 1)
+#endif
 
 struct gs_host_frame_object {
 	struct list_head list;

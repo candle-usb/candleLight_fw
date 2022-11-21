@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <string.h>
 
 #include "can.h"
+#include "compiler.h"
 #include "config.h"
 #include "gpio.h"
 #include "gs_usb.h"
@@ -250,7 +251,11 @@ static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 	struct gs_host_frame *frame = &hcan->from_host_buf->frame;
 	uint16_t size;
 
-	size = struct_size(frame, classic_can_ts, 1);
+	if (IS_ENABLED(CONFIG_CANFD)) {
+		size = struct_size(frame, canfd_ts, 1);
+	} else {
+		size = struct_size(frame, classic_can_ts, 1);
+	}
 
 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t *)frame, size);
 }
@@ -598,6 +603,12 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		goto out_prepare_receive;
 	}
 
+	if (IS_ENABLED(CONFIG_CANFD) &&
+		hcan->from_host_buf->frame.flags & GS_CAN_FLAG_FD &&
+		rxlen < struct_size(&hcan->from_host_buf->frame, canfd, 1)) {
+		goto out_prepare_receive;
+	}
+
 	bool was_irq_enabled = disable_irq();
 	// Enqueue the frame we just received.
 	list_add_tail(&hcan->from_host_buf->list, &channel->list_from_host);
@@ -753,10 +764,19 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 	uint8_t *send_addr;
 	size_t len;
 
-	if (hcan->timestamps_enabled) {
-		len = struct_size(frame, classic_can_ts, 1);
+	if (IS_ENABLED(CONFIG_CANFD) &&
+		frame->flags & GS_CAN_FLAG_FD) {
+		if (hcan->timestamps_enabled) {
+			len = struct_size(frame, canfd_ts, 1);
+		} else {
+			len = struct_size(frame, canfd, 1);
+		}
 	} else {
-		len = struct_size(frame, classic_can, 1);
+		if (hcan->timestamps_enabled) {
+			len = struct_size(frame, classic_can_ts, 1);
+		} else {
+			len = struct_size(frame, classic_can, 1);
+		}
 	}
 
 	send_addr = (uint8_t *)frame;

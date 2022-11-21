@@ -128,7 +128,7 @@ THE SOFTWARE.
 	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_CLOCK_SPEED			 64000000
 	#define NUM_CAN_CHANNEL			 1
-	#define CANFD_SUPPORT
+	#define CONFIG_CANFD
 
 	#define LEDRX_GPIO_Port	  GPIOA
 	#define LEDRX_Pin		  GPIO_PIN_0
@@ -336,7 +336,7 @@ THE SOFTWARE.
 	#define CAN_INTERFACE2			 FDCAN2
 	#define CAN_CLOCK_SPEED			 64000000
 	#define NUM_CAN_CHANNEL			 2
-	#define CANFD_SUPPORT
+	#define CONFIG_CANFD
 
 	#define nCANSTBY_Port		 GPIOA
 	#define nCANSTBY_Pin		 GPIO_PIN_0    /* control xceiver standby, active low */

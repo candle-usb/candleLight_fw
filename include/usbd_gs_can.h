@@ -53,9 +53,14 @@ THE SOFTWARE.
 
 extern USBD_ClassTypeDef USBD_GS_CAN;
 
+#define GS_HOST_FRAME_SIZE struct_size((struct gs_host_frame *)NULL, classic_can_ts, 1)
+
 struct gs_host_frame_object {
 	struct list_head list;
-	struct gs_host_frame frame;
+	union {
+		uint8_t _buf[GS_HOST_FRAME_SIZE];
+		struct gs_host_frame frame;
+	};
 };
 
 typedef struct {

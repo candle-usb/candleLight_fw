@@ -168,14 +168,14 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 
 		rx_frame->can_dlc = fifo->RDTR & CAN_RDT0R_DLC;
 
-		rx_frame->data[0] = (fifo->RDLR >>  0) & 0xFF;
-		rx_frame->data[1] = (fifo->RDLR >>  8) & 0xFF;
-		rx_frame->data[2] = (fifo->RDLR >> 16) & 0xFF;
-		rx_frame->data[3] = (fifo->RDLR >> 24) & 0xFF;
-		rx_frame->data[4] = (fifo->RDHR >>  0) & 0xFF;
-		rx_frame->data[5] = (fifo->RDHR >>  8) & 0xFF;
-		rx_frame->data[6] = (fifo->RDHR >> 16) & 0xFF;
-		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
+		rx_frame->classic_can->data[0] = (fifo->RDLR >>  0) & 0xFF;
+		rx_frame->classic_can->data[1] = (fifo->RDLR >>  8) & 0xFF;
+		rx_frame->classic_can->data[2] = (fifo->RDLR >> 16) & 0xFF;
+		rx_frame->classic_can->data[3] = (fifo->RDLR >> 24) & 0xFF;
+		rx_frame->classic_can->data[4] = (fifo->RDHR >>  0) & 0xFF;
+		rx_frame->classic_can->data[5] = (fifo->RDHR >>  8) & 0xFF;
+		rx_frame->classic_can->data[6] = (fifo->RDHR >> 16) & 0xFF;
+		rx_frame->classic_can->data[7] = (fifo->RDHR >> 24) & 0xFF;
 
 		can->RF0R |= CAN_RF0R_RFOM0;         // release FIFO
 
@@ -223,16 +223,16 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 		mb->TDTR |= frame->can_dlc & 0x0F;
 
 		mb->TDLR =
-			( frame->data[3] << 24 )
-			| ( frame->data[2] << 16 )
-			| ( frame->data[1] <<  8 )
-			| ( frame->data[0] <<  0 );
+			( frame->classic_can->data[3] << 24 )
+			| ( frame->classic_can->data[2] << 16 )
+			| ( frame->classic_can->data[1] <<  8 )
+			| ( frame->classic_can->data[0] <<  0 );
 
 		mb->TDHR =
-			( frame->data[7] << 24 )
-			| ( frame->data[6] << 16 )
-			| ( frame->data[5] <<  8 )
-			| ( frame->data[4] <<  0 );
+			( frame->classic_can->data[7] << 24 )
+			| ( frame->classic_can->data[6] << 16 )
+			| ( frame->classic_can->data[5] <<  8 )
+			| ( frame->classic_can->data[4] <<  0 );
 
 		/* request transmission */
 		mb->TIR |= CAN_TI0R_TXRQ;
@@ -273,14 +273,14 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;
 	frame->can_dlc = CAN_ERR_DLC;
-	frame->data[0] = CAN_ERR_LOSTARB_UNSPEC;
-	frame->data[1] = CAN_ERR_CRTL_UNSPEC;
-	frame->data[2] = CAN_ERR_PROT_UNSPEC;
-	frame->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
-	frame->data[4] = CAN_ERR_TRX_UNSPEC;
-	frame->data[5] = 0;
-	frame->data[6] = 0;
-	frame->data[7] = 0;
+	frame->classic_can->data[0] = CAN_ERR_LOSTARB_UNSPEC;
+	frame->classic_can->data[1] = CAN_ERR_CRTL_UNSPEC;
+	frame->classic_can->data[2] = CAN_ERR_PROT_UNSPEC;
+	frame->classic_can->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
+	frame->classic_can->data[4] = CAN_ERR_TRX_UNSPEC;
+	frame->classic_can->data[5] = 0;
+	frame->classic_can->data[6] = 0;
+	frame->classic_can->data[7] = 0;
 
 	if (err & CAN_ESR_BOFF) {
 		if (!(last_err & CAN_ESR_BOFF)) {
@@ -300,7 +300,7 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	/* We transitioned from passive/bus-off to active, so report the edge. */
 	if (!status_is_active(last_err) && status_is_active(err)) {
 		frame->can_id |= CAN_ERR_CRTL;
-		frame->data[1] |= CAN_ERR_CRTL_ACTIVE;
+		frame->classic_can->data[1] |= CAN_ERR_CRTL_ACTIVE;
 		should_send = true;
 	}
 
@@ -308,19 +308,19 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	uint8_t rx_error_cnt = (err>>24) & 0xFF;
 	/* The Linux sja1000 driver puts these counters here. Seems like as good a
 	 * place as any. */
-	frame->data[6] = tx_error_cnt;
-	frame->data[7] = rx_error_cnt;
+	frame->classic_can->data[6] = tx_error_cnt;
+	frame->classic_can->data[7] = rx_error_cnt;
 
 	if (err & CAN_ESR_EPVF) {
 		if (!(last_err & CAN_ESR_EPVF)) {
 			frame->can_id |= CAN_ERR_CRTL;
-			frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
+			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
 	} else if (err & CAN_ESR_EWGF) {
 		if (!(last_err & CAN_ESR_EWGF)) {
 			frame->can_id |= CAN_ERR_CRTL;
-			frame->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
+			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
 			should_send = true;
 		}
 	}
@@ -329,12 +329,12 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	switch (lec) {
 		case 0x01: /* stuff error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_STUFF;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
 			should_send = true;
 			break;
 		case 0x02: /* form error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_FORM;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
 			should_send = true;
 			break;
 		case 0x03: /* ack error */
@@ -343,17 +343,17 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 			break;
 		case 0x04: /* bit recessive error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_BIT1;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
 			should_send = true;
 			break;
 		case 0x05: /* bit dominant error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_BIT0;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
 			should_send = true;
 			break;
 		case 0x06: /* CRC error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
+			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
 			should_send = true;
 			break;
 		default: /* 0=no error, 7=no change */

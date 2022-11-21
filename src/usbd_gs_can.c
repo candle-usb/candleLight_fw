@@ -314,9 +314,10 @@ static can_data_t *USBD_GS_CAN_GetChannel(USBD_GS_CAN_HandleTypeDef *hcan,
 static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	struct gs_device_termination_state term_state;
 	can_data_t *channel;
-	enum gs_can_termination_state term_state;
-	uint32_t d32;
+	const void *src = NULL;
+	size_t len;
 
 	/*
 	 * For all "per device" USB control messages
@@ -338,49 +339,80 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 
 	switch (req->bRequest) {
 		// Host -> Device
+		case GS_USB_BREQ_HOST_FORMAT:
+			len = sizeof(struct gs_host_config);
+			break;
+		case GS_USB_BREQ_BITTIMING:
+			len = sizeof(struct gs_device_bittiming);
+			break;
+		case GS_USB_BREQ_MODE:
+			len = sizeof(struct gs_device_mode);
+			break;
+		case GS_USB_BREQ_BT_CONST:
+			src = &USBD_GS_CAN_btconst;
+			len = sizeof(USBD_GS_CAN_btconst);
+			break;
+		case GS_USB_BREQ_DEVICE_CONFIG:
+			src = &USBD_GS_CAN_dconf;
+			len = sizeof(USBD_GS_CAN_dconf);
+			break;
+		case GS_USB_BREQ_TIMESTAMP:
+			src = &hcan->sof_timestamp_us;
+			len = sizeof(hcan->sof_timestamp_us);
+			break;
+		case GS_USB_BREQ_IDENTIFY:
+			len = sizeof(struct gs_identify_mode);
+			break;
 		case GS_USB_BREQ_SET_TERMINATION:
 			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
 				goto out_fail;
 			}
 
-			fallthrough;
+			len = sizeof(struct gs_device_termination_state);
+			break;
+		case GS_USB_BREQ_GET_TERMINATION: {
+			enum gs_can_termination_state state;
+
+			state = get_term(req->wValue);
+			if (state == GS_CAN_TERMINATION_UNSUPPORTED) {
+				goto out_fail;
+			}
+
+			term_state.state = state;
+			src = &term_state;
+			len = sizeof(term_state);
+			break;
+		}
+		default:
+			goto out_fail;
+	}
+
+	if (req->wLength < len) {
+		goto out_fail;
+	}
+
+	switch (req->bRequest) {
 		case GS_USB_BREQ_HOST_FORMAT:
 		case GS_USB_BREQ_BITTIMING:
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_IDENTIFY:
+		case GS_USB_BREQ_SET_TERMINATION:
+			if (req->wLength > sizeof(hcan->ep0_buf)) {
+				goto out_fail;
+			}
+
 			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
 			break;
 
 		// Device -> Host
 		case GS_USB_BREQ_BT_CONST:
-			memcpy(hcan->ep0_buf, &USBD_GS_CAN_btconst, sizeof(USBD_GS_CAN_btconst));
-			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
-			break;
-
 		case GS_USB_BREQ_DEVICE_CONFIG:
-			memcpy(hcan->ep0_buf, &USBD_GS_CAN_dconf, sizeof(USBD_GS_CAN_dconf));
-			USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
-			break;
-
 		case GS_USB_BREQ_TIMESTAMP:
-			memcpy(hcan->ep0_buf, &hcan->sof_timestamp_us, sizeof(hcan->sof_timestamp_us));
-			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(hcan->sof_timestamp_us));
-			break;
-
 		case GS_USB_BREQ_GET_TERMINATION:
-			term_state = get_term(req->wValue);
-
-			if (term_state == GS_CAN_TERMINATION_UNSUPPORTED) {
-				goto out_fail;
-			} else {
-				d32 = (uint32_t)term_state;
-				memcpy(hcan->ep0_buf, &d32, sizeof(d32));
-				USBD_CtlSendData(pdev, hcan->ep0_buf, req->wLength);
-			}
-
+			memcpy(hcan->ep0_buf, src, len);
+			USBD_CtlSendData(pdev, hcan->ep0_buf, len);
 			break;
-
 		default:
 			goto out_fail;
 	}

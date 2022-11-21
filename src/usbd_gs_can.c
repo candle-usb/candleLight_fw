@@ -231,37 +231,34 @@ static const uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] = {
 	0x00, 0x00, 0x00, 0x00
 };
 
-
 // device info
 static const struct gs_device_config USBD_GS_CAN_dconf = {
-	0, // reserved 1
-	0, // reserved 2
-	0, // reserved 3
-	0, // interface count (0=1, 1=2..)
-	2, // software version
-	1  // hardware version
+	.icount = 0,
+	.sw_version = 2,
+	.hw_version = 1,
 };
 
 // bit timing constraints
 static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
-	GS_CAN_FEATURE_LISTEN_ONLY  // supported features
-	| GS_CAN_FEATURE_LOOP_BACK
-	| GS_CAN_FEATURE_HW_TIMESTAMP
-	| GS_CAN_FEATURE_IDENTIFY
-	| GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+	.feature =
+		GS_CAN_FEATURE_LISTEN_ONLY |
+		GS_CAN_FEATURE_LOOP_BACK |
+		GS_CAN_FEATURE_HW_TIMESTAMP |
+		GS_CAN_FEATURE_IDENTIFY |
+		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
 #ifdef TERM_Pin
-	| GS_CAN_FEATURE_TERMINATION
+		| GS_CAN_FEATURE_TERMINATION
 #endif
 	,
-	CAN_CLOCK_SPEED, // can timing base clock
-	1, // tseg1 min
-	16, // tseg1 max
-	1, // tseg2 min
-	8, // tseg2 max
-	4, // sjw max
-	1, // brp min
-	1024, //brp_max
-	1, // brp increment;
+	.fclk_can = CAN_CLOCK_SPEED,
+	.tseg1_min = 1,
+	.tseg1_max = 16,
+	.tseg2_min = 1,
+	.tseg2_max = 8,
+	.sjw_max = 4,
+	.brp_min = 1,
+	.brp_max = 1024,
+	.brp_inc = 1,
 };
 
 static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)

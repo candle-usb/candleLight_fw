@@ -55,7 +55,7 @@ void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	// Echo sent frame back to host
 	frame->flags = 0x0;
 	frame->reserved = 0x0;
-	frame->timestamp_us = timer_get();
+	frame->classic_can_ts->timestamp_us = timer_get();
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 
@@ -89,7 +89,7 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	frame->timestamp_us = timer_get();
+	frame->classic_can_ts->timestamp_us = timer_get();
 	frame->echo_id = 0xFFFFFFFF; // not an echo frame
 	frame->channel = 0;
 	frame->flags = 0;
@@ -127,7 +127,7 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	restore_irq(was_irq_enabled);
 
 	struct gs_host_frame *frame = &frame_object->frame;
-	frame->timestamp_us = timer_get();
+	frame->classic_can_ts->timestamp_us = timer_get();
 
 	if (can_parse_error_status(channel, frame, can_err)) {
 		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);

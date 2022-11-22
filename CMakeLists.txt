@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(
 	--specs=nano.specs
 	--specs=nosys.specs
-	-Os
+	-O2
 	-Wall
 	-Werror
 	-Wextra
@@ -17,7 +17,6 @@ add_compile_options(
 	-ffunction-sections
 	-flto
 	-fmessage-length=0
-	-fno-move-loop-invariants
 	-fsigned-char
 	-g3
 	-mthumb

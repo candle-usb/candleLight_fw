@@ -37,62 +37,67 @@ void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	frame_object = list_first_entry_or_null(&channel->list_from_host,
 											struct gs_host_frame_object,
 											list);
-	if (frame_object) { // send CAN message from host
-		struct gs_host_frame *frame = &frame_object->frame;
-
-		list_del(&frame_object->list);
+	if (!frame_object) {
 		restore_irq(was_irq_enabled);
-
-		if (can_send(channel, frame)) {
-			// Echo sent frame back to host
-			frame->flags = 0x0;
-			frame->reserved = 0x0;
-			frame->timestamp_us = timer_get();
-
-			list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
-
-			led_indicate_trx(&channel->leds, led_tx);
-		} else {
-			list_add_locked(&frame_object->list, &channel->list_from_host);
-		}
-	} else {
-		restore_irq(was_irq_enabled);
+		return;
 	}
+
+	list_del(&frame_object->list);
+	restore_irq(was_irq_enabled);
+
+	struct gs_host_frame *frame = &frame_object->frame;
+
+	if (!can_send(channel, frame)) {
+		list_add_locked(&frame_object->list, &channel->list_from_host);
+		return;
+	}
+
+	// Echo sent frame back to host
+	frame->flags = 0x0;
+	frame->reserved = 0x0;
+	frame->timestamp_us = timer_get();
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+
+	led_indicate_trx(&channel->leds, led_tx);
 }
 
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
 	struct gs_host_frame_object *frame_object;
 
-	if (can_is_rx_pending(channel)) {
-		bool was_irq_enabled = disable_irq();
-		frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
-												struct gs_host_frame_object,
-												list);
-		if (frame_object) {
-			struct gs_host_frame *frame = &frame_object->frame;
-
-			list_del(&frame_object->list);
-			restore_irq(was_irq_enabled);
-
-			if (can_receive(channel, frame)) {
-
-				frame->timestamp_us = timer_get();
-				frame->echo_id = 0xFFFFFFFF; // not a echo frame
-				frame->channel = 0;
-				frame->flags = 0;
-				frame->reserved = 0;
-
-				list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
-
-				led_indicate_trx(&channel->leds, led_rx);
-			} else {
-				list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
-			}
-		} else {
-			restore_irq(was_irq_enabled);
-		}
+	if (!can_is_rx_pending(channel)) {
+		return;
 	}
+
+	bool was_irq_enabled = disable_irq();
+	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
+											struct gs_host_frame_object,
+											list);
+	if (!frame_object) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
+
+	list_del(&frame_object->list);
+	restore_irq(was_irq_enabled);
+
+	struct gs_host_frame *frame = &frame_object->frame;
+
+	if (!can_receive(channel, frame)) {
+		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
+		return;
+	}
+
+	frame->timestamp_us = timer_get();
+	frame->echo_id = 0xFFFFFFFF; // not an echo frame
+	frame->channel = 0;
+	frame->flags = 0;
+	frame->reserved = 0;
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+
+	led_indicate_trx(&channel->leds, led_rx);
 }
 
 // If there are frames to receive, don't report any error frames. The
@@ -103,27 +108,30 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
 	struct gs_host_frame_object *frame_object;
 
-	if (!can_is_rx_pending(channel)) {
-		uint32_t can_err = can_get_error_status(channel);
+	if (can_is_rx_pending(channel)) {
+		return;
+	}
 
-		bool was_irq_enabled = disable_irq();
-		frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
-												struct gs_host_frame_object,
-												list);
-		if (frame_object) {
-			struct gs_host_frame *frame = &frame_object->frame;
+	uint32_t can_err = can_get_error_status(channel);
 
-			list_del(&frame_object->list);
-			restore_irq(was_irq_enabled);
+	bool was_irq_enabled = disable_irq();
+	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
+											struct gs_host_frame_object,
+											list);
+	if (!frame_object) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
 
-			frame->timestamp_us = timer_get();
-			if (can_parse_error_status(channel, frame, can_err)) {
-				list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
-			} else {
-				list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
-			}
-		} else {
-			restore_irq(was_irq_enabled);
-		}
+	list_del(&frame_object->list);
+	restore_irq(was_irq_enabled);
+
+	struct gs_host_frame *frame = &frame_object->frame;
+	frame->timestamp_us = timer_get();
+
+	if (can_parse_error_status(channel, frame, can_err)) {
+		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+	} else {
+		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
 	}
 }

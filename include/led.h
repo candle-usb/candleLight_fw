@@ -54,6 +54,8 @@ typedef struct {
 	void* port;
 	uint16_t pin;
 	bool is_active_high;
+
+	bool blink_request;
 	uint32_t on_until;
 	uint32_t off_until;
 } led_state_t;

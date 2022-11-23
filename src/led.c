@@ -85,23 +85,27 @@ void led_run_sequence(led_data_t *leds, const led_seq_step_t *sequence, int32_t 
 	led_update(leds);
 }
 
-void led_indicate_trx(led_data_t *leds, led_num_t num)
-{
-	uint32_t now = HAL_GetTick();
-	led_state_t *led = &leds->led_state[num];
+void led_indicate_trx(led_data_t *leds, led_num_t num) {
+	leds->led_state[num].blink_request = 1;
+}
 
-	if ( SEQ_ISPASSED(now, led->on_until) &&
-		 SEQ_ISPASSED(now, led->off_until) ) {
-		led->off_until = now + 30;
-		led->on_until = now + 45;
+static void led_trx_blinker(led_state_t *ledstate, uint32_t now) {
+	if ( SEQ_ISPASSED(now, ledstate->on_until) &&
+		 SEQ_ISPASSED(now, ledstate->off_until) ) {
+		ledstate->off_until = now + 30;
+		ledstate->on_until = now + 45;
 	}
-
-	led_update(leds);
 }
 
 static void led_update_normal_mode(led_state_t *led)
 {
 	uint32_t now = HAL_GetTick();
+
+	if (led->blink_request) {
+		led->blink_request = 0;
+		led_trx_blinker(led, now);
+	}
+
 	led_set(led, SEQ_ISPASSED(now, led->off_until));
 }
 

@@ -46,7 +46,6 @@ THE SOFTWARE.
 
 void HAL_MspInit(void);
 static void SystemClock_Config(void);
-static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 static void send_to_host(void);
 
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
@@ -110,7 +109,7 @@ int main(void)
 				frame->flags = 0x0;
 				frame->reserved = 0x0;
 				frame->timestamp_us = timer_get();
-				send_to_host_or_enqueue(frame);
+				queue_push_back(q_to_host, frame);
 
 				led_indicate_trx(&hLED, led_tx);
 			} else {
@@ -134,7 +133,7 @@ int main(void)
 					frame->flags = 0;
 					frame->reserved = 0;
 
-					send_to_host_or_enqueue(frame);
+					queue_push_back(q_to_host, frame);
 
 					led_indicate_trx(&hLED, led_rx);
 				}
@@ -153,7 +152,7 @@ int main(void)
 			if (frame != 0) {
 				frame->timestamp_us = timer_get();
 				if (can_parse_error_status(can_err, last_can_error_status, channel, frame)) {
-					send_to_host_or_enqueue(frame);
+					queue_push_back(q_to_host, frame);
 					last_can_error_status = can_err;
 				} else {
 					queue_push_back(q_frame_pool, frame);
@@ -279,12 +278,6 @@ void SystemClock_Config(void)
 
 	/* SysTick_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-}
-
-bool send_to_host_or_enqueue(struct gs_host_frame *frame)
-{
-	queue_push_back(q_to_host, frame);
-	return true;
 }
 
 void send_to_host(void)

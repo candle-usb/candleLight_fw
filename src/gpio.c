@@ -130,21 +130,24 @@ void gpio_init(void)
 	HAL_GPIO_Init(nCANSTBY_Port, &GPIO_InitStruct); //xceiver standby.
 #endif
 
-#if defined(BOARD_cannette)
+#ifdef DCDCEN_Pin
 	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_SET);
 	GPIO_InitStruct.Pin = DCDCEN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(DCDCEN_Port, &GPIO_InitStruct);   //start DCDC (TODO : wait until enumerated)
+#endif
 
+#ifdef nSI86EN_Pin
 	HAL_GPIO_WritePin(nSI86EN_Port, nSI86EN_Pin, GPIO_PIN_RESET);
 	GPIO_InitStruct.Pin = nSI86EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(nSI86EN_Port, &GPIO_InitStruct);  //enable si86
-#endif // BOARD_cannette
+#endif
+
 
 #if defined(BOARD_STM32F4_DevBoard)
 	// initialize USB pins

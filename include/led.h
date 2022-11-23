@@ -29,6 +29,9 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdbool.h>
 
+
+#define LED_UPDATE_INTERVAL 10  // number of ticks from HAL_GetTick
+
 typedef enum {
 	led_mode_off,
 	led_mode_normal,

@@ -137,6 +137,13 @@ static void led_update_sequence(led_data_t *leds)
 
 void led_update(led_data_t *leds)
 {
+	static uint32_t next_update = 0;
+	uint32_t now = HAL_GetTick();
+	if (!SEQ_ISPASSED(now, next_update)) {
+		return;
+	}
+	next_update = now + LED_UPDATE_INTERVAL;
+
 	switch (leds->mode) {
 
 		case led_mode_off:

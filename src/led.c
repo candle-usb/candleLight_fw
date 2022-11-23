@@ -24,9 +24,11 @@ THE SOFTWARE.
 
 */
 
-#include "led.h"
 #include <string.h>
+
+#include "led.h"
 #include "hal_include.h"
+#include "util.h"
 
 #define SEQ_ISPASSED(now, target) ((int32_t) ((now) - (target)) >= 0)
 
@@ -161,7 +163,6 @@ void led_update(led_data_t *leds)
 			break;
 
 		default:
-			led_set(&leds->led_state[led_rx], false);
-			led_set(&leds->led_state[led_tx], true);
+			assert_failed();
 	}
 }

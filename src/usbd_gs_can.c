@@ -735,6 +735,7 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 	if (hcan != NULL && hcan->leds != NULL)
 		led_set_mode(hcan->leds, led_mode_off);
 
+	gpio_suspend();
 	is_usb_suspend_cb = true;
 }
 
@@ -742,5 +743,6 @@ void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	hcan->TxState = 0;
+	gpio_resume();
 	is_usb_suspend_cb = false;
 }

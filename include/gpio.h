@@ -51,5 +51,8 @@ static inline enum gs_can_termination_state get_term(unsigned int channel)
 	(void)channel;
 	return GS_CAN_TERMINATION_UNSUPPORTED;
 }
-
 #endif
+
+void gpio_suspend(void);
+
+void gpio_resume(void);

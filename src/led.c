@@ -77,7 +77,6 @@ static uint32_t led_set_sequence_step(led_data_t *leds, uint32_t step_num)
 
 void led_run_sequence(led_data_t *leds, const led_seq_step_t *sequence, int32_t num_repeat)
 {
-	leds->last_mode = leds->mode;
 	leds->mode = led_mode_sequence;
 	leds->sequence = sequence;
 	leds->seq_num_repeat = num_repeat;

@@ -62,7 +62,6 @@ typedef struct {
 
 typedef struct {
 	led_mode_t mode;
-	led_mode_t last_mode;
 
 	const led_seq_step_t *sequence;
 	uint32_t sequence_step;

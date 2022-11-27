@@ -61,7 +61,7 @@ void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 
-	led_indicate_trx(&channel->leds, led_tx);
+	led_indicate_trx(&channel->leds, LED_TX);
 }
 
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
@@ -97,7 +97,7 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 
-	led_indicate_trx(&channel->leds, led_rx);
+	led_indicate_trx(&channel->leds, LED_RX);
 }
 
 // If there are frames to receive, don't report any error frames. The

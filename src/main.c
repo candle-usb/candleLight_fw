@@ -84,7 +84,7 @@ int main(void)
 			HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
 		}
 
-		led_set_mode(&channel->leds, led_mode_off);
+		led_set_mode(&channel->leds, LED_MODE_OFF);
 
 		can_init(channel, CAN_INTERFACE);
 		can_disable(channel);

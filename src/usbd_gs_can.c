@@ -410,8 +410,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_DEVICE_CONFIG:
 		case GS_USB_BREQ_TIMESTAMP:
 		case GS_USB_BREQ_GET_TERMINATION:
-			memcpy(hcan->ep0_buf, src, len);
-			USBD_CtlSendData(pdev, hcan->ep0_buf, len);
+			USBD_CtlSendData(pdev, (uint8_t *)src, len);
 			break;
 		default:
 			goto out_fail;

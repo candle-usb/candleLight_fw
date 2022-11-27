@@ -477,7 +477,6 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	can_data_t *channel = NULL;
-	uint32_t param_u32;
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
 
 	/*
@@ -536,25 +535,29 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			}
 			break;
 		}
-		case GS_USB_BREQ_IDENTIFY:
-			memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-			if (param_u32) {
+		case GS_USB_BREQ_IDENTIFY: {
+			struct gs_identify_mode *imode;
+
+			imode = (struct gs_identify_mode *)hcan->ep0_buf;
+			if (imode->mode) {
 				led_run_sequence(hcan->leds, led_identify_seq, -1);
 			} else {
 				led_set_mode(hcan->leds, can_is_enabled(channel) ?
 							 led_mode_normal : led_mode_off);
 			}
 			break;
-
-		case GS_USB_BREQ_SET_TERMINATION:
+		}
+		case GS_USB_BREQ_SET_TERMINATION: {
 			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
-				memcpy(&param_u32, hcan->ep0_buf, sizeof(param_u32));
-				if (set_term(req->wValue, param_u32) == GS_CAN_TERMINATION_UNSUPPORTED) {
+				struct gs_device_termination_state *term_state;
+
+				term_state = (struct gs_device_termination_state *)hcan->ep0_buf;
+				if (set_term(req->wValue, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
 					USBD_CtlError(pdev, req);
 				}
 			}
 			break;
-
+		}
 		default:
 			break;
 	}

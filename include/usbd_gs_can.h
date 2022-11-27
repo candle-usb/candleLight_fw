@@ -59,7 +59,7 @@ struct gs_host_frame_object {
 };
 
 typedef struct {
-	uint8_t ep0_buf[GS_CAN_EP0_BUF_SIZE];
+	uint8_t __aligned(4) ep0_buf[GS_CAN_EP0_BUF_SIZE];
 
 	__IO uint32_t TxState;
 

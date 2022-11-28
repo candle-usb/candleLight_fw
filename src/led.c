@@ -96,10 +96,8 @@ static void led_trx_blinker(led_state_t *ledstate, uint32_t now) {
 	}
 }
 
-static void led_update_normal_mode(led_state_t *led)
+static void led_update_normal_mode(led_state_t *led, uint32_t now)
 {
-	uint32_t now = HAL_GetTick();
-
 	if (led->blink_request) {
 		led->blink_request = 0;
 		led_trx_blinker(led, now);
@@ -157,8 +155,8 @@ void led_update(led_data_t *leds)
 			break;
 
 		case led_mode_normal:
-			led_update_normal_mode(&leds->led_state[led_rx]);
-			led_update_normal_mode(&leds->led_state[led_tx]);
+			led_update_normal_mode(&leds->led_state[led_rx], now);
+			led_update_normal_mode(&leds->led_state[led_tx], now);
 			break;
 
 		case led_mode_sequence:

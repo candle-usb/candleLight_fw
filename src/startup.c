@@ -26,6 +26,9 @@ void Reset_Handler(void)
 	_start();
 }
 
+void __register_exitproc(void) {
+	return;
+}
 
 void _exit(int code)
 {

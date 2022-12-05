@@ -30,3 +30,5 @@ THE SOFTWARE.
 #include "hal_include.h"
 
 void device_can_init(can_data_t *hcan, CAN_TypeDef *instance);
+
+void device_sysclock_config(void);

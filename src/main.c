@@ -30,6 +30,7 @@ THE SOFTWARE.
 
 #include "can.h"
 #include "config.h"
+#include "device.h"
 #include "dfu.h"
 #include "gpio.h"
 #include "gs_usb.h"
@@ -209,100 +210,7 @@ void HAL_MspInit(void)
 
 void SystemClock_Config(void)
 {
-	RCC_OscInitTypeDef RCC_OscInitStruct;
-	RCC_ClkInitTypeDef RCC_ClkInitStruct;
-
-#if defined(STM32F0)
-	RCC_PeriphCLKInitTypeDef PeriphClkInit;
-	RCC_CRSInitTypeDef RCC_CRSInitStruct;
-
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
-	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	HAL_RCC_OscConfig(&RCC_OscInitStruct);
-
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK |
-								  RCC_CLOCKTYPE_SYSCLK |
-								  RCC_CLOCKTYPE_PCLK1;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1);
-
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
-	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
-
-	__HAL_RCC_CRS_CLK_ENABLE();
-	RCC_CRSInitStruct.Prescaler = RCC_CRS_SYNC_DIV1;
-	RCC_CRSInitStruct.Source = RCC_CRS_SYNC_SOURCE_USB;
-	RCC_CRSInitStruct.Polarity = RCC_CRS_SYNC_POLARITY_RISING;
-	RCC_CRSInitStruct.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000,1000);
-	RCC_CRSInitStruct.ErrorLimitValue = 34;
-	RCC_CRSInitStruct.HSI48CalibrationValue = 32;
-	HAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);
-#elif defined(STM32F4)
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLM = 4;
-	RCC_OscInitStruct.PLL.PLLN = 168;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = 7;
-	HAL_RCC_OscConfig(&RCC_OscInitStruct);
-
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK |
-								  RCC_CLOCKTYPE_SYSCLK |
-								  RCC_CLOCKTYPE_PCLK1 |
-								  RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
-#elif defined(STM32G0)
-	/** Configure the main internal regulator output voltage
-	*/
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
-	/** Initializes the RCC Oscillators according to the specified parameters
-	* in the RCC_OscInitTypeDef structure.
-	*/
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
-	RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-	RCC_OscInitStruct.PLL.PLLN = 8;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-	HAL_RCC_OscConfig(&RCC_OscInitStruct);
-	/** Initializes the CPU, AHB and APB buses clocks
-	*/
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-								  |RCC_CLOCKTYPE_PCLK1;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
-
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
-	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
-#endif
-
-	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
-
-	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-
-	/* SysTick_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+	device_sysclock_config();
 }
 
 void send_to_host(void)

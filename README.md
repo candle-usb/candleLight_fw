@@ -115,6 +115,32 @@ Name=cannette99
 ```
 
 
+## Hacking
+### Submitting pull requests
+- Each commit must not contain unrelated changes (e.g. functional and whitespace changes)
+- Project must be compilable (with default options) and functional, at each commit. 
+- Squash any "WIP" or other temporary commits.
+- Make sure your editor is not messing up whitespace or line-ends.
+- We include both a `.editorconfig` and `uncrustify.cfg` which should help with whitespace.
+
+Typical command to run uncrustify on all source files (ignoring HAL and third-party libs):
+`uncrustify -c ./uncrustify.cfg --replace $(find include src -name "*.[ch]")`
+
+Optionally append `--no-backup` to avoid creating .orig files.
+
+### Profiling
+Not great on cortex-M0 cores (F042, F072 targets etc) since they lack hardware support (ITM and SWO). However, it's possible to randomly sample the program counter and get some coarse profiling info.
+
+For example, openocd has the `profile` command (see https://openocd.org/doc/html/General-Commands.html#Misc-Commands), e.g.
+
+```profile 5 test.out 0x8000000 0x8100000```
+
+(from inside gdb, the command needs to be prefixed with `monitor` to forward it to openocd, i.e. `monitor profile 5 .....`.
+
+The .out file can then be processed with `gprof <firmware_name> -l test.out`
+
+
+
 ## Links to related projects
 * [Cangaroo](https://github.com/HubertD/cangaroo) open source can bus analyzer software
 * [Candle.NET](https://github.com/elliotwoods/Candle.NET) .NET wrapper for the candle API

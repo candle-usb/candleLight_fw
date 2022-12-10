@@ -28,11 +28,13 @@ THE SOFTWARE.
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "usbd_def.h"
-#include "queue.h"
-#include "led.h"
+
 #include "can.h"
+#include "config.h"
 #include "gs_usb.h"
+#include "led.h"
+#include "list.h"
+#include "usbd_def.h"
 
 /* Define these here so they can be referenced in other files */
 
@@ -46,6 +48,36 @@ THE SOFTWARE.
 
 extern USBD_ClassTypeDef USBD_GS_CAN;
 
+struct gs_host_frame_object {
+	struct list_head list;
+	struct gs_host_frame frame;
+};
+
+typedef struct {
+	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
+
+	__IO uint32_t TxState;
+
+	USBD_SetupReqTypedef last_setup_request;
+
+	struct list_head list_frame_pool;
+	struct list_head list_from_host;
+	struct list_head list_to_host;
+
+	struct gs_host_frame_object *from_host_buf;
+
+	can_data_t channels[NUM_CAN_CHANNEL];
+
+	led_data_t *leds;
+	bool dfu_detach_requested;
+
+	bool timestamps_enabled;
+	uint32_t sof_timestamp_us;
+
+	bool pad_pkts_to_max_pkt_size;
+
+	struct gs_host_frame_object msgbuf[CAN_QUEUE_SIZE];
+} USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
 #if defined(STM32F0)
 # define USB_INTERFACE USB
@@ -60,12 +92,10 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 # define USB_RX_FIFO_SIZE ((256U / 4U) + 1U)
 #endif
 
-uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds);
-void USBD_GS_CAN_SetChannel(USBD_HandleTypeDef *pdev, uint8_t channel, can_data_t* handle);
+uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds);
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
 bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev);
-uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev);
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 

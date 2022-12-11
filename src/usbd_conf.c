@@ -41,20 +41,6 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* hpcd)
 		__HAL_RCC_USB_CLK_ENABLE();
 #elif defined(USB_OTG_FS)
 		__HAL_RCC_USB_OTG_FS_CLK_ENABLE();
-#elif defined(USB_DRD_FS)
-		__HAL_RCC_USB_CLK_ENABLE();
-		HAL_SYSCFG_StrobeDBattpinsConfig(SYSCFG_CFGR1_UCPD1_STROBE);
-		/* Enable VDDUSB */
-		if (__HAL_RCC_PWR_IS_CLK_DISABLED())
-		{
-			__HAL_RCC_PWR_CLK_ENABLE();
-			HAL_PWREx_EnableVddUSB();
-			__HAL_RCC_PWR_CLK_DISABLE();
-		}
-		else
-		{
-			HAL_PWREx_EnableVddUSB();
-		}
 #endif
 		HAL_NVIC_SetPriority(USB_INTERRUPT, 1, 0);
 		HAL_NVIC_EnableIRQ(USB_INTERRUPT);
@@ -64,7 +50,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* hpcd)
 void HAL_PCD_MspDeInit(PCD_HandleTypeDef* hpcd)
 {
 	if (hpcd->Instance==USB_INTERFACE) {
-#if defined(USB) || defined(USB_DRD_FS)
+#if defined(USB)
 		__HAL_RCC_USB_CLK_DISABLE();
 #elif defined(USB_OTG_FS)
 		__HAL_RCC_USB_OTG_FS_CLK_DISABLE();
@@ -145,14 +131,10 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	hpcd_USB_FS.Init.Sof_enable = DISABLE;
 	hpcd_USB_FS.Init.vbus_sensing_enable = DISABLE;
 	hpcd_USB_FS.Init.use_dedicated_ep1 = DISABLE;
-#elif defined(STM32G0)
-	hpcd_USB_FS.Init.Sof_enable = DISABLE;
-	hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
-	hpcd_USB_FS.Init.vbus_sensing_enable = DISABLE;
-	hpcd_USB_FS.Init.bulk_doublebuffer_enable = ENABLE;
-	hpcd_USB_FS.Init.iso_singlebuffer_enable = DISABLE;
 #endif
 	HAL_PCD_Init(&hpcd_USB_FS);
+
+
 	/*
 	* PMA layout
 	*  0x00 -  0x17 (24 bytes) metadata?
@@ -162,7 +144,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	*  0xD8 - 0x157 (128 bytes) EP1 OUT (buffer 1)
 	* 0x158 - 0x1D7 (128 bytes) EP1 OUT (buffer 2)
 	*/
-#if defined(USB) || defined(USB_DRD_FS)
+#if defined(USB)
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x00, PCD_SNG_BUF, 0x18);
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x80, PCD_SNG_BUF, 0x58);
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x81, PCD_SNG_BUF, 0x98);
@@ -171,6 +153,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	HAL_PCDEx_SetRxFiFo((PCD_HandleTypeDef*)pdev->pData, USB_RX_FIFO_SIZE); // shared RX FIFO
 	HAL_PCDEx_SetTxFiFo((PCD_HandleTypeDef*)pdev->pData, 0U, 64U / 4U);     // 0x80, 64 bytes (div by 4 for words)
 	HAL_PCDEx_SetTxFiFo((PCD_HandleTypeDef*)pdev->pData, 1U, 64U / 4U);     // 0x81, 64 bytes (div by 4 for words)
+
 #endif
 
 	return USBD_OK;

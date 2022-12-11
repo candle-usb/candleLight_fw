@@ -26,27 +26,10 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "gs_usb.h"
-#include "config.h"
+#include <stdbool.h>
+#include <stdint.h>
 
-void gpio_init(void);
-
-#ifdef TERM_Pin
-enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state);
-enum gs_can_termination_state get_term(unsigned int channel);
-
-#else
-static inline enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state)
-{
-	(void)channel;
-	(void)state;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
-}
-
-static inline enum gs_can_termination_state get_term(unsigned int channel)
-{
-	(void)channel;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
-}
-
-#endif
+void flash_load(void);
+bool flash_set_user_id(uint8_t channel, uint32_t user_id);
+uint32_t flash_get_user_id(uint8_t channel);
+void flash_flush(void);

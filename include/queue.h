@@ -26,27 +26,17 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "gs_usb.h"
-#include "config.h"
+#include <stdbool.h>
 
-void gpio_init(void);
+typedef struct {
+	unsigned max_elements;
+	unsigned first;
+	unsigned size;
+	void **buf;
+} queue_t;
 
-#ifdef TERM_Pin
-enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state);
-enum gs_can_termination_state get_term(unsigned int channel);
+queue_t *queue_create(unsigned max_elements);
 
-#else
-static inline enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state)
-{
-	(void)channel;
-	(void)state;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
-}
-
-static inline enum gs_can_termination_state get_term(unsigned int channel)
-{
-	(void)channel;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
-}
-
-#endif
+bool queue_push_back(queue_t *q, void *el);
+bool queue_push_front(queue_t *q, void *el);
+void *queue_pop_front(queue_t *q);

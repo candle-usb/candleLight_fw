@@ -27,8 +27,7 @@ THE SOFTWARE.
 #pragma once
 
 #include <stdint.h>
-
-#include "compiler.h"
+#include "hal_include.h"    //ugly, we just need this for compiler-independant __packed directive ...
 
 #define u32				   uint32_t
 #define u8				   uint8_t
@@ -174,8 +173,8 @@ enum gs_usb_breq {
 	GS_USB_BREQ_DEVICE_CONFIG,
 	GS_USB_BREQ_TIMESTAMP,
 	GS_USB_BREQ_IDENTIFY,
-	GS_USB_BREQ_GET_USER_ID,    //not implemented
-	GS_USB_BREQ_SET_USER_ID,    //not implemented
+	GS_USB_BREQ_GET_USER_ID,
+	GS_USB_BREQ_SET_USER_ID,
 	GS_USB_BREQ_DATA_BITTIMING,
 	GS_USB_BREQ_BT_CONST_EXT,
 	GS_USB_BREQ_SET_TERMINATION,
@@ -208,17 +207,12 @@ enum gs_can_termination_state {
 /* data types passed between host and device */
 struct gs_host_config {
 	u32 byte_order;
-} __packed __aligned(4);
-
-/* The firmware on the original USB2CAN by Geschwister Schneider
- * Technologie Entwicklungs- und Vertriebs UG exchanges all data
- * between the host and the device in host byte order. This is done
- * with the struct gs_host_config::byte_order member, which is sent
- * first to indicate the desired byte order.
- *
- * The widely used open source firmware candleLight doesn't support
- * this feature and exchanges the data in little endian byte order.
+} __packed;
+/* All data exchanged between host and device is exchanged in host byte order,
+ * thanks to the struct gs_host_config byte_order member, which is sent first
+ * to indicate the desired byte order.
  */
+
 struct gs_device_config {
 	u8 reserved1;
 	u8 reserved2;
@@ -226,18 +220,18 @@ struct gs_device_config {
 	u8 icount;
 	u32 sw_version;
 	u32 hw_version;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_device_mode {
 	u32 mode;
 	u32 flags;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_device_state {
 	u32 state;
 	u32 rxerr;
 	u32 txerr;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_device_bittiming {
 	u32 prop_seg;
@@ -245,7 +239,7 @@ struct gs_device_bittiming {
 	u32 phase_seg2;
 	u32 sjw;
 	u32 brp;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_device_bt_const {
 	u32 feature;
@@ -258,7 +252,7 @@ struct gs_device_bt_const {
 	u32 brp_min;
 	u32 brp_max;
 	u32 brp_inc;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_device_bt_const_extended {
 	u32 feature;
@@ -280,11 +274,11 @@ struct gs_device_bt_const_extended {
 	u32 dbrp_min;
 	u32 dbrp_max;
 	u32 dbrp_inc;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_device_termination_state {
 	u32 state;
-} __packed __aligned(4);
+} __packed;
 
 struct gs_host_frame {
 	u32 echo_id;
@@ -299,7 +293,7 @@ struct gs_host_frame {
 
 	u32 timestamp_us;
 
-} __packed __aligned(4);
+} __packed;
 
 struct gs_host_frame_canfd {
 	u32 echo_id;
@@ -311,4 +305,9 @@ struct gs_host_frame_canfd {
 	u8 reserved;
 
 	u8 data[64];
-} __packed __aligned(4);
+} __packed;
+
+struct gs_tx_context {
+	struct gs_can *dev;
+	unsigned int echo_id;
+};

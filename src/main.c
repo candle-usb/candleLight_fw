@@ -28,36 +28,44 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "can.h"
 #include "config.h"
-#include "dfu.h"
-#include "gpio.h"
-#include "gs_usb.h"
 #include "hal_include.h"
-#include "led.h"
-#include "timer.h"
 #include "usbd_conf.h"
-#include "usbd_core.h"
 #include "usbd_def.h"
 #include "usbd_desc.h"
+#include "usbd_core.h"
 #include "usbd_gs_can.h"
+#include "gpio.h"
+#include "queue.h"
+#include "gs_usb.h"
+#include "can.h"
+#include "led.h"
+#include "dfu.h"
+#include "timer.h"
+#include "flash.h"
 #include "util.h"
 
 void HAL_MspInit(void);
 static void SystemClock_Config(void);
+static bool send_to_host_or_enqueue(struct gs_host_frame *frame);
 static void send_to_host(void);
 
-static USBD_GS_CAN_HandleTypeDef hGS_CAN;
+static can_data_t hCAN = {0};
 static USBD_HandleTypeDef hUSB = {0};
 static led_data_t hLED = {0};
 
+static queue_t *q_frame_pool = NULL;
+static queue_t *q_from_host = NULL;
+static queue_t *q_to_host = NULL;
+
 int main(void)
 {
-	can_data_t *channel = &hGS_CAN.channels[0];
 	uint32_t last_can_error_status = 0;
 
 	HAL_Init();
 	SystemClock_Config();
+
+	flash_load();
 
 	gpio_init();
 
@@ -74,20 +82,26 @@ int main(void)
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();
 
-	can_init(channel, CAN_INTERFACE);
-	can_disable(channel);
+	can_init(&hCAN, CAN_INTERFACE);
+	can_disable(&hCAN);
 
-	INIT_LIST_HEAD(&hGS_CAN.list_frame_pool);
-	INIT_LIST_HEAD(&hGS_CAN.list_from_host);
-	INIT_LIST_HEAD(&hGS_CAN.list_to_host);
 
-	for (unsigned i = 0; i < ARRAY_SIZE(hGS_CAN.msgbuf); i++) {
-		list_add_tail(&hGS_CAN.msgbuf[i].list, &hGS_CAN.list_frame_pool);
+	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
+	q_from_host  = queue_create(CAN_QUEUE_SIZE);
+	q_to_host    = queue_create(CAN_QUEUE_SIZE);
+	assert_basic(q_frame_pool && q_from_host && q_to_host);
+
+	struct gs_host_frame *msgbuf = calloc(CAN_QUEUE_SIZE, sizeof(struct gs_host_frame));
+	assert_basic(msgbuf);
+
+	for (unsigned i=0; i<CAN_QUEUE_SIZE; i++) {
+		queue_push_back(q_frame_pool, &msgbuf[i]);
 	}
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
-	USBD_GS_CAN_Init(&hGS_CAN, &hUSB, &hLED);
+	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host, &hLED);
+	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
 	USBD_Start(&hUSB);
 
 #ifdef CAN_S_GPIO_Port
@@ -95,50 +109,30 @@ int main(void)
 #endif
 
 	while (1) {
-		struct gs_host_frame_object *frame_object;
-
-		bool was_irq_enabled = disable_irq();
-		frame_object = list_first_entry_or_null(&hGS_CAN.list_from_host,
-												struct gs_host_frame_object,
-												list);
-		if (frame_object) { // send CAN message from host
-			struct gs_host_frame *frame = &frame_object->frame;
-
-			list_del(&frame_object->list);
-			restore_irq(was_irq_enabled);
-
-			if (can_send(channel, frame)) {
+		struct gs_host_frame *frame = queue_pop_front(q_from_host);
+		if (frame != 0) { // send can message from host
+			if (can_send(&hCAN, frame)) {
 				// Echo sent frame back to host
 				frame->flags = 0x0;
 				frame->reserved = 0x0;
 				frame->timestamp_us = timer_get();
-
-				list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
+				send_to_host_or_enqueue(frame);
 
 				led_indicate_trx(&hLED, led_tx);
 			} else {
-				list_add_locked(&frame_object->list, &hGS_CAN.list_from_host);
+				queue_push_front(q_from_host, frame); // retry later
 			}
-		} else {
-			restore_irq(was_irq_enabled);
 		}
 
 		if (USBD_GS_CAN_TxReady(&hUSB)) {
 			send_to_host();
 		}
 
-		if (can_is_rx_pending(channel)) {
-			bool was_irq_enabled = disable_irq();
-			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
-													struct gs_host_frame_object,
-													list);
-			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
-
-				list_del(&frame_object->list);
-				restore_irq(was_irq_enabled);
-
-				if (can_receive(channel, frame)) {
+		if (can_is_rx_pending(&hCAN)) {
+			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			if (frame != 0)
+			{
+				if (can_receive(&hCAN, frame)) {
 
 					frame->timestamp_us = timer_get();
 					frame->echo_id = 0xFFFFFFFF; // not a echo frame
@@ -146,42 +140,30 @@ int main(void)
 					frame->flags = 0;
 					frame->reserved = 0;
 
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
+					send_to_host_or_enqueue(frame);
 
 					led_indicate_trx(&hLED, led_rx);
-				} else {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
 				}
-			} else {
-				restore_irq(was_irq_enabled);
+				else
+				{
+					queue_push_back(q_frame_pool, frame);
+				}
 			}
 			// If there are frames to receive, don't report any error frames. The
 			// best we can localize the errors to is "after the last successfully
 			// received frame", so wait until we get there. LEC will hold some error
 			// to report even if multiple pass by.
 		} else {
-			uint32_t can_err = can_get_error_status(channel);
-
-			bool was_irq_enabled = disable_irq();
-			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
-													struct gs_host_frame_object,
-													list);
-			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
-
-				list_del(&frame_object->list);
-				restore_irq(was_irq_enabled);
-
+			uint32_t can_err = can_get_error_status(&hCAN);
+			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+			if (frame != 0) {
 				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(can_err, last_can_error_status, channel, frame)) {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-
+				if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
+					send_to_host_or_enqueue(frame);
 					last_can_error_status = can_err;
 				} else {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
+					queue_push_back(q_frame_pool, frame);
 				}
-			} else {
-				restore_irq(was_irq_enabled);
 			}
 		}
 
@@ -200,9 +182,6 @@ void HAL_MspInit(void)
 #if defined(STM32F4)
 	__HAL_RCC_PWR_CLK_ENABLE();
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-#elif defined(STM32G0)
-	__HAL_RCC_PWR_CLK_ENABLE();
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 #endif
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
@@ -261,40 +240,6 @@ void SystemClock_Config(void)
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
-#elif defined(STM32G0)
-	/** Configure the main internal regulator output voltage
-	*/
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
-	/** Initializes the RCC Oscillators according to the specified parameters
-	* in the RCC_OscInitTypeDef structure.
-	*/
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
-	RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-	RCC_OscInitStruct.PLL.PLLN = 8;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-	HAL_RCC_OscConfig(&RCC_OscInitStruct);
-	/** Initializes the CPU, AHB and APB buses clocks
-	*/
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-								  |RCC_CLOCKTYPE_PCLK1;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
-
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
-	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 #endif
 
 	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
@@ -305,24 +250,22 @@ void SystemClock_Config(void)
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+bool send_to_host_or_enqueue(struct gs_host_frame *frame)
+{
+	queue_push_back(q_to_host, frame);
+	return true;
+}
+
 void send_to_host(void)
 {
-	struct gs_host_frame_object *frame_object;
+	struct gs_host_frame *frame = queue_pop_front(q_to_host);
 
-	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hGS_CAN.list_to_host,
-											struct gs_host_frame_object,
-											list);
-	if (!frame_object) {
-		restore_irq(was_irq_enabled);
+	if (!frame)
 		return;
-	}
-	list_del(&frame_object->list);
-	restore_irq(was_irq_enabled);
 
-	if (USBD_GS_CAN_SendFrame(&hUSB, &frame_object->frame) == USBD_OK) {
-		list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
+	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
+		queue_push_back(q_frame_pool, frame);
 	} else {
-		list_add_locked(&frame_object->list, &hGS_CAN.list_to_host);
+		queue_push_front(q_to_host, frame);
 	}
 }

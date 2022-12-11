@@ -89,10 +89,10 @@ THE SOFTWARE.
 	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High 0
 
-#elif defined(BOARD_CONVERTDEVICE_xCAN01)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "ConvertDevice xCAN01"
+#elif defined(BOARD_CONVERTDEVICE_xCAN)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "ConvertDevice xCAN"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "ConvertDevice"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCAN01 firmware upgrade interface"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCAN firmware upgrade interface"
 
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000

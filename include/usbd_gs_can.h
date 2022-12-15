@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include <stdint.h>
 
 #include "can.h"
+#include "compiler.h"
 #include "config.h"
 #include "gs_usb.h"
 #include "led.h"
@@ -38,8 +39,13 @@ THE SOFTWARE.
 
 /* Define these here so they can be referenced in other files */
 
+#define CAN_CMD_PACKET_SIZE \
+	max5(sizeof(struct gs_host_config), \
+		 sizeof(struct gs_device_bittiming), \
+		 sizeof(struct gs_device_mode), \
+		 sizeof(struct gs_identify_mode), \
+		 sizeof(struct gs_device_termination_state))
 #define CAN_DATA_MAX_PACKET_SIZE 32    /* Endpoint IN & OUT Packet size */
-#define CAN_CMD_PACKET_SIZE		 64    /* Control Endpoint Packet size */
 #define USB_CAN_CONFIG_DESC_SIZ	 50
 #define USBD_GS_CAN_VENDOR_CODE	 0x20
 #define DFU_INTERFACE_NUM		 1

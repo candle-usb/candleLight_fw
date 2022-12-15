@@ -786,11 +786,18 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 
 	send_addr = (uint8_t *)frame;
 
-	if (hcan->pad_pkts_to_max_pkt_size) {
-		// When talking to WinUSB it seems to help a lot if the
-		// size of packet you send equals the max packet size.
-		// In this mode, fill packets out to max packet size and
-		// then send.
+	/*
+	 * When talking to WinUSB it seems to help a lot if the size of
+	 * packet you send equals the max packet size. In this mode, fill
+	 * packets out to max packet size and then send.
+	 *
+	 * Don't know if the above observation is still true for CAN-FD
+	 * (CAN-FD frames don't fit into a single the full speed USB
+	 * packet of 64 byte), so don't do any padding for CAN-FD frames
+	 * for now.
+	 */
+	if (hcan->pad_pkts_to_max_pkt_size &&
+		!((IS_ENABLED(CONFIG_CANFD) && frame->flags & GS_CAN_FLAG_FD))) {
 		memcpy(buf, frame, len);
 
 		// zero rest of buffer

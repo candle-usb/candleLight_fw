@@ -284,7 +284,7 @@ foreach (TGTNAME IN LISTS TGTF407_LIST)
 endforeach()
 
 foreach (TGTNAME IN LISTS TGTG0B1_LIST)
-	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" OFF)
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
 	if (BUILD_${TGTNAME})
 		add_g0b1_target(${TGTNAME})
 	endif()

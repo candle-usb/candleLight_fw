@@ -39,7 +39,7 @@ THE SOFTWARE.
 
 /* Define these here so they can be referenced in other files */
 
-#define CAN_CMD_PACKET_SIZE \
+#define GS_CAN_EP0_BUF_SIZE \
 	max5(sizeof(struct gs_host_config), \
 		 sizeof(struct gs_device_bittiming), \
 		 sizeof(struct gs_device_mode), \
@@ -59,7 +59,7 @@ struct gs_host_frame_object {
 };
 
 typedef struct {
-	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
+	uint8_t ep0_buf[GS_CAN_EP0_BUF_SIZE];
 
 	__IO uint32_t TxState;
 

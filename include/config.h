@@ -41,6 +41,7 @@ THE SOFTWARE.
 #include "version.h"
 
 #define CAN_QUEUE_SIZE				 64
+#define NUM_CAN_CHANNEL				 1
 
 #define USBD_VID					 0x1d50
 #define USBD_PID_FS					 0x606f
@@ -236,6 +237,7 @@ THE SOFTWARE.
 	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_INTERFACE2			 FDCAN2
 	#define CAN_CLOCK_SPEED			 64000000
+	#undef  NUM_CAN_CHANNEL
 	#define NUM_CAN_CHANNEL			 2
 	#define CANFD_SUPPORT
 

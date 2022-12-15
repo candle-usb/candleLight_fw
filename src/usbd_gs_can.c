@@ -267,7 +267,7 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	struct gs_host_frame *frame = &hcan->from_host_buf->frame;
+	struct GS_HOST_FRAME *frame = &hcan->from_host_buf->frame;
 
 	return USBD_LL_PrepareReceive(pdev, GSUSB_ENDPOINT_OUT, (uint8_t *)frame, sizeof(*frame));
 }

@@ -29,6 +29,9 @@ THE SOFTWARE.
 #include "can.h"
 #include "hal_include.h"
 
+// As G0 uses a separate file this is not needed
+#if !defined(STM32G0)
 void device_can_init(can_data_t *hcan, CAN_TypeDef *instance);
+#endif
 
 void device_sysclock_config(void);

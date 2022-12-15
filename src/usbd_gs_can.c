@@ -646,8 +646,13 @@ static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
 
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 {
+	/*
+	 * The USB stack writes to the returned buffer, so it cannot live
+	 * in ROM.
+	 */
 	*len = sizeof(USBD_GS_CAN_CfgDesc);
 	memcpy(USBD_DescBuf, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
+
 	return USBD_DescBuf;
 }
 

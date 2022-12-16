@@ -448,6 +448,7 @@ set(TGTF407_LIST
 set(TGTG0B1_LIST
 	"ConvertDevice_xCANFD"
 	"budgetcan"
+	"nucleo_g0b1re"
 )
 
 foreach (TGTNAME IN LISTS TGTF042_LIST)

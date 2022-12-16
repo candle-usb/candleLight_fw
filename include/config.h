@@ -425,6 +425,17 @@
 	#define CONFIG_PHY				 1
 	#define CONFIG_TERMINATION		 1
 
+#elif defined(BOARD_nucleo_g0b1re)
+	#define USBD_PRODUCT_STRING_FS	 "Nucleo-g0b1re gs_usb"
+	#define USBD_MANUFACTURER_STRING "STMicroelectronics"
+	#define DFU_INTERFACE_STRING_FS	 "Nucleo-g0b1re firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
+
 #else
 	#error please define BOARD
 #endif

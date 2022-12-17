@@ -48,10 +48,10 @@ void device_sysclock_config(void) {
 		.PLL.PLLState = RCC_PLL_ON,
 		.PLL.PLLSource = RCC_PLLSOURCE_HSI,
 		.PLL.PLLM = RCC_PLLM_DIV1,
-		.PLL.PLLN = 8,
+		.PLL.PLLN = 20,
 		.PLL.PLLP = RCC_PLLP_DIV2,
-		.PLL.PLLQ = RCC_PLLQ_DIV2,
-		.PLL.PLLR = RCC_PLLR_DIV2,
+		.PLL.PLLQ = RCC_PLLQ_DIV8,
+		.PLL.PLLR = RCC_PLLR_DIV5,
 	};
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 

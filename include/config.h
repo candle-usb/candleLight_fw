@@ -109,6 +109,33 @@ THE SOFTWARE.
 	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High 0
 
+#elif defined(BOARD_CONVERTDEVICE_xCANFD)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "ConvertDevice xCANFD"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "ConvertDevice"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCANFD firmware upgrade interface"
+	#define CAN_INTERFACE			 FDCAN1
+	#define CAN_CLOCK_SPEED			 64000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CANFD_SUPPORT
+
+	#define LEDRX_GPIO_Port	  GPIOA
+	#define LEDRX_Pin		  GPIO_PIN_0
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High 0
+
+	#define LEDTX_GPIO_Port	  GPIOA
+	#define LEDTX_Pin		  GPIO_PIN_1
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High 0
+
+	#define USB_GPIO_Port	  GPIOA
+	#define USB_Pin_DM		  GPIO_PIN_11
+	#define USB_Pin_DP		  GPIO_PIN_12
+
+	#define CANFDIF_GPIO_Port GPIOB
+	#define CANFDIFRX_Pin	  GPIO_PIN_8
+	#define CANFDIFTX_Pin	  GPIO_PIN_9
+
 #elif defined(BOARD_cantact)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cantact gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "cantact.io"

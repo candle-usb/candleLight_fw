@@ -12,6 +12,7 @@ This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, nota
 - Entreé: https://github.com/tuna-f1sh/entree (STM32F042x6)
 - CANable-MKS: https://github.com/makerbase-mks/CANable-MKS (STM32F072xB)
 - ConvertDevice-xCAN: https://github.com/ConvertDevice/xCAN (STM32F072xB)
+- ConvertDevice-xCANFD: https://github.com/ConvertDevice/xCANFD (STM32G0B1CBT6)
 
 Of important note is that the common STM32F103 will NOT work with this firmware because its hardware cannot use both USB and CAN simultaneously.
 Beware also the smaller packages in the F042 series which map a USB and CAN_TX signal on the same pin and are therefore unusable !

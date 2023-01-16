@@ -53,6 +53,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "bytewerk"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "candleLight firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -74,6 +76,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "makerbase"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANable-MKS firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -94,6 +98,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "ConvertDevice"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCAN firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -113,6 +119,9 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "ConvertDevice xCANFD"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "ConvertDevice"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCANFD firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 64000000
+
 	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_CLOCK_SPEED			 64000000
 	#define NUM_CAN_CHANNEL			 1
@@ -141,6 +150,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "DSD TECH"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "SH-C30A firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -160,6 +171,8 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "UCAN USB to CAN adapter"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "FYSETC"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "UCAN firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
 
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
@@ -181,6 +194,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "cantact.io"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cantact firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -201,6 +216,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "canable.io"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "canable firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -220,6 +237,8 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "USB2CAN RCA gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "Roboter Club Aachen"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "usb2can firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
 
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
@@ -251,6 +270,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "STMicroelectronics"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANAlyze firmware upgrade interface"
 
+	#define TIM2_CLOCK_SPEED		 48000000
+
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 
@@ -270,6 +291,8 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cannette gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "chacaltech"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cannette firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
 
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
@@ -300,6 +323,9 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "budgetcan gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "budgetcan"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "budgetcan firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 64000000
+
 	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_INTERFACE2			 FDCAN2
 	#define CAN_CLOCK_SPEED			 64000000
@@ -333,6 +359,8 @@ THE SOFTWARE.
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
 	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "STM32F4VE firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 96000000
 
 	#define CAN_INTERFACE			 CAN1
 	#define CAN_CLOCK_SPEED			 42000000

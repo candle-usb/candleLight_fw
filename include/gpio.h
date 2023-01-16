@@ -32,7 +32,7 @@ THE SOFTWARE.
 void gpio_init(void);
 
 /* macro to define init (i.e. reset) state of a pin */
-#define GPIO_INIT_STATE(ACTIVE_HIGH) (((ACTIVE_HIGH) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
+#define GPIO_INIT_STATE(active_high) (((active_high) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
 
 #ifdef TERM_Pin
 enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state);

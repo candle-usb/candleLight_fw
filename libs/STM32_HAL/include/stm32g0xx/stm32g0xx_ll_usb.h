@@ -660,7 +660,7 @@ typedef struct
   do { \
     uint32_t wNBlocks; \
     \
-    (pdwReg) &= USB_PMA_RXBD_COUNTMSK; \
+    (pdwReg) &= ~(USB_CNTRX_BLSIZE | USB_CNTRX_NBLK_MSK); \
     \
     if ((wCount) > 62U) \
     { \
@@ -670,7 +670,6 @@ typedef struct
     { \
       if ((wCount) == 0U) \
       { \
-        (pdwReg) &= (uint32_t)~USB_CNTRX_NBLK_MSK; \
         (pdwReg) |= USB_CNTRX_BLSIZE; \
       } \
       else \
@@ -709,8 +708,8 @@ typedef struct
   * @param  bEpChNum Endpoint Number.
   * @retval Counter value
   */
-#define USB_DRD_GET_CHEP_TX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->TXBD & 0x03FF0000U) >>16U)
-#define USB_DRD_GET_CHEP_RX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->RXBD & 0x03FF0000U) >>16U)
+#define USB_DRD_GET_CHEP_TX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->TXBD & 0x03FF0000U) >> 16U)
+#define USB_DRD_GET_CHEP_RX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->RXBD & 0x03FF0000U) >> 16U)
 
 #define USB_DRD_GET_EP_TX_CNT                             USB_GET_CHEP_TX_CNT
 #define USB_DRD_GET_CH_TX_CNT                             USB_GET_CHEP_TX_CNT

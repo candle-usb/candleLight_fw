@@ -1,0 +1,12 @@
+[submodule "libs/STM32_HAL/stm32f0xx_hal_driver"]
+	path = libs/STM32_HAL/stm32f0xx_hal_driver
+	url = https://github.com/STMicroelectronics/stm32f0xx_hal_driver.git
+	shallow = true
+[submodule "libs/STM32_HAL/stm32f4xx_hal_driver"]
+	path = libs/STM32_HAL/stm32f4xx_hal_driver
+	url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
+	shallow = true
+[submodule "libs/STM32_HAL/stm32g0xx_hal_driver"]
+	path = libs/STM32_HAL/stm32g0xx_hal_driver
+	url = https://github.com/STMicroelectronics/stm32g0xx_hal_driver.git
+	shallow = true

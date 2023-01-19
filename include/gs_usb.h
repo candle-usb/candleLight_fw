@@ -277,25 +277,35 @@ struct gs_device_bt_const {
 } __packed __aligned(4);
 
 struct gs_device_bt_const_extended {
-	u32 feature;
-	u32 fclk_can;
-	u32 tseg1_min;
-	u32 tseg1_max;
-	u32 tseg2_min;
-	u32 tseg2_max;
-	u32 sjw_max;
-	u32 brp_min;
-	u32 brp_max;
-	u32 brp_inc;
+	union {
+		struct {
+			u32 feature;
+			u32 fclk_can;
+			u32 tseg1_min;
+			u32 tseg1_max;
+			u32 tseg2_min;
+			u32 tseg2_max;
+			u32 sjw_max;
+			u32 brp_min;
+			u32 brp_max;
+			u32 brp_inc;
+		};
+		struct gs_device_bt_const device_bt_const;
+	};
 
-	u32 dtseg1_min;
-	u32 dtseg1_max;
-	u32 dtseg2_min;
-	u32 dtseg2_max;
-	u32 dsjw_max;
-	u32 dbrp_min;
-	u32 dbrp_max;
-	u32 dbrp_inc;
+	union {
+		struct can_bittiming_const dbtc;
+		struct {
+			u32 dtseg1_min;
+			u32 dtseg1_max;
+			u32 dtseg2_min;
+			u32 dtseg2_max;
+			u32 dsjw_max;
+			u32 dbrp_min;
+			u32 dbrp_max;
+			u32 dbrp_inc;
+		};
+	};
 } __packed __aligned(4);
 
 struct gs_identify_mode {

@@ -43,6 +43,7 @@ typedef struct {
 	uint8_t phase_seg1;
 	uint8_t phase_seg2;
 	uint8_t sjw;
+	uint8_t nr;
 } can_data_t;
 
 void can_init(can_data_t *channel, CAN_TypeDef *instance);

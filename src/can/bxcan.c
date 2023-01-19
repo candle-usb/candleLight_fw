@@ -167,6 +167,8 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 		}
 
 		rx_frame->can_dlc = fifo->RDTR & CAN_RDT0R_DLC;
+		rx_frame->channel = channel->nr;
+		rx_frame->flags = 0;
 
 		rx_frame->classic_can->data[0] = (fifo->RDLR >>  0) & 0xFF;
 		rx_frame->classic_can->data[1] = (fifo->RDLR >>  8) & 0xFF;
@@ -236,6 +238,12 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 
 		/* request transmission */
 		mb->TIR |= CAN_TI0R_TXRQ;
+
+		/*
+		 * struct gs_host_frame in CAN-2.0 mode doesn't use flags from
+		 * Host -> Device, so initialize here to 0.
+		 */
+		frame->flags = 0;
 
 		return true;
 	} else {

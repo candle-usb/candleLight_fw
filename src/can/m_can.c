@@ -227,6 +227,10 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 		if (RxHeader.BitRateSwitch == FDCAN_BRS_ON) {
 			rx_frame->flags |= GS_CAN_FLAG_BRS;
 		}
+
+		if (RxHeader.ErrorStateIndicator == FDCAN_ESI_PASSIVE) {
+			rx_frame->flags |= GS_CAN_FLAG_ESI;
+		}
 	}
 
 	return true;
@@ -261,6 +265,12 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 			TxHeader.BitRateSwitch = FDCAN_BRS_ON;
 		} else {
 			TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+		}
+
+		if (frame->flags & GS_CAN_FLAG_ESI) {
+			TxHeader.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+		} else {
+			TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 		}
 	} else {
 		TxHeader.FDFormat = FDCAN_CLASSIC_CAN;

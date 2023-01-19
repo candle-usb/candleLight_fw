@@ -233,7 +233,7 @@ static const uint8_t USBD_MS_EXT_PROP_FEATURE_DESC[] = {
 
 // device info
 static const struct gs_device_config USBD_GS_CAN_dconf = {
-	.icount = 0,
+	.icount = NUM_CAN_CHANNEL - 1,
 	.sw_version = 2,
 	.hw_version = 1,
 };

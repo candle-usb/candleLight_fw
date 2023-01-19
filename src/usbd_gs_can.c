@@ -323,6 +323,14 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		}
 	}
 
+	if (!IS_ENABLED(CONFIG_CANFD)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_DATA_BITTIMING:
+			case GS_USB_BREQ_BT_CONST_EXT:
+				goto out_fail;
+		}
+	}
+
 	switch (req->bRequest) {
 		// Host -> Device
 		case GS_USB_BREQ_HOST_FORMAT:
@@ -348,6 +356,13 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			break;
 		case GS_USB_BREQ_IDENTIFY:
 			len = sizeof(struct gs_identify_mode);
+			break;
+		case GS_USB_BREQ_DATA_BITTIMING:
+			len = sizeof(struct gs_device_bittiming);
+			break;
+		case GS_USB_BREQ_BT_CONST_EXT:
+			src = &CAN_btconst_ext;
+			len = sizeof(CAN_btconst_ext);
 			break;
 		case GS_USB_BREQ_SET_TERMINATION:
 			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
@@ -382,6 +397,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_BITTIMING:
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_IDENTIFY:
+		case GS_USB_BREQ_DATA_BITTIMING:
 		case GS_USB_BREQ_SET_TERMINATION:
 			if (req->wLength > sizeof(hcan->ep0_buf)) {
 				goto out_fail;
@@ -395,6 +411,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_BT_CONST:
 		case GS_USB_BREQ_DEVICE_CONFIG:
 		case GS_USB_BREQ_TIMESTAMP:
+		case GS_USB_BREQ_BT_CONST_EXT:
 		case GS_USB_BREQ_GET_TERMINATION:
 			USBD_CtlSendData(pdev, (uint8_t *)src, len);
 			break;
@@ -525,6 +542,15 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				led_set_mode(&channel->leds, can_is_enabled(channel) ?
 							 LED_MODE_NORMAL : LED_MODE_OFF);
 			}
+			break;
+		}
+		case GS_USB_BREQ_DATA_BITTIMING: {
+			const struct gs_device_bittiming *timing = (struct gs_device_bittiming *)hcan->ep0_buf;
+
+			if (!can_check_bittiming_ok(&CAN_btconst_ext.dbtc, timing))
+				goto out_fail;
+
+			can_set_data_bittiming(channel, timing);
 			break;
 		}
 		case GS_USB_BREQ_SET_TERMINATION: {

@@ -29,6 +29,10 @@ THE SOFTWARE.
 #include "timer.h"
 #include "usbd_gs_can.h"
 
+#ifndef CONFIG_CANFD
+const struct gs_device_bt_const_extended CAN_btconst_ext;
+#endif
+
 bool can_check_bittiming_ok(const struct can_bittiming_const *btc,
 							const struct gs_device_bittiming *timing)
 {

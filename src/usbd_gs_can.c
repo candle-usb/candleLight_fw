@@ -532,12 +532,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				hcan->timestamps_enabled = (mode->flags & GS_CAN_MODE_HW_TIMESTAMP) != 0;
 				hcan->pad_pkts_to_max_pkt_size = (mode->flags & GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
 
-				can_enable(channel,
-						   (mode->flags & GS_CAN_MODE_LOOP_BACK) != 0,
-						   (mode->flags & GS_CAN_MODE_LISTEN_ONLY) != 0,
-						   (mode->flags & GS_CAN_MODE_ONE_SHOT) != 0
-				           // triple sampling not supported on bxCAN
-						   );
+				can_enable(channel, mode->flags);
 
 				led_set_mode(&channel->leds, LED_MODE_NORMAL);
 			}

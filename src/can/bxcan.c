@@ -78,22 +78,30 @@ bool can_set_bittiming(can_data_t *channel, uint16_t brp, uint8_t phase_seg1, ui
 	}
 }
 
-void can_enable(can_data_t *channel, bool loop_back, bool listen_only, bool one_shot)
+void can_enable(can_data_t *channel, uint32_t mode)
 {
 	CAN_TypeDef *can = channel->instance;
 
 	uint32_t mcr = CAN_MCR_INRQ
 				   | CAN_MCR_ABOM
-				   | CAN_MCR_TXFP
-				   | (one_shot ? CAN_MCR_NART : 0);
+				   | CAN_MCR_TXFP;
+
+	if (mode & GS_CAN_MODE_ONE_SHOT) {
+		mcr |= CAN_MCR_NART;
+	}
 
 	uint32_t btr = ((uint32_t)(channel->sjw-1)) << 24
 				   | ((uint32_t)(channel->phase_seg1-1)) << 16
 				   | ((uint32_t)(channel->phase_seg2-1)) << 20
-				   | (channel->brp - 1)
-				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
-				   | (listen_only ? CAN_MODE_SILENT : 0);
+				   | (channel->brp - 1);
 
+	if (mode & GS_CAN_MODE_LISTEN_ONLY) {
+		btr |= CAN_MODE_SILENT;
+	}
+
+	if (mode & GS_CAN_MODE_LOOP_BACK) {
+		btr |= CAN_MODE_LOOPBACK;
+	}
 
 	// Reset CAN peripheral
 	can->MCR |= CAN_MCR_RESET;

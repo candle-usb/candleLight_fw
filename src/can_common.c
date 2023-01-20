@@ -91,7 +91,6 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	frame->classic_can_ts->timestamp_us = timer_get();
 	frame->echo_id = 0xFFFFFFFF; // not an echo frame
 	frame->reserved = 0;
 

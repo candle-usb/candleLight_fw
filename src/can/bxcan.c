@@ -30,6 +30,7 @@
 #include "gpio.h"
 #include "gs_usb.h"
 #include "hal_include.h"
+#include "timer.h"
 
 // The STM32F0 only has one CAN interface, define it as CAN1 as
 // well, so it doesn't need to be handled separately.
@@ -155,6 +156,8 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 
 	if (can_is_rx_pending(channel)) {
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
+
+		rx_frame->classic_can_ts->timestamp_us = timer_get();
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {
 			rx_frame->can_id = CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);

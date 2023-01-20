@@ -26,6 +26,7 @@
 
 #include "can.h"
 #include "hal_include.h"
+#include "timer.h"
 
 // bit timing constraints
 const struct gs_device_bt_const CAN_btconst = {
@@ -202,6 +203,7 @@ bool can_is_enabled(can_data_t *channel)
 bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 {
 	FDCAN_RxHeaderTypeDef RxHeader;
+	uint32_t timestamp_us = timer_get();
 
 	if (HAL_FDCAN_GetRxMessage(&channel->channel, FDCAN_RX_FIFO0, &RxHeader, rx_frame->canfd->data) != HAL_OK) {
 		return false;
@@ -222,6 +224,8 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 	rx_frame->can_dlc = RxHeader.DataLength & 0x0f;
 
 	if (RxHeader.FDFormat == FDCAN_FD_CAN) {
+		rx_frame->canfd_ts->timestamp_us = timestamp_us;
+
 		/* this is a CAN-FD frame */
 		rx_frame->flags = GS_CAN_FLAG_FD;
 		if (RxHeader.BitRateSwitch == FDCAN_BRS_ON) {
@@ -231,6 +235,8 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 		if (RxHeader.ErrorStateIndicator == FDCAN_ESI_PASSIVE) {
 			rx_frame->flags |= GS_CAN_FLAG_ESI;
 		}
+	} else {
+		rx_frame->classic_can_ts->timestamp_us = timestamp_us;
 	}
 
 	return true;

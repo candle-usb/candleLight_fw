@@ -27,6 +27,7 @@
 #include "board.h"
 #include "can_common.h"
 #include "can_drv.h"
+#include "timer.h"
 
 #define M_CAN_PSR_ACT_SYNC		  0
 #define M_CAN_PSR_ACT_IDLE		  1
@@ -207,6 +208,7 @@ void can_drv_disable(struct can_channel *channel)
 bool can_receive(struct can_channel *channel, struct gs_host_frame *rx_frame)
 {
 	FDCAN_RxHeaderTypeDef RxHeader;
+	uint32_t timestamp_us = timer_get();
 
 	if (HAL_FDCAN_GetRxMessage(&channel->channel, FDCAN_RX_FIFO0, &RxHeader, rx_frame->canfd->data) != HAL_OK) {
 		return false;
@@ -227,6 +229,8 @@ bool can_receive(struct can_channel *channel, struct gs_host_frame *rx_frame)
 	rx_frame->can_dlc = RxHeader.DataLength & 0x0f;
 
 	if (RxHeader.FDFormat == FDCAN_FD_CAN) {
+		rx_frame->canfd_ts->timestamp_us = timestamp_us;
+
 		/* this is a CAN-FD frame */
 		rx_frame->flags = GS_CAN_FLAG_FD;
 		if (RxHeader.BitRateSwitch == FDCAN_BRS_ON) {
@@ -236,6 +240,8 @@ bool can_receive(struct can_channel *channel, struct gs_host_frame *rx_frame)
 		if (RxHeader.ErrorStateIndicator == FDCAN_ESI_PASSIVE) {
 			rx_frame->flags |= GS_CAN_FLAG_ESI;
 		}
+	} else {
+		rx_frame->classic_can_ts->timestamp_us = timestamp_us;
 	}
 
 	return true;

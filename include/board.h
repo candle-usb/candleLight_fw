@@ -40,6 +40,7 @@ struct BoardChannelConfig {
 
 struct BoardConfig {
 	struct BoardChannelConfig channels[NUM_CAN_CHANNEL];
+	void (*phy_power_set)(can_data_t *channel, bool enable);
 };
 
 extern const struct BoardConfig config;

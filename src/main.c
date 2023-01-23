@@ -63,7 +63,7 @@ int main(void)
 	HAL_Init();
 	device_sysclock_config();
 
-	gpio_init();
+	board_setup(&hGS_CAN);
 	timer_init();
 
 	INIT_LIST_HEAD(&hGS_CAN.list_frame_pool);

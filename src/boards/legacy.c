@@ -1,6 +1,7 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2016 Hubert Denkmair
  * Copyright (c) 2023 Pengutronix,
  *               Jonas Martin <kernel@pengutronix.de>
  * Copyright (c) 2026 Pengutronix,
@@ -33,6 +34,103 @@
 #include "device.h"
 #include "gpio.h"
 #include "usbd_gs_can.h"
+
+static void legacy_gpio_init_termination(void)
+{
+	if (IS_ENABLED(CONFIG_TERMINATION))
+		return;
+
+	HAL_GPIO_WritePin(TERM_GPIO_Port, TERM_Pin, GPIO_INIT_STATE(TERM_Active_High));
+
+	GPIO_InitTypeDef GPIO_InitStruct = {
+		.Pin = TERM_Pin,
+		.Mode = TERM_Mode,
+		.Pull = GPIO_NOPULL,
+		.Speed = GPIO_SPEED_FREQ_LOW,
+		.Alternate = 0
+	};
+	HAL_GPIO_Init(TERM_GPIO_Port, &GPIO_InitStruct);
+}
+
+static void legacy_setup(USBD_GS_CAN_HandleTypeDef *hcan)
+{
+	GPIO_InitTypeDef GPIO_InitStruct;
+
+	UNUSED(hcan);
+
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+#if defined(STM32F4)
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+#endif
+
+#ifdef LEDRX_Pin
+	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_INIT_STATE(LEDRX_Active_High));
+	GPIO_InitStruct.Pin = LEDRX_Pin;
+	GPIO_InitStruct.Mode = LEDRX_Mode;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LEDRX_GPIO_Port, &GPIO_InitStruct);
+#endif
+
+#ifdef LEDTX_Pin
+	HAL_GPIO_WritePin(LEDTX_GPIO_Port, LEDTX_Pin, GPIO_INIT_STATE(LEDTX_Active_High));
+	GPIO_InitStruct.Pin = LEDTX_Pin;
+	GPIO_InitStruct.Mode = LEDTX_Mode;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(LEDTX_GPIO_Port, &GPIO_InitStruct);
+#endif
+
+	if (IS_ENABLED(CONFIG_PHY_STANDBY)) {
+		HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
+		GPIO_InitStruct.Pin = nCANSTBY_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		HAL_GPIO_Init(nCANSTBY_Port, &GPIO_InitStruct);
+	}
+
+	if (IS_ENABLED(CONFIG_PHY_SILENT)) {
+		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
+		GPIO_InitStruct.Pin = CAN_S_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
+	}
+
+#ifdef DCDCEN_Pin
+	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_SET);
+	GPIO_InitStruct.Pin = DCDCEN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(DCDCEN_Port, &GPIO_InitStruct);   //start DCDC (TODO : wait until enumerated)
+#endif
+
+#ifdef nSI86EN_Pin
+	HAL_GPIO_WritePin(nSI86EN_Port, nSI86EN_Pin, GPIO_PIN_RESET);
+	GPIO_InitStruct.Pin = nSI86EN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(nSI86EN_Port, &GPIO_InitStruct);  //enable si86
+#endif
+
+#if defined(BOARD_STM32F4_DevBoard)
+	// initialize USB pins
+	GPIO_InitStruct.Pin = USB_Pin_DM | USB_Pin_DP;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+	HAL_GPIO_Init(USB_GPIO_Port, &GPIO_InitStruct);
+#endif
+
+	legacy_gpio_init_termination();
+}
 
 static void __maybe_unused legacy_phy_power_set(can_data_t *channel, bool enable)
 {
@@ -70,6 +168,7 @@ const struct board_config config = {
 	.channel[0] = {
 		.interface = CAN_INTERFACE,
 	},
+	.setup = legacy_setup,
 	SET_PHY_POWER_FN(legacy_phy_power_set)
 	SET_TERMINATION_FN(legacy_termination_set)
 };

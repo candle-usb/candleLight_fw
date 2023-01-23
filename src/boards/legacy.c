@@ -34,8 +34,26 @@
 #include "gpio.h"
 #include "usbd_gs_can.h"
 
+static void __maybe_unused legacy_phy_power_set(can_data_t *channel, bool enable)
+{
+	UNUSED(channel);
+
+	if (enable) {
+		if (IS_ENABLED(CONFIG_PHY_STANDBY)) {
+			HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin,
+							  !GPIO_INIT_STATE(nCANSTBY_Active_High));
+		}
+	} else {
+		if (IS_ENABLED(CONFIG_PHY_STANDBY)) {
+			HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin,
+							  GPIO_INIT_STATE(nCANSTBY_Active_High));
+		}
+	}
+}
+
 const struct board_config config = {
 	.channel[0] = {
 		.interface = CAN_INTERFACE,
 	},
+	SET_PHY_POWER_FN(legacy_phy_power_set)
 };

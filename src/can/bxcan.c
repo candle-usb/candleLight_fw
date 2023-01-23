@@ -195,17 +195,14 @@ void can_enable(can_data_t *channel, uint32_t mode)
 	can->MCR &= ~CAN_MCR_INRQ;
 	while ((can->MSR & CAN_MSR_INAK) != 0);
 
-#ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, !GPIO_INIT_STATE(nCANSTBY_Active_High));
-#endif
+	board_phy_power_set(channel, true);
 }
 
 void can_disable(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
-#ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
-#endif
+
+	board_phy_power_set(channel, false);
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 

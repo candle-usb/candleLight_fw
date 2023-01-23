@@ -94,14 +94,14 @@ void gpio_init(void)
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 #endif
 
-#ifdef CAN_S_Pin
-	HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
-	GPIO_InitStruct.Pin = CAN_S_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
-#endif
+	if (IS_ENABLED(CONFIG_PHY_SILENT)) {
+		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
+		GPIO_InitStruct.Pin = CAN_S_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
+	}
 
 #ifdef LEDRX_Pin
 	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_INIT_STATE(LEDRX_Active_High));

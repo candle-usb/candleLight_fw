@@ -272,6 +272,8 @@ THE SOFTWARE.
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CAN_FILTER		 1
 
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_SILENT		 1
 	#define CAN_S_Pin				 GPIO_PIN_13
 	#define CAN_S_GPIO_Port			 GPIOC
 
@@ -298,6 +300,8 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 42000000
 	#define NUM_CAN_CHANNEL			 1
 
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_SILENT		 1
 	#define CAN_S_Pin				 GPIO_PIN_10
 	#define CAN_S_GPIO_Port			 GPIOA
 
@@ -404,4 +408,13 @@ THE SOFTWARE.
 #define nCANSTBY_Pin		 GPIO_PIN_0
 #define nCANSTBY_Port		 GPIOA
 #define nCANSTBY_Active_High 0
+#endif
+
+#ifdef CAN_S_Pin
+#ifndef CONFIG_PHY_SILENT
+#error Defined CAN_S_Pin without CONFIG_PHY_SILENT
+#endif
+#else
+#define CAN_S_Pin		GPIO_PIN_0
+#define CAN_S_GPIO_Port GPIOA
 #endif

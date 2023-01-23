@@ -44,6 +44,9 @@ struct board_config {
 #ifdef CONFIG_PHY
 	void (*phy_power_set)(can_data_t *channel, bool enable);
 #endif
+#ifdef CONFIG_TERMINATION
+	void (*termination_set)(can_data_t *channel, enum gs_can_termination_state state);
+#endif
 };
 
 extern const struct board_config config;
@@ -61,5 +64,21 @@ static inline void board_phy_power_set(can_data_t *channel, bool enable)
 {
 	UNUSED(channel);
 	UNUSED(enable);
+}
+#endif
+
+#ifdef CONFIG_TERMINATION
+#define SET_TERMINATION_FN(set_fn) \
+		.termination_set = (set_fn),
+static inline void board_termination_set(can_data_t *channel, enum gs_can_termination_state state)
+{
+	config.termination_set(channel, state);
+}
+#else
+#define SET_TERMINATION_FN(set_fn)
+static inline void board_termination_set(can_data_t *channel, enum gs_can_termination_state state)
+{
+	UNUSED(channel);
+	UNUSED(state);
 }
 #endif

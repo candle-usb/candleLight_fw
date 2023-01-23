@@ -319,6 +319,7 @@ THE SOFTWARE.
 	#define USB_Pin_DM				 GPIO_PIN_11
 	#define USB_Pin_DP				 GPIO_PIN_12
 
+	#define CONFIG_TERMINATION		 1
 	#define TERM_GPIO_Port			 GPIOB
 	#define TERM_Pin				 GPIO_PIN_3
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
@@ -417,4 +418,15 @@ THE SOFTWARE.
 #else
 #define CAN_S_Pin		GPIO_PIN_0
 #define CAN_S_GPIO_Port GPIOA
+#endif
+
+#ifdef TERM_Pin
+#ifndef CONFIG_TERMINATION
+#error Defined TERM_Pin without CONFIG_TERMINATION
+#endif
+#else
+#define TERM_Pin		 GPIO_PIN_0
+#define TERM_GPIO_Port	 GPIOA
+#define TERM_Mode		 GPIO_MODE_OUTPUT_PP
+#define TERM_Active_High 1
 #endif

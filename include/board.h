@@ -42,6 +42,7 @@ struct BoardConfig {
 	struct BoardChannelConfig channels[NUM_CAN_CHANNEL];
 	void (*setup)(USBD_GS_CAN_HandleTypeDef *hcan);
 	void (*phy_power_set)(can_data_t *channel, bool enable);
+	void (*termination_set)(can_data_t *channel, enum gs_can_termination_state state);
 };
 
 extern const struct BoardConfig config;

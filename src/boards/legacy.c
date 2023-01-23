@@ -35,6 +35,9 @@ static void legacy_phy_power_set(can_data_t *channel, bool enable) {
 	UNUSED(channel);
 
 	if (enable) {
+#ifdef CAN_S_GPIO_Port
+		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
+#endif
 #ifdef nCANSTBY_Pin
 		HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin,
 						  !GPIO_INIT_STATE(nCANSTBY_Active_High));

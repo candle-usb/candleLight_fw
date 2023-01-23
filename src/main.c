@@ -89,10 +89,6 @@ int main(void)
 
 		can_init(channel, config.channels[i].interface);
 		can_disable(channel);
-
-#ifdef CAN_S_GPIO_Port
-		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
-#endif
 	}
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);

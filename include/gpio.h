@@ -29,8 +29,6 @@
 #include "config.h"
 #include "gs_usb.h"
 
-void gpio_init(void);
-
 /* macro to define init (i.e. reset) state of a pin */
 #define GPIO_INIT_STATE(active_high) (((active_high) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
 

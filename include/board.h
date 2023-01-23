@@ -51,6 +51,8 @@ struct board_config {
 
 extern const struct board_config config;
 
+void board_setup(USBD_GS_CAN_HandleTypeDef *hcan);
+
 #ifdef CONFIG_PHY
 #define SET_PHY_POWER_FN(set_fn) \
 		.phy_power_set = (set_fn),

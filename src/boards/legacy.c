@@ -48,10 +48,33 @@ static void legacy_gpio_init_termination(void)
 	HAL_GPIO_Init(TERM_GPIO_Port, &GPIO_InitStruct);
 }
 
+static void legacy_termination_set(can_data_t *channel,
+								   enum gs_can_termination_state state)
+{
+	UNUSED(channel);
+
+#if (TERM_Active_High == 1)
+	#define TERM_ON	 GPIO_PIN_SET
+	#define TERM_OFF GPIO_PIN_RESET
+#else
+	#define TERM_ON	 GPIO_PIN_RESET
+	#define TERM_OFF GPIO_PIN_SET
+#endif
+
+	HAL_GPIO_WritePin(TERM_GPIO_Port, TERM_Pin, (state ? TERM_ON : TERM_OFF));
+}
+
 #else
 
 static inline void legacy_gpio_init_termination(void)
 {
+}
+
+static void legacy_termination_set(can_data_t *channel,
+								   enum gs_can_termination_state state)
+{
+	UNUSED(channel);
+	UNUSED(state);
 }
 
 #endif
@@ -160,5 +183,6 @@ static void legacy_phy_power_set(can_data_t *channel, bool enable) {
 const struct BoardConfig config = {
 	.setup = legacy_setup,
 	.phy_power_set = legacy_phy_power_set,
+	.termination_set = legacy_termination_set,
 	.channels[0].interface = CAN_INTERFACE,
 };

@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 */
 
+#include "board.h"
 #include "config.h"
 #include "gpio.h"
 #include "hal_include.h"
@@ -52,15 +53,7 @@ enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_terminat
 		term_state &= ~(1 << nr);
 	}
 
-#if (TERM_Active_High == 1)
-	#define TERM_ON	 GPIO_PIN_SET
-	#define TERM_OFF GPIO_PIN_RESET
-#else
-	#define TERM_ON	 GPIO_PIN_RESET
-	#define TERM_OFF GPIO_PIN_SET
-#endif
-
-	HAL_GPIO_WritePin(TERM_GPIO_Port, TERM_Pin, (state ? TERM_ON : TERM_OFF));
+	config.termination_set(channel, state);
 
 	return state;
 }

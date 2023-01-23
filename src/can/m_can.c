@@ -24,6 +24,7 @@
  *
  */
 
+#include "board.h"
 #include "can.h"
 #include "hal_include.h"
 #include "timer.h"
@@ -186,6 +187,8 @@ void can_enable(can_data_t *channel, uint32_t mode)
 								 FDCAN_ACCEPT_IN_RX_FIFO0, FDCAN_ACCEPT_IN_RX_FIFO0,
 								 FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE);
 
+	board_phy_power_set(channel, true);
+
 	// Start CAN using HAL
 	HAL_FDCAN_Start(&channel->channel);
 }
@@ -193,6 +196,8 @@ void can_enable(can_data_t *channel, uint32_t mode)
 void can_disable(can_data_t *channel)
 {
 	HAL_FDCAN_Stop(&channel->channel);
+
+	board_phy_power_set(channel, false);
 }
 
 bool can_is_enabled(can_data_t *channel)

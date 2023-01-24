@@ -334,20 +334,9 @@ THE SOFTWARE.
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CANFD			 1
-
-	#define LEDRX_GPIO_Port			 GPIOA
-	#define LEDRX_Pin				 GPIO_PIN_0
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 0
-
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_1
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
@@ -356,32 +345,11 @@ THE SOFTWARE.
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define CAN_INTERFACE			 FDCAN1
-	#define CAN_INTERFACE2			 FDCAN2
 	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
-
 	#define CONFIG_PHY				 1
-	#define CONFIG_PHY_STANDBY		 1
-	#define nCANSTBY_Port			 GPIOA
-	#define nCANSTBY_Pin			 GPIO_PIN_0 /* control xceiver standby, active low */
-	#define nCANSTBY_Active_High	 0
-
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_4
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 1
-
-	#define LEDTX_GPIO_Port			 GPIOB
-	#define LEDTX_Pin				 GPIO_PIN_3
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 1
-
-	#define TERM_GPIO_Port			 GPIOA
-	#define TERM_Pin				 GPIO_PIN_1
-	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
-	#define TERM_Active_High		 1
+	#define CONFIG_TERMINATION		 1
 
 #else
 	#error please define BOARD

@@ -24,27 +24,32 @@ THE SOFTWARE.
 
 */
 
+#include "config.h"
 #include "gpio.h"
 #include "hal_include.h"
 
 #ifdef TERM_Pin
 static int term_state = 0;
 
-enum gs_can_termination_state get_term(unsigned int channel)
+enum gs_can_termination_state get_term(can_data_t * channel)
 {
-	if (term_state & (1 << channel)) {
+	const uint8_t nr = channel->nr;
+
+	if (term_state & (1 << nr)) {
 		return GS_CAN_TERMINATION_STATE_ON;
 	} else {
 		return GS_CAN_TERMINATION_STATE_OFF;
 	}
 }
 
-enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state)
+enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state)
 {
+	const uint8_t nr = channel->nr;
+
 	if (state == GS_CAN_TERMINATION_STATE_ON) {
-		term_state |= 1 << channel;
+		term_state |= 1 << nr;
 	} else {
-		term_state &= ~(1 << channel);
+		term_state &= ~(1 << nr);
 	}
 
 #if (TERM_Active_High == 1)

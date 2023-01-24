@@ -51,6 +51,9 @@ static void __maybe_unused legacy_phy_power_set(can_data_t *channel, bool enable
 			HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin,
 							  GPIO_INIT_STATE(nCANSTBY_Active_High));
 		}
+		if (IS_ENABLED(CONFIG_PHY_SILENT)) {
+			HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
+		}
 	}
 }
 

@@ -365,7 +365,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(CAN_btconst_ext);
 			break;
 		case GS_USB_BREQ_SET_TERMINATION:
-			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
+			if (get_term(channel) == GS_CAN_TERMINATION_UNSUPPORTED) {
 				goto out_fail;
 			}
 
@@ -374,7 +374,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_GET_TERMINATION: {
 			enum gs_can_termination_state state;
 
-			state = get_term(req->wValue);
+			state = get_term(channel);
 			if (state == GS_CAN_TERMINATION_UNSUPPORTED) {
 				goto out_fail;
 			}
@@ -557,11 +557,11 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 		}
 		case GS_USB_BREQ_SET_TERMINATION: {
-			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
+			if (get_term(channel) != GS_CAN_TERMINATION_UNSUPPORTED) {
 				struct gs_device_termination_state *term_state;
 
 				term_state = (struct gs_device_termination_state *)hcan->ep0_buf;
-				if (set_term(req->wValue, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
+				if (set_term(channel, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
 					USBD_CtlError(pdev, req);
 				}
 			}

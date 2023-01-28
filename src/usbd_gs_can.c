@@ -488,13 +488,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 
 		case GS_USB_BREQ_BITTIMING: {
-			struct gs_device_bittiming *timing;
+			const struct gs_device_bittiming *timing = (struct gs_device_bittiming *)hcan->ep0_buf;
 
-			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
-			can_set_bittiming(channel, timing->brp,
-							  timing->prop_seg + timing->phase_seg1,
-							  timing->phase_seg2,
-							  timing->sjw);
+			can_set_bittiming(channel, timing);
 			break;
 		}
 		case GS_USB_BREQ_MODE: {

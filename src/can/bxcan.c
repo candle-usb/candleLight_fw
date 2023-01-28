@@ -83,17 +83,19 @@ void can_init(can_data_t *channel, CAN_TypeDef *instance)
 	device_can_init(channel, instance);
 }
 
-bool can_set_bittiming(can_data_t *channel, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
+bool can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
 {
-	if (  (brp>0) && (brp<=1024)
-	   && (phase_seg1>0) && (phase_seg1<=16)
-	   && (phase_seg2>0) && (phase_seg2<=8)
-	   && (sjw>0) && (sjw<=4)
+	const uint8_t tseg1 = timing->prop_seg + timing->phase_seg1;
+
+	if (  (timing->brp>0) && (timing->brp<=1024)
+	   && (tseg1>0) && (tseg1<=16)
+	   && (timing->phase_seg2>0) && (timing->phase_seg2<=8)
+	   && (timing->sjw>0) && (timing->sjw<=4)
 		  ) {
-		channel->brp = brp & 0x3FF;
-		channel->phase_seg1 = phase_seg1;
-		channel->phase_seg2 = phase_seg2;
-		channel->sjw = sjw;
+		channel->brp = timing->brp & 0x3FF;
+		channel->phase_seg1 = tseg1;
+		channel->phase_seg2 = timing->phase_seg2;
+		channel->sjw = timing->sjw;
 		return true;
 	} else {
 		return false;

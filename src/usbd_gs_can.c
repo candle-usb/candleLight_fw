@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <string.h>
 
 #include "can.h"
+#include "can_common.h"
 #include "compiler.h"
 #include "config.h"
 #include "gpio.h"
@@ -490,6 +491,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 		case GS_USB_BREQ_BITTIMING: {
 			const struct gs_device_bittiming *timing = (struct gs_device_bittiming *)hcan->ep0_buf;
 
+			if (!can_check_bittiming_ok(&CAN_btconst.btc, timing))
+				goto out_fail;
+
 			can_set_bittiming(channel, timing);
 			break;
 		}
@@ -540,6 +544,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	req->bRequest = 0xFF;
 	return USBD_OK;
+
+out_fail:
+	return USBD_FAIL;
 }
 
 static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {

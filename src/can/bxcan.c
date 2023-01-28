@@ -45,14 +45,16 @@ const struct gs_device_bt_const CAN_btconst = {
 #endif
 	,
 	.fclk_can = CAN_CLOCK_SPEED,
-	.tseg1_min = 1,
-	.tseg1_max = 16,
-	.tseg2_min = 1,
-	.tseg2_max = 8,
-	.sjw_max = 4,
-	.brp_min = 1,
-	.brp_max = 1024,
-	.brp_inc = 1,
+	.btc = {
+		.tseg1_min = 1,
+		.tseg1_max = 16,
+		.tseg2_min = 1,
+		.tseg2_max = 8,
+		.sjw_max = 4,
+		.brp_min = 1,
+		.brp_max = 1024,
+		.brp_inc = 1,
+	},
 };
 
 // The STM32F0 only has one CAN interface, define it as CAN1 as
@@ -84,23 +86,14 @@ void can_init(can_data_t *channel, CAN_TypeDef *instance)
 	device_can_init(channel, instance);
 }
 
-bool can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
+void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
 {
 	const uint8_t tseg1 = timing->prop_seg + timing->phase_seg1;
 
-	if (  (timing->brp>0) && (timing->brp<=1024)
-	   && (tseg1>0) && (tseg1<=16)
-	   && (timing->phase_seg2>0) && (timing->phase_seg2<=8)
-	   && (timing->sjw>0) && (timing->sjw<=4)
-		  ) {
-		channel->brp = timing->brp & 0x3FF;
-		channel->phase_seg1 = tseg1;
-		channel->phase_seg2 = timing->phase_seg2;
-		channel->sjw = timing->sjw;
-		return true;
-	} else {
-		return false;
-	}
+	channel->brp = timing->brp;
+	channel->phase_seg1 = tseg1;
+	channel->phase_seg2 = timing->phase_seg2;
+	channel->sjw = timing->sjw;
 }
 
 void can_enable(can_data_t *channel, uint32_t mode)

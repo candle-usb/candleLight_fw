@@ -49,7 +49,7 @@ typedef struct {
 extern const struct gs_device_bt_const CAN_btconst;
 
 void can_init(can_data_t *channel, CAN_TypeDef *instance);
-bool can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
+void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
 void can_enable(can_data_t *channel, uint32_t mode);
 void can_disable(can_data_t *channel);
 bool can_is_enabled(can_data_t *channel);

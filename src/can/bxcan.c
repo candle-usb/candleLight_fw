@@ -32,6 +32,28 @@
 #include "hal_include.h"
 #include "timer.h"
 
+const struct gs_device_bt_const CAN_btconst = {
+	.feature =
+		GS_CAN_FEATURE_LISTEN_ONLY |
+		GS_CAN_FEATURE_LOOP_BACK |
+		GS_CAN_FEATURE_HW_TIMESTAMP |
+		GS_CAN_FEATURE_IDENTIFY |
+		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+#ifdef TERM_Pin
+		| GS_CAN_FEATURE_TERMINATION
+#endif
+	,
+	.fclk_can = CAN_CLOCK_SPEED,
+	.tseg1_min = 1,
+	.tseg1_max = 16,
+	.tseg2_min = 1,
+	.tseg2_max = 8,
+	.sjw_max = 4,
+	.brp_min = 1,
+	.brp_max = 1024,
+	.brp_inc = 1,
+};
+
 // The STM32F0 only has one CAN interface, define it as CAN1 as
 // well, so it doesn't need to be handled separately.
 #if !defined(CAN1) && defined(CAN)

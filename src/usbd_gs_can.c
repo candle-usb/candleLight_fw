@@ -213,29 +213,6 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 	.hw_version = 1,
 };
 
-// bit timing constraints
-static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
-	.feature =
-		GS_CAN_FEATURE_LISTEN_ONLY |
-		GS_CAN_FEATURE_LOOP_BACK |
-		GS_CAN_FEATURE_HW_TIMESTAMP |
-		GS_CAN_FEATURE_IDENTIFY |
-		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
-#ifdef TERM_Pin
-		| GS_CAN_FEATURE_TERMINATION
-#endif
-	,
-	.fclk_can = CAN_CLOCK_SPEED,
-	.tseg1_min = 1,
-	.tseg1_max = 16,
-	.tseg2_min = 1,
-	.tseg2_max = 8,
-	.sjw_max = 4,
-	.brp_min = 1,
-	.brp_max = 1024,
-	.brp_inc = 1,
-};
-
 /* It's unclear from the documentation, but it appears that the USB library is
  * not safely reentrant. It attempts to signal errors via return values if it is
  * reentered, but that code is not interrupt-safe and the error values are
@@ -357,8 +334,8 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(struct gs_device_mode);
 			break;
 		case GS_USB_BREQ_BT_CONST:
-			src = &USBD_GS_CAN_btconst;
-			len = sizeof(USBD_GS_CAN_btconst);
+			src = &CAN_btconst;
+			len = sizeof(CAN_btconst);
 			break;
 		case GS_USB_BREQ_DEVICE_CONFIG:
 			src = &USBD_GS_CAN_dconf;

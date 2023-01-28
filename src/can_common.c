@@ -29,6 +29,23 @@ THE SOFTWARE.
 #include "timer.h"
 #include "usbd_gs_can.h"
 
+int can_check_bittiming(const struct can_bittiming_const *btc,
+						const struct gs_device_bittiming *timing)
+{
+	const uint32_t tseg1 = timing->prop_seg + timing->phase_seg1;
+
+	if (tseg1 < btc->tseg1_min ||
+		tseg1 > btc->tseg1_max ||
+		timing->phase_seg2 < btc->tseg2_min ||
+		timing->phase_seg2 > btc->tseg2_max ||
+		timing->sjw > btc->sjw_max ||
+		timing->brp < btc->brp_min ||
+		timing->brp > btc->brp_max)
+		return -1;
+
+	return 0;
+}
+
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
 	struct gs_host_frame_object *frame_object;

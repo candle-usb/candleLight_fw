@@ -125,6 +125,7 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 	struct gs_host_frame *frame = &frame_object->frame;
 	frame->classic_can_ts->timestamp_us = timer_get();
+	frame->channel = channel->nr;
 
 	if (can_parse_error_status(channel, frame, can_err)) {
 		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);

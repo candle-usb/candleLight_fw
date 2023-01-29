@@ -40,7 +40,7 @@ THE SOFTWARE.
 
 #include "version.h"
 
-#define CAN_QUEUE_SIZE				 64
+#define CAN_QUEUE_SIZE				 (64 * NUM_CAN_CHANNEL)
 
 #define USBD_VID					 0x1d50
 #define USBD_PID_FS					 0x606f

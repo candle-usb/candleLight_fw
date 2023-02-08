@@ -77,7 +77,7 @@ THE SOFTWARE.
  * - struct gs_device_termination_state
  */
 #define GS_CAN_FEATURE_TERMINATION				(1<<11)
-#define GS_CAN_FEATURE_BERR_REPORTINGBIT		(1<<12)
+#define GS_CAN_FEATURE_BERR_REPORTING			(1<<12)
 #define GS_CAN_FEATURE_GET_STATE				(1<<13)
 
 #define GS_CAN_FLAG_OVERFLOW					(1<<0)

@@ -68,6 +68,8 @@ int main(void)
 	}
 
 	for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+		const struct BoardChannelConfig *channel_config = &config.channels[i];
+		const struct LEDConfig *led_config = channel_config->leds;
 		can_data_t *channel = &hGS_CAN.channels[i];
 
 		channel->nr = i;
@@ -75,14 +77,14 @@ int main(void)
 		INIT_LIST_HEAD(&channel->list_from_host);
 
 		led_init(&channel->leds,
-				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
-				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
+				 led_config[LED_RX].port, led_config[LED_RX].pin, led_config[LED_RX].active_high,
+				 led_config[LED_TX].port, led_config[LED_TX].pin, led_config[LED_TX].active_high);
 
 		/* nice wake-up pattern */
 		for (uint8_t j = 0; j < 10; j++) {
-			HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
+			HAL_GPIO_TogglePin(led_config[LED_RX].port, led_config[LED_RX].pin);
 			HAL_Delay(50);
-			HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
+			HAL_GPIO_TogglePin(led_config[LED_TX].port, led_config[LED_TX].pin);
 		}
 
 		led_set_mode(&channel->leds, LED_MODE_OFF);

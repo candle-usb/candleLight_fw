@@ -96,5 +96,19 @@ const struct BoardConfig config = {
 	.setup = convertdevice_xcanfd_setup,
 	.phy_power_set = convertdevice_xcanfd_phy_power_set,
 	.termination_set = convertdevice_xcanfd_termination_set,
-	.channels[0].interface = FDCAN1,
+	.channels[0] = {
+		.interface = FDCAN1,
+		.leds = {
+			[LED_RX] = {
+				.port = LEDRX_GPIO_Port,
+				.pin = LEDRX_Pin,
+				.active_high = LEDRX_Active_High,
+			},
+			[LED_TX] = {
+				.port = LEDTX_GPIO_Port,
+				.pin = LEDTX_Pin,
+				.active_high = LEDTX_Active_High,
+			},
+		},
+	},
 };

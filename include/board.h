@@ -30,12 +30,19 @@
 
 #include "usbd_gs_can.h"
 
+struct LEDConfig {
+	GPIO_TypeDef *port;
+	uint16_t pin;
+	bool active_high;
+};
+
 struct BoardChannelConfig {
 #if defined(STM32G0)
 	FDCAN_GlobalTypeDef *interface;
 #else
 	CAN_TypeDef *interface;
 #endif
+	struct LEDConfig leds[LED_MAX];
 };
 
 struct BoardConfig {

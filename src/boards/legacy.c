@@ -167,6 +167,18 @@ static void __maybe_unused legacy_termination_set(can_data_t *channel,
 const struct board_config config = {
 	.channel[0] = {
 		.interface = CAN_INTERFACE,
+		.leds = {
+			[LED_RX] = {
+				.port = LEDRX_GPIO_Port,
+				.pin = LEDRX_Pin,
+				.active_high = LEDRX_Active_High,
+			},
+			[LED_TX] = {
+				.port = LEDTX_GPIO_Port,
+				.pin = LEDTX_Pin,
+				.active_high = LEDTX_Active_High,
+			},
+		},
 	},
 	.setup = legacy_setup,
 	SET_PHY_POWER_FN(legacy_phy_power_set)

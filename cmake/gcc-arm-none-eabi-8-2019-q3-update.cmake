@@ -1,8 +1,8 @@
 set(TOOLCHAIN gcc-arm-none-eabi-8-2019-q3-update)
 find_path(
-    TOOLCHAIN_BIN_DIR 
+    TOOLCHAIN_BIN_DIR
     arm-none-eabi-gcc
-    HINTS 
+    HINTS
         $ENV{HOME}/bin/${TOOLCHAIN}/bin
         $ENV{HOME}/opt/${TOOLCHAIN}/bin
         /opt/${TOOLCHAIN}/bin

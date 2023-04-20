@@ -109,6 +109,46 @@ THE SOFTWARE.
 	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High 0
 
+#elif defined(BOARD_DSD_TECH_SH_C30A)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "SH-C30A USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "DSD TECH"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "SH-C30A firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+
+// SILENT pin not connected
+
+	#define LEDRX_GPIO_Port	  GPIOB
+	#define LEDRX_Pin		  GPIO_PIN_1
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High 0
+
+	#define LEDTX_GPIO_Port	  GPIOB
+	#define LEDTX_Pin		  GPIO_PIN_0
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High 0
+
+#elif defined(BOARD_FYSETC_UCAN)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "UCAN USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "FYSETC"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "UCAN firmware upgrade interface"
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+
+// SILENT pin not connected
+
+	#define LEDRX_GPIO_Port	  GPIOA
+	#define LEDRX_Pin		  GPIO_PIN_1
+	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High 1
+
+	#define LEDTX_GPIO_Port	  GPIOA
+	#define LEDTX_Pin		  GPIO_PIN_0
+	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High 1
+
 #elif defined(BOARD_cantact)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cantact gs_usb"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "cantact.io"

@@ -124,7 +124,7 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FMR &= ~CAN_FMR_FINIT;
 
 #ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, ~GPIO_INIT_STATE(nCANSTBY_Active_High));
+	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, !GPIO_INIT_STATE(nCANSTBY_Active_High));
 #endif
 }
 

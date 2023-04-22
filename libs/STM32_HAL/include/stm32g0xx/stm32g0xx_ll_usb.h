@@ -642,7 +642,7 @@ typedef struct
       (wNBlocks)--; \
     } \
     \
-    (pdwReg)|= (uint32_t)((((wNBlocks) << 26U)) | USB_CNTRX_BLSIZE); \
+    (pdwReg) = ((pdwReg) & ~USB_CNTRX_NBLK_MSK) | (uint32_t)((((wNBlocks) << 26U)) | USB_CNTRX_BLSIZE); \
   } while(0) /* USB_DRD_CALC_BLK32 */
 
 #define USB_DRD_CALC_BLK2(pdwReg, wCount, wNBlocks) \
@@ -653,14 +653,12 @@ typedef struct
     { \
       (wNBlocks)++; \
     } \
-    (pdwReg) |= (uint32_t)((wNBlocks) << 26U); \
+    (pdwReg) = ((pdwReg) & ~(USB_CNTRX_BLSIZE | USB_CNTRX_NBLK_MSK)) | (uint32_t)((wNBlocks) << 26U); \
   } while(0) /* USB_DRD_CALC_BLK2 */
 
 #define USB_DRD_SET_CHEP_CNT_RX_REG(pdwReg, wCount) \
   do { \
     uint32_t wNBlocks; \
-    \
-    (pdwReg) &= USB_PMA_RXBD_COUNTMSK; \
     \
     if ((wCount) > 62U) \
     { \
@@ -670,8 +668,7 @@ typedef struct
     { \
       if ((wCount) == 0U) \
       { \
-        (pdwReg) &= (uint32_t)~USB_CNTRX_NBLK_MSK; \
-        (pdwReg) |= USB_CNTRX_BLSIZE; \
+        (pdwReg) = ((pdwReg) & ~USB_CNTRX_NBLK_MSK) | USB_CNTRX_BLSIZE; \
       } \
       else \
       { \
@@ -709,8 +706,8 @@ typedef struct
   * @param  bEpChNum Endpoint Number.
   * @retval Counter value
   */
-#define USB_DRD_GET_CHEP_TX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->TXBD & 0x03FF0000U) >>16U)
-#define USB_DRD_GET_CHEP_RX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->RXBD & 0x03FF0000U) >>16U)
+#define USB_DRD_GET_CHEP_TX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->TXBD & 0x03FF0000U) >> 16U)
+#define USB_DRD_GET_CHEP_RX_CNT(USBx, bEpChNum)           (((USB_DRD_PMA_BUFF + (bEpChNum))->RXBD & 0x03FF0000U) >> 16U)
 
 #define USB_DRD_GET_EP_TX_CNT                             USB_GET_CHEP_TX_CNT
 #define USB_DRD_GET_CH_TX_CNT                             USB_GET_CHEP_TX_CNT

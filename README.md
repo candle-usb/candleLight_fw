@@ -4,7 +4,7 @@
 This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, notably:
 - candleLight: https://github.com/HubertD/candleLight (STM32F072xB)
 - candleLight: https://www.linux-automation.com/en/products/candlelight.html (STM32F072xB)
-- cantact: http://linklayer.github.io/cantact/ (STM32F042C6)
+- cantact: https://www.linklayer.com/tools (STM32F042C6)
 - canable (cantact clone): http://canable.io/ (STM32F042C6)
 - USB2CAN: https://github.com/roboterclubaachen/usb2can (STM32F042x6)
 - CANAlyze: https://kkuchera.github.io/canalyze/ (STM32F042C6)
@@ -65,7 +65,7 @@ Prebuild binaries can be downloded by clicking [![CI](https://github.com/candle-
 
 ## Flashing
 
-Flashing candleLight on linux: (source: [https://wiki.linklayer.com/index.php/CandleLightFirmware](https://wiki.linklayer.com/index.php/CandleLightFirmware))
+Flashing candleLight on linux: (source: [https://cantact.io/cantact/users-guide.html](https://cantact.io/cantact/users-guide.html))
 - Flashing requires the dfu-util tool. On Ubuntu, this can be installed with `sudo apt install dfu-util`.
 - compile as above, or download the current binary release: gsusb_cantact_8b2b2b4.bin
 - If dfu-util fails due to permission issues on Linux, you may need additional udev rules. Consult your distro's documentation and see `70-candle-usb.rules` provided here.

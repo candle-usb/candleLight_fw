@@ -149,7 +149,7 @@ bool can_is_rx_pending(can_data_t *hcan)
 	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
-bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
+bool can_receive(can_data_t *hcan, struct GS_HOST_FRAME *rx_frame)
 {
 	CAN_TypeDef *can = hcan->instance;
 
@@ -201,7 +201,7 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
 	}
 }
 
-bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
+bool can_send(can_data_t *hcan, struct GS_HOST_FRAME *frame)
 {
 	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(hcan);
 	if (mb != 0) {
@@ -260,7 +260,7 @@ static bool status_is_active(uint32_t err)
 	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
 }
 
-bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct gs_host_frame *frame)
+bool can_parse_error_status(uint32_t err, uint32_t last_err, can_data_t *hcan, struct GS_HOST_FRAME *frame)
 {
 	/* We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final

@@ -41,7 +41,6 @@ THE SOFTWARE.
 #define CAN_DATA_MAX_PACKET_SIZE 32    /* Endpoint IN & OUT Packet size */
 #define CAN_CMD_PACKET_SIZE		 64    /* Control Endpoint Packet size */
 #define USB_CAN_CONFIG_DESC_SIZ	 50
-#define NUM_CAN_CHANNEL			 1
 #define USBD_GS_CAN_VENDOR_CODE	 0x20
 #define DFU_INTERFACE_NUM		 1
 #define DFU_INTERFACE_STR_INDEX	 0xE0
@@ -50,7 +49,7 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 
 struct gs_host_frame_object {
 	struct list_head list;
-	struct gs_host_frame frame;
+	struct GS_HOST_FRAME frame;
 };
 
 typedef struct {
@@ -90,6 +89,9 @@ typedef struct {
 // RX FIFO size chosen according to reference manual RM0368 which suggests
 // using (largest packet size / 4) + 1
 # define USB_RX_FIFO_SIZE ((256U / 4U) + 1U)
+#elif defined(STM32G0)
+# define USB_INTERFACE	  USB_DRD_FS
+# define USB_INTERRUPT	  USB_UCPD1_2_IRQn
 #endif
 
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev, led_data_t *leds);
@@ -100,5 +102,5 @@ bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqType
 bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev);
-uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame);
+uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct GS_HOST_FRAME *frame);
 uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint16_t len);

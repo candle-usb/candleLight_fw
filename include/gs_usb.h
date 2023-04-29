@@ -311,4 +311,7 @@ struct gs_host_frame_canfd {
 	u8 reserved;
 
 	u8 data[64];
+
+	u32 timestamp_us;
+
 } __packed __aligned(4);

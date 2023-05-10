@@ -141,10 +141,6 @@ THE SOFTWARE.
 	#define USB_Pin_DM		  GPIO_PIN_11
 	#define USB_Pin_DP		  GPIO_PIN_12
 
-	#define CANFDIF_GPIO_Port GPIOB
-	#define CANFDIFRX_Pin	  GPIO_PIN_8
-	#define CANFDIFTX_Pin	  GPIO_PIN_9
-
 #elif defined(BOARD_DSD_TECH_SH_C30A)
 	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "SH-C30A USB to CAN adapter"
 	#define USBD_MANUFACTURER_STRING (uint8_t*) "DSD TECH"

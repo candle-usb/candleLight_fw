@@ -32,6 +32,16 @@ THE SOFTWARE.
 #include "led.h"
 #include "usbd_gs_can.h"
 
+#define LEDRX_GPIO_Port	  GPIOA
+#define LEDRX_Pin		  GPIO_PIN_0
+#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
+#define LEDRX_Active_High 0
+
+#define LEDTX_GPIO_Port	  GPIOA
+#define LEDTX_Pin		  GPIO_PIN_1
+#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
+#define LEDTX_Active_High 0
+
 static void convertdevice_xcanfd_setup(USBD_GS_CAN_HandleTypeDef *hcan)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;

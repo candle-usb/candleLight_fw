@@ -31,6 +31,16 @@ THE SOFTWARE.
 #include "gpio.h"
 #include "usbd_gs_can.h"
 
+#define LEDRX_GPIO_Port	  GPIOA
+#define LEDRX_Pin		  GPIO_PIN_5
+#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
+#define LEDRX_Active_High 1
+
+#define LEDTX_GPIO_Port	  GPIOA
+#define LEDTX_Pin		  GPIO_PIN_5
+#define LEDTX_Mode		  GPIO_MODE_OUTPUT_PP
+#define LEDTX_Active_High 1
+
 static void nucleo_g0b1re_setup(USBD_GS_CAN_HandleTypeDef *hcan)
 {
 	GPIO_InitTypeDef GPIO_InitStruct;

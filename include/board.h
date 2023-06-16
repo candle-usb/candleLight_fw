@@ -30,7 +30,7 @@ THE SOFTWARE.
 #include "usbd_gs_can.h"
 
 struct LEDConfig {
-	void *port;
+	GPIO_TypeDef *port;
 	uint16_t pin;
 	bool active_high;
 };

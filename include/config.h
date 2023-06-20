@@ -351,6 +351,18 @@ THE SOFTWARE.
 	#define CONFIG_PHY				 1
 	#define CONFIG_TERMINATION		 1
 
+#elif defined(BOARD_candleLightFD)
+	#define USBD_PRODUCT_STRING_FS	 "candleLightFD gs_usb"
+	#define USBD_MANUFACTURER_STRING "candleLightFD"
+	#define DFU_INTERFACE_STRING_FS	 "candleLightFD firmware upgrade interface"
+
+	#define HSE_OSC_SPEED			 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
+
 #elif defined(BOARD_nucleo_g0b1re)
 	#define USBD_PRODUCT_STRING_FS	 "NUCLEO-G0B1RE gs_usb"
 	#define USBD_MANUFACTURER_STRING "STMicroelectronics"

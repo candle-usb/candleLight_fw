@@ -296,6 +296,7 @@ set(TGTF407_LIST
 set(TGTG0B1_LIST
 	"CONVERTDEVICE_xCANFD"
 	"budgetcan"
+	"candleLightFD"
 	"nucleo_g0b1re"
 )
 

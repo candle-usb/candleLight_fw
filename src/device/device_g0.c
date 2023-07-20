@@ -40,18 +40,26 @@ void device_sysclock_config(void) {
 	 * RCC_OscInitTypeDef structure.
 	 */
 	RCC_OscInitTypeDef RCC_OscInitStruct = {
+#if defined(CONFIG_HSE_OSC_SPEED)
+		.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_HSI48,
+		.HSEState = RCC_HSE_ON,
+		.HSI48State = RCC_HSI48_ON,
+		.PLL.PLLSource = RCC_PLLSOURCE_HSE,
+		.PLL.PLLN = 320000000 / HSE_OSC_SPEED,
+#else
 		.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI48,
 		.HSIState = RCC_HSI_ON,
 		.HSI48State = RCC_HSI48_ON,
 		.HSIDiv = RCC_HSI_DIV1,
 		.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT,
-		.PLL.PLLState = RCC_PLL_ON,
 		.PLL.PLLSource = RCC_PLLSOURCE_HSI,
-		.PLL.PLLM = RCC_PLLM_DIV1,
 		.PLL.PLLN = 20,
-		.PLL.PLLP = RCC_PLLP_DIV2,
+#endif
+		.PLL.PLLState = RCC_PLL_ON,
+		.PLL.PLLM = RCC_PLLM_DIV1,
 		.PLL.PLLQ = RCC_PLLQ_DIV8,
 		.PLL.PLLR = RCC_PLLR_DIV5,
+		.PLL.PLLP = RCC_PLLP_DIV2,
 	};
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 

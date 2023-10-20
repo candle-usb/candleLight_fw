@@ -161,3 +161,21 @@ void gpio_init(void)
 
 	gpio_init_term();
 }
+
+void gpio_suspend(void) {
+#ifdef nSI86EN_Pin
+	HAL_GPIO_WritePin(nSI86EN_Port, nSI86EN_Pin, GPIO_PIN_SET);
+#endif
+#ifdef DCDCEN_Pin
+	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_RESET);
+#endif
+}
+
+void gpio_resume(void) {
+#ifdef DCDCEN_Pin
+	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_SET);
+#endif
+#ifdef nSI86EN_Pin
+	HAL_GPIO_WritePin(nSI86EN_Port, nSI86EN_Pin, GPIO_PIN_RESET);
+#endif
+}

@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "hal_include.h"
 
-#if !defined(STM32G0)
+#if !defined(STM32G0) && !defined(STM32G4)
 void device_can_init(can_data_t *channel, CAN_TypeDef *instance);
 #endif
 

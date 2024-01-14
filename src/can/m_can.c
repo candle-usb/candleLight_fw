@@ -27,7 +27,6 @@ THE SOFTWARE.
 #include "board.h"
 #include "can.h"
 #include "hal_include.h"
-#include "stm32g0b1xx.h"
 #include "timer.h"
 
 // bit timing constraints
@@ -165,7 +164,7 @@ void can_enable(can_data_t *channel, uint32_t mode)
 								 FDCAN_ACCEPT_IN_RX_FIFO0, FDCAN_ACCEPT_IN_RX_FIFO0,
 								 FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE);
 
-	config.phy_power_set(channel, true);
+	if (config.phy_power_set) config.phy_power_set(channel, true);
 
 	// Start CAN using HAL
 	HAL_FDCAN_Start(&channel->channel);
@@ -175,7 +174,7 @@ void can_disable(can_data_t *channel)
 {
 	HAL_FDCAN_Stop(&channel->channel);
 
-	config.phy_power_set(channel, false);
+	if (config.phy_power_set) config.phy_power_set(channel, false);
 }
 
 bool can_is_enabled(can_data_t *channel)
@@ -204,7 +203,14 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 		rx_frame->can_id |= CAN_RTR_FLAG;
 	}
 
-	rx_frame->can_dlc = (RxHeader.DataLength & 0x000F0000) >> 16;
+	#if defined(STM32G0)
+	// G0 driver expects DataLength field to be pre-shifted into place for the controller
+	rx_frame->can_dlc = RxHeader.DataLength >> 16;
+	#else
+	// G4 driver accepts the length as is and shifts internally where required
+	rx_frame->can_dlc = RxHeader.DataLength;
+	#endif
+	rx_frame->can_dlc &= 0x0F;
 
 	if (RxHeader.FDFormat == FDCAN_FD_CAN) {
 		rx_frame->canfd_ts->timestamp_us = timestamp_us;
@@ -233,8 +239,14 @@ bool can_is_rx_pending(can_data_t *channel)
 bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 {
 	FDCAN_TxHeaderTypeDef TxHeader = {
+		#if defined(STM32G0)
+		// G0 driver expects DataLength field to be pre-shifted into place for the controller
 		.DataLength = frame->can_dlc << 16,
-			.TxEventFifoControl = FDCAN_NO_TX_EVENTS,
+		#else
+		// G4 driver accepts the length as is and shifts internally where required
+		.DataLength = frame->can_dlc,
+		#endif
+		.TxEventFifoControl = FDCAN_NO_TX_EVENTS,
 	};
 
 	TxHeader.TxFrameType =

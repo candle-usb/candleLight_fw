@@ -153,14 +153,14 @@ void can_enable(can_data_t *channel, uint32_t mode)
 	can->FA1R |= filter_bit;         // enable filter
 	can->FMR &= ~CAN_FMR_FINIT;
 
-	config.phy_power_set(channel, true);
+	if (config.phy_power_set) config.phy_power_set(channel, true);
 }
 
 void can_disable(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
 
-	config.phy_power_set(channel, false);
+	if (config.phy_power_set) config.phy_power_set(channel, false);
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 

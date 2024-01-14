@@ -108,6 +108,9 @@ typedef struct {
 #elif defined(STM32G0)
 # define USB_INTERFACE	  USB_DRD_FS
 # define USB_INTERRUPT	  USB_UCPD1_2_IRQn
+#elif defined(STM32G4)
+# define USB_INTERFACE USB
+# define USB_INTERRUPT  USB_LP_IRQn
 #endif
 
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev);

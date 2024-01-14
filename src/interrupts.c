@@ -259,4 +259,47 @@ const pFunc InterruptVectorTable[48] = {
 	0,                    /* CEC                          */
 	// don't need to define any interrupts after this one
 };
+#elif defined(STM32G4)
+__attribute__((used, section(".vectors")))
+const pFunc InterruptVectorTable[118] = {
+	(pFunc)(&__StackTop), // initial stack pointer
+	Reset_Handler,        // reset handler
+	NMI_Handler,          // -14: NMI
+	HardFault_Handler,    // -13: HardFault
+	0,                    // -12: MemManage_Handler
+	0,                    // -11: BusFault_Handler
+	0,                    // -10: UsageFault_Handler
+	0,                    //
+	0,                    //
+	0,                    //
+	0,                    //
+	0,                    // -5: SVC_Handler
+	0,                    // -4: DebugMon_Handler
+	0,                    //
+	0,                    // -2: PendSV
+	SysTick_Handler,      // -1: SysTick
+// External Interrupts
+	0,                    // int 0: WWDG
+	0,                    // int 1: PVD_PVM
+	0,                    // int 2: tamper and timestamp, EXTI line
+	0,                    // int 3: RTC
+	0,                    // int 4: FLASH
+	0,                    // int 5: RCC
+	0,                    // int 6: EXTI Line 0
+	0,                    // int 7: EXTI Line 1
+	0,                    // int 8: EXTI Line 2
+	0,                    // int 9: EXTI Line 3
+	0,                    // int 10: EXTI Line 4
+	0,                    // int 11: DMA Stream 0
+	0,                    // int 12: DMA Stream 1
+	0,                    // int 13: DMA Stream 2
+	0,                    // int 14: DMA Stream 3
+	0,                    // int 15: DMA Stream 4
+	0,                    // int 16: DMA Stream 5
+	0,                    // int 17: DMA Stream 6
+	0,                    // int 18: ADCs
+	0,                    // int 19: USB high priority
+	USB_Handler,          // int 20: USB low priority
+	// don't need to define any interrupts after this one
+};
 #endif

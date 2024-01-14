@@ -46,7 +46,6 @@ THE SOFTWARE.
 #include "util.h"
 
 void HAL_MspInit(void);
-static void SystemClock_Config(void);
 
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
@@ -63,7 +62,7 @@ void __weak _write(void) {
 int main(void)
 {
 	HAL_Init();
-	SystemClock_Config();
+	device_sysclock_config();
 
 	gpio_init();
 	timer_init();
@@ -143,9 +142,4 @@ void HAL_MspInit(void)
 	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 #endif
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-}
-
-void SystemClock_Config(void)
-{
-	device_sysclock_config();
 }

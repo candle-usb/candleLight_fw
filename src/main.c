@@ -137,9 +137,6 @@ void HAL_MspInit(void)
 #if defined(STM32F4)
 	__HAL_RCC_PWR_CLK_ENABLE();
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-#elif defined(STM32G0)
-	__HAL_RCC_PWR_CLK_ENABLE();
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 #endif
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }

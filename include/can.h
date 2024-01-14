@@ -43,7 +43,7 @@ typedef struct {
 #endif
 	struct list_head list_from_host;
 	led_data_t leds;
-	uint32_t reg_esr_old;
+	uint32_t last_err;
 	uint16_t brp;
 	uint8_t phase_seg1;
 	uint8_t phase_seg2;
@@ -83,14 +83,23 @@ bool can_is_rx_pending(can_data_t *channel);
 
 bool can_send(can_data_t *channel, struct gs_host_frame *frame);
 
-/** return CAN->ESR register which contains tx/rx error counters and
+/** return error status register which contains tx/rx error counters and
  * LEC (last error code).
  */
 uint32_t can_get_error_status(can_data_t *channel);
 
+/** Check if error status has changed, filtering the LEC field
+ * @param last_err : holds the contents of the error status register
+ * @param curr_err : holds the contents of the error status register
+ * @return true when status field has changed and should be parsed
+*/
+bool can_has_error_status_changed(uint32_t last_err, uint32_t curr_err);
+
 /** parse status value returned by can_get_error_status().
+ * @param channel : Can channel status is associated with
  * @param frame : will hold the generated error frame
- * @param err : holds the contents of the ESR register
- * @return 1 when status changes (if any) need a new error frame sent
+ * @param last_err : holds the contents of the error status register
+ * @param curr_err : holds the contents of the error status register
+ * @return true when status changes (if any) need a new error frame sent
  */
-bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err);
+bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t last_err, uint32_t curr_err);

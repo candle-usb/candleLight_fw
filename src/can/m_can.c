@@ -277,10 +277,25 @@ uint32_t can_get_error_status(can_data_t *channel)
 {
 	uint32_t err = channel->channel.Instance->PSR;
 
-	/* Write 7 to LEC so we know if it gets set to the same thing again */
-	channel->channel.Instance->PSR = 7;
+	/* No need to reset anything as the hardware automatically resets LEC
+	 * (last error code) on read
+	 */
 
 	return err;
+}
+
+bool can_has_error_status_changed(uint32_t last_err, uint32_t curr_err)
+{
+	uint8_t curr_lec = curr_err & FDCAN_PSR_LEC;
+
+	if ((0x0 != curr_lec) && (0x7 != curr_lec))
+	{
+		// An error is being reported in last error code field
+		return true;
+	}
+
+	// Error status reported by any other field has changed
+	return (last_err & ~FDCAN_PSR_LEC) != (curr_err & ~FDCAN_PSR_LEC);
 }
 
 static bool status_is_active(uint32_t err)
@@ -288,17 +303,14 @@ static bool status_is_active(uint32_t err)
 	return !(err & (FDCAN_PSR_BO | FDCAN_PSR_EP));
 }
 
-bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err)
+bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t last_err, uint32_t curr_err)
 {
-	uint32_t last_err = channel->reg_esr_old;
 	/*
 	 * We build up the detailed error information at the same time as
 	 * we decide whether there's anything worth sending. This variable
 	 * tracks that final result.
 	 */
 	bool should_send = false;
-
-	channel->reg_esr_old = err;
 
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;
@@ -313,13 +325,13 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	frame->classic_can->data[7] = 0;
 
 	/* We transitioned from passive/bus-off to active, so report the edge. */
-	if (!status_is_active(last_err) && status_is_active(err)) {
+	if (!status_is_active(last_err) && status_is_active(curr_err)) {
 		frame->can_id |= CAN_ERR_CRTL;
 		frame->classic_can->data[1] |= CAN_ERR_CRTL_ACTIVE;
 		should_send = true;
 	}
 
-	if (err & FDCAN_PSR_BO) {
+	if (curr_err & FDCAN_PSR_BO) {
 		if (!(last_err & FDCAN_PSR_BO)) {
 			/* We transitioned to bus-off. */
 			frame->can_id |= CAN_ERR_BUSOFF;
@@ -336,13 +348,13 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	// RX error count
 	frame->classic_can->data[7] = ((channel->channel.Instance->ECR & FDCAN_ECR_REC) >> FDCAN_ECR_REC_Pos);
 
-	if (err & FDCAN_PSR_EP) {
+	if (curr_err & FDCAN_PSR_EP) {
 		if (!(last_err & FDCAN_PSR_EP)) {
 			frame->can_id |= CAN_ERR_CRTL;
 			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
-	} else if (err & FDCAN_PSR_EW) {
+	} else if (curr_err & FDCAN_PSR_EW) {
 		if (!(last_err & FDCAN_PSR_EW)) {
 			frame->can_id |= CAN_ERR_CRTL;
 			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
@@ -350,7 +362,7 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 		}
 	}
 
-	uint8_t lec = err & FDCAN_PSR_LEC;
+	uint8_t lec = curr_err & FDCAN_PSR_LEC;
 	switch (lec) {
 		case 0x01: /* stuff error */
 			frame->can_id |= CAN_ERR_PROT;

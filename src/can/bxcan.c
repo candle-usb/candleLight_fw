@@ -61,6 +61,11 @@ const struct gs_device_bt_const CAN_btconst = {
 #define CAN1 CAN
 #endif
 
+// Define helpers for accessing last error code field
+#define BXCAN_ESR_LEC_MASK (0x70)
+#define BXCAN_ESR_LEC_SHIFT (4)
+#define BXCAN_ESR_LEC(esr) (((esr) & BXCAN_ESR_LEC_MASK) >> BXCAN_ESR_LEC_SHIFT)
+
 // Completely reset the CAN pheriperal, including bus-state and error counters
 static void rcc_reset(CAN_TypeDef *instance)
 {
@@ -287,20 +292,33 @@ uint32_t can_get_error_status(can_data_t *channel)
 	return err;
 }
 
+bool can_has_error_status_changed(uint32_t last_err, uint32_t curr_err)
+{
+	uint8_t curr_lec = BXCAN_ESR_LEC(curr_err);
+
+	if ((0x0 != curr_lec) && (0x7 != curr_lec))
+	{
+		// An error is being reported in last error code field
+		return true;
+	}
+
+	// Error status reported by any other field has changed
+	return (last_err & ~BXCAN_ESR_LEC_MASK) != (curr_err & ~BXCAN_ESR_LEC_MASK);
+}
+
 static bool status_is_active(uint32_t err)
 {
 	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
 }
 
-bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err)
+bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t last_err, uint32_t curr_err)
 {
-	uint32_t last_err = channel->reg_esr_old;
+	(void)channel;
+
 	/* We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final
 	 * result. */
 	bool should_send = false;
-
-	channel->reg_esr_old = err;
 
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;
@@ -314,7 +332,7 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	frame->classic_can->data[6] = 0;
 	frame->classic_can->data[7] = 0;
 
-	if (err & CAN_ESR_BOFF) {
+	if (curr_err & CAN_ESR_BOFF) {
 		if (!(last_err & CAN_ESR_BOFF)) {
 			/* We transitioned to bus-off. */
 			frame->can_id |= CAN_ERR_BUSOFF;
@@ -330,26 +348,26 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	}
 
 	/* We transitioned from passive/bus-off to active, so report the edge. */
-	if (!status_is_active(last_err) && status_is_active(err)) {
+	if (!status_is_active(last_err) && status_is_active(curr_err)) {
 		frame->can_id |= CAN_ERR_CRTL;
 		frame->classic_can->data[1] |= CAN_ERR_CRTL_ACTIVE;
 		should_send = true;
 	}
 
-	uint8_t tx_error_cnt = (err>>16) & 0xFF;
-	uint8_t rx_error_cnt = (err>>24) & 0xFF;
+	uint8_t tx_error_cnt = (curr_err>>16) & 0xFF;
+	uint8_t rx_error_cnt = (curr_err>>24) & 0xFF;
 	/* The Linux sja1000 driver puts these counters here. Seems like as good a
 	 * place as any. */
 	frame->classic_can->data[6] = tx_error_cnt;
 	frame->classic_can->data[7] = rx_error_cnt;
 
-	if (err & CAN_ESR_EPVF) {
+	if (curr_err & CAN_ESR_EPVF) {
 		if (!(last_err & CAN_ESR_EPVF)) {
 			frame->can_id |= CAN_ERR_CRTL;
 			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
-	} else if (err & CAN_ESR_EWGF) {
+	} else if (curr_err & CAN_ESR_EWGF) {
 		if (!(last_err & CAN_ESR_EWGF)) {
 			frame->can_id |= CAN_ERR_CRTL;
 			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
@@ -357,7 +375,7 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 		}
 	}
 
-	uint8_t lec = (err>>4) & 0x07;
+	uint8_t lec = BXCAN_ESR_LEC(curr_err);
 	switch (lec) {
 		case 0x01: /* stuff error */
 			frame->can_id |= CAN_ERR_PROT;

@@ -132,7 +132,12 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	uint32_t can_err = can_get_error_status(channel);
+	uint32_t curr_err = can_get_error_status(channel);
+
+	if (!can_has_error_status_changed(channel->last_err, curr_err)) {
+		// No change in error status, nothing to report
+		goto no_change;
+	}
 
 	bool was_irq_enabled = disable_irq();
 	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
@@ -150,9 +155,12 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	frame->classic_can_ts->timestamp_us = timer_get();
 	frame->channel = channel->nr;
 
-	if (can_parse_error_status(channel, frame, can_err)) {
+	if (can_parse_error_status(channel, frame, channel->last_err, curr_err)) {
 		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 	} else {
 		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
 	}
+
+no_change:
+	channel->last_err = curr_err;
 }

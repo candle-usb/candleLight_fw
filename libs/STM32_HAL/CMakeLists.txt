@@ -54,7 +54,6 @@ set(STM32F0_SOURCES
     include/cmsis/device/system_stm32f0xx.h
 )
 
-
 set(STM32F4_SOURCES
     config/stm32f4xx_hal_conf.h
 

@@ -45,8 +45,6 @@ THE SOFTWARE.
 #include "usbd_gs_can.h"
 #include "util.h"
 
-void HAL_MspInit(void);
-
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 
@@ -129,10 +127,4 @@ int main(void)
 			dfu_run_bootloader();
 		}
 	}
-}
-
-void HAL_MspInit(void)
-{
-	__HAL_RCC_SYSCFG_CLK_ENABLE();
-	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }

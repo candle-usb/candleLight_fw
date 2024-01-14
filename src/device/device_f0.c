@@ -58,6 +58,9 @@ void device_sysclock_config(void) {
 	RCC_PeriphCLKInitTypeDef PeriphClkInit;
 	RCC_CRSInitTypeDef RCC_CRSInitStruct;
 
+	__HAL_RCC_SYSCFG_CLK_ENABLE();
+	__HAL_RCC_PWR_CLK_ENABLE();
+
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
 	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;

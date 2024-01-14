@@ -435,6 +435,19 @@ THE SOFTWARE.
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CANFD			 1
 
+/*************** STM32G431 ***************/
+
+	#elif defined(BOARD_CANable2_MKS)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "CANable2-MKS gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "CANable2-MKS"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANable2-MKS firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 160000000
+
+	#define CAN_CLOCK_SPEED			 80000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
+
 #else
 	#error please define BOARD
 #endif

@@ -323,6 +323,9 @@ set(TGTG0B1_LIST
 	"candleLightFD"
 	"nucleo_g0b1re"
 )
+set(TGTG431_LIST
+	"CANable2_MKS"
+)
 
 foreach (TGTNAME IN LISTS TGTF042_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)

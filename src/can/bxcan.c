@@ -292,6 +292,14 @@ uint32_t can_get_error_status(can_data_t *channel)
 	return err;
 }
 
+void can_manage_bus_off_recovery(can_data_t *channel, uint32_t err)
+{
+	(void)channel;
+	(void)err;
+
+	// No-op for bxcan as the hardware recovers from bus-off automatically
+}
+
 bool can_has_error_status_changed(uint32_t last_err, uint32_t curr_err)
 {
 	uint8_t curr_lec = BXCAN_ESR_LEC(curr_err);

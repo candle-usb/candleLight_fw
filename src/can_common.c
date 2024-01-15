@@ -120,26 +120,30 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	led_indicate_trx(&channel->leds, LED_RX);
 }
 
-// If there are frames to receive, don't report any error frames. The
-// best we can localize the errors to is "after the last successfully
-// received frame", so wait until we get there. LEC will hold some error
-// to report even if multiple pass by.
 void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
 	struct gs_host_frame_object *frame_object;
 
+	uint32_t curr_err = can_get_error_status(channel);
+
+	bool was_irq_enabled = disable_irq();
+	can_manage_bus_off_recovery(channel, curr_err);
+	restore_irq(was_irq_enabled);
+
+	// If there are frames to receive, don't report any error frames. The
+	// best we can localize the errors to is "after the last successfully
+	// received frame", so wait until we get there. LEC will hold some error
+	// to report even if multiple pass by.
 	if (can_is_rx_pending(channel)) {
 		return;
 	}
-
-	uint32_t curr_err = can_get_error_status(channel);
 
 	if (!can_has_error_status_changed(channel->last_err, curr_err)) {
 		// No change in error status, nothing to report
 		goto no_change;
 	}
 
-	bool was_irq_enabled = disable_irq();
+	was_irq_enabled = disable_irq();
 	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
 											struct gs_host_frame_object,
 											list);

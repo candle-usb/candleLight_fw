@@ -88,6 +88,12 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame);
  */
 uint32_t can_get_error_status(can_data_t *channel);
 
+/** Manage controller bus-off recovery (if required)
+ *  @param channel : Can channel to manage
+ *  @param err : current channel error status
+ */
+void can_manage_bus_off_recovery(can_data_t *channel, uint32_t err);
+
 /** Check if error status has changed, filtering the LEC field
  * @param last_err : holds the contents of the error status register
  * @param curr_err : holds the contents of the error status register

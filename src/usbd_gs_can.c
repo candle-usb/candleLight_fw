@@ -839,7 +839,7 @@ void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)
 		return;
 
 	was_irq_enabled = disable_irq();
-	list_add(&hcan->to_host_buf->list, &hcan->list_frame_pool);
+	list_add(&hcan->to_host_buf->list, &hcan->list_to_host);
 	hcan->to_host_buf = NULL;
 	restore_irq(was_irq_enabled);
 }

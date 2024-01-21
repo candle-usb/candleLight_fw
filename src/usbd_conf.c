@@ -134,27 +134,35 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	pdev->pData = &hpcd_USB_FS;
 
 	hpcd_USB_FS.Instance = USB_INTERFACE;
+
+	// Common to all devices
 	hpcd_USB_FS.Init.dev_endpoints = 5U;
 	hpcd_USB_FS.Init.speed = PCD_SPEED_FULL;
 	hpcd_USB_FS.Init.ep0_mps = EP_MPS_64;
 	hpcd_USB_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+	hpcd_USB_FS.Init.Sof_enable = DISABLE;
 	hpcd_USB_FS.Init.low_power_enable = DISABLE;
 	hpcd_USB_FS.Init.lpm_enable = DISABLE;
+	hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+
 #if defined(STM32F4)
+	// See: libs/STM32_HAL/include/stm32f4xx/stm32f4xx_ll_usb.h
+	hpcd_USB_FS.Init.Host_channels = 0U;
 	hpcd_USB_FS.Init.dma_enable = DISABLE;
-	hpcd_USB_FS.Init.Sof_enable = DISABLE;
 	hpcd_USB_FS.Init.vbus_sensing_enable = DISABLE;
 	hpcd_USB_FS.Init.use_dedicated_ep1 = DISABLE;
+	hpcd_USB_FS.Init.use_external_vbus = DISABLE;
+
 #elif defined(STM32G0)
-	hpcd_USB_FS.Init.Sof_enable = DISABLE;
-	hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+	// See: libs/STM32_HAL/include/stm32g0xx/stm32g0xx_ll_usb.h
+	hpcd_USB_FS.Init.Host_channels = 0U;
+	hpcd_USB_FS.Init.dma_enable = DISABLE;
 	hpcd_USB_FS.Init.vbus_sensing_enable = DISABLE;
 	hpcd_USB_FS.Init.bulk_doublebuffer_enable = ENABLE;
 	hpcd_USB_FS.Init.iso_singlebuffer_enable = DISABLE;
-#elif defined(STM32G4)
-	hpcd_USB_FS.Init.Sof_enable = DISABLE;
-	hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+
 #endif
+
 	HAL_PCD_Init(&hpcd_USB_FS);
 	/*
 	* PMA layout

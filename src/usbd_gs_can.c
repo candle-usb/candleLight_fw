@@ -286,6 +286,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	struct gs_device_termination_state term_state;
 	can_data_t *channel = NULL;
+	uint32_t timestamp_us;
 	const void *src = NULL;
 	size_t len;
 
@@ -335,8 +336,9 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(USBD_GS_CAN_dconf);
 			break;
 		case GS_USB_BREQ_TIMESTAMP:
-			src = &hcan->sof_timestamp_us;
-			len = sizeof(hcan->sof_timestamp_us);
+			timestamp_us = timer_get();
+			src = &timestamp_us;
+			len = sizeof(timestamp_us);
 			break;
 		case GS_USB_BREQ_IDENTIFY:
 			len = sizeof(struct gs_identify_mode);
@@ -742,13 +744,6 @@ out_prepare_receive:
 	return USBD_OK;
 }
 
-static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
-{
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-	hcan->sof_timestamp_us = timer_get();
-	return USBD_OK;
-}
-
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 {
 	/*
@@ -788,7 +783,7 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 	.EP0_RxReady = USBD_GS_CAN_EP0_RxReady,
 	.DataIn = USBD_GS_CAN_DataIn,
 	.DataOut = USBD_GS_CAN_DataOut,
-	.SOF = USBD_GS_CAN_SOF,
+	.SOF = NULL,
 	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,

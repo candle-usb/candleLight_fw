@@ -87,7 +87,6 @@ typedef struct {
 	bool dfu_detach_requested;
 
 	bool timestamps_enabled;
-	uint32_t sof_timestamp_us;
 
 	bool pad_pkts_to_max_pkt_size;
 

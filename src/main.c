@@ -99,8 +99,7 @@ int main(void)
 	USBD_Start(&hUSB);
 
 	while (1) {
-		USBD_GS_CAN_ReceiveFromHost(&hUSB);
-		USBD_GS_CAN_SendToHost(&hUSB);
+		USBD_GS_CAN_SendReceiveFromHost(&hUSB);
 
 		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
 			can_data_t *channel = &hGS_CAN.channels[i];

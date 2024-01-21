@@ -113,9 +113,7 @@ typedef struct {
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
-void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev);
-void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev);
+void USBD_GS_CAN_SendReceiveFromHost(USBD_HandleTypeDef *pdev);
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
-
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev);

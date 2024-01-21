@@ -245,7 +245,7 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	assert_basic(pdev->pClassData);
 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN,	 USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 	USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
-	USBD_GS_CAN_PrepareReceive(pdev);
+	USBD_GS_CAN_ReceiveFromHost(pdev);
 
 	return USBD_OK;
 

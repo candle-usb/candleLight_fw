@@ -23,6 +23,13 @@ Beware also the smaller packages in the F042 series which map a USB and CAN_TX s
 This implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
 
+## Limitations
+
+STM32G0B1-based devices are not yet supported by the mainline
+firmware. Support for these devices is discussed in
+https://github.com/candle-usb/candleLight_fw/pull/139 and
+https://github.com/candle-usb/candleLight_fw/pull/176.
+
 ## Known issues
 
 Be aware that there is a bug in the gs_usb module in linux<4.5 that can crash the kernel on device removal.
@@ -89,14 +96,14 @@ Flashing candleLight on linux: (source: [https://cantact.io/cantact/users-guide.
 
 
 
-## Associating persistent device names 
+## Associating persistent device names
 With udev on linux, it is possible to assign a device name to a certain serial number (see udev manpages and [systemd.link](https://www.freedesktop.org/software/systemd/man/systemd.link.html)).
 This can be useful when multiple devices are connected at the same time.
 
 An example configuration :
 
 ```
- $ cat /etc/systemd/network/60-persistent-candev.link 
+ $ cat /etc/systemd/network/60-persistent-candev.link
 [Match]
 Property=ID_MODEL=cannette_gs_usb ID_SERIAL_SHORT="003800254250431420363230"
 
@@ -114,7 +121,7 @@ Name=cannette99
  $ ip a
 ....
 59: cannette99: <NOARP,ECHO> mtu 16 qdisc noop state DOWN group default qlen 10
-    link/can 
+    link/can
  $
 ```
 
@@ -122,7 +129,7 @@ Name=cannette99
 ## Hacking
 ### Submitting pull requests
 - Each commit must not contain unrelated changes (e.g. functional and whitespace changes)
-- Project must be compilable (with default options) and functional, at each commit. 
+- Project must be compilable (with default options) and functional, at each commit.
 - Squash any "WIP" or other temporary commits.
 - Make sure your editor is not messing up whitespace or line-ends.
 - We include both a `.editorconfig` and `uncrustify.cfg` which should help with whitespace.

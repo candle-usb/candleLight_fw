@@ -33,16 +33,17 @@ THE SOFTWARE.
 #define LED_UPDATE_INTERVAL 10  // number of ticks from HAL_GetTick
 
 typedef enum {
-	led_mode_off,
-	led_mode_normal,
-	led_mode_warn,
-	led_mode_error,
-	led_mode_sequence
+	LED_MODE_OFF,
+	LED_MODE_NORMAL,
+	LED_MODE_WARN,
+	LED_MODE_ERROR,
+	LED_MODE_SEQUENCE
 } led_mode_t;
 
 typedef enum {
-	led_rx = 0, //will also index into array led_state[]
-	led_tx
+	LED_RX = 0, //will also index into array led_state[]
+	LED_TX,
+	LED_MAX
 } led_num_t;
 
 typedef struct {
@@ -68,7 +69,7 @@ typedef struct {
 	uint32_t t_sequence_next;
 	int32_t seq_num_repeat;
 
-	led_state_t led_state[2];
+	led_state_t led_state[LED_MAX];
 } led_data_t;
 
 

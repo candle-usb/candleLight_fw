@@ -45,7 +45,11 @@ THE SOFTWARE.
 		 sizeof(struct gs_device_mode), \
 		 sizeof(struct gs_identify_mode), \
 		 sizeof(struct gs_device_termination_state))
+#ifdef CONFIG_CANFD
+#define CAN_DATA_MAX_PACKET_SIZE 64    /* Endpoint IN & OUT Packet size */
+#else
 #define CAN_DATA_MAX_PACKET_SIZE 32    /* Endpoint IN & OUT Packet size */
+#endif
 #define USB_CAN_CONFIG_DESC_SIZ	 50
 #define USBD_GS_CAN_VENDOR_CODE	 0x20
 #define DFU_INTERFACE_NUM		 1
@@ -53,15 +57,22 @@ THE SOFTWARE.
 
 extern USBD_ClassTypeDef USBD_GS_CAN;
 
+#ifdef CONFIG_CANFD
+#define GS_HOST_FRAME_SIZE struct_size((struct gs_host_frame *)NULL, canfd_ts, 1)
+#else
+#define GS_HOST_FRAME_SIZE struct_size((struct gs_host_frame *)NULL, classic_can_ts, 1)
+#endif
+
 struct gs_host_frame_object {
 	struct list_head list;
-	struct gs_host_frame frame;
+	union {
+		uint8_t _buf[GS_HOST_FRAME_SIZE];
+		struct gs_host_frame frame;
+	};
 };
 
 typedef struct {
 	uint8_t __aligned(4) ep0_buf[GS_CAN_EP0_BUF_SIZE];
-
-	__IO uint32_t TxState;
 
 	USBD_SetupReqTypedef last_setup_request;
 
@@ -69,13 +80,13 @@ typedef struct {
 	struct list_head list_to_host;
 
 	struct gs_host_frame_object *from_host_buf;
+	struct gs_host_frame_object *to_host_buf;
 
 	can_data_t channels[NUM_CAN_CHANNEL];
 
 	bool dfu_detach_requested;
 
 	bool timestamps_enabled;
-	uint32_t sof_timestamp_us;
 
 	bool pad_pkts_to_max_pkt_size;
 
@@ -93,14 +104,18 @@ typedef struct {
 // RX FIFO size chosen according to reference manual RM0368 which suggests
 // using (largest packet size / 4) + 1
 # define USB_RX_FIFO_SIZE ((256U / 4U) + 1U)
+#elif defined(STM32G0)
+# define USB_INTERFACE	  USB_DRD_FS
+# define USB_INTERRUPT	  USB_UCPD1_2_IRQn
+#elif defined(STM32G4)
+# define USB_INTERFACE USB
+# define USB_INTERRUPT  USB_LP_IRQn
 #endif
 
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
-bool USBD_GS_CAN_TxReady(USBD_HandleTypeDef *pdev);
-void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev);
+void USBD_GS_CAN_SendReceiveFromHost(USBD_HandleTypeDef *pdev);
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 bool USBD_GS_CAN_CustomInterfaceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
-
 bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev);

@@ -31,22 +31,33 @@ THE SOFTWARE.
 #include "device.h"
 #include "hal_include.h"
 
-void device_can_init(can_data_t *hcan, CAN_TypeDef *instance) {
-	// XXX TODO
-	while (1);
-	return;
-}
-
 void device_sysclock_config(void) {
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
+	__HAL_RCC_SYSCFG_CLK_ENABLE();
+	__HAL_RCC_PWR_CLK_ENABLE();
+
 	/** Configure the main internal regulator output voltage
 	*/
 	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+
 	/** Initializes the RCC Oscillators according to the specified parameters
 	* in the RCC_OscInitTypeDef structure.
 	*/
+#if defined(BOARD_candleLightFD)
+	/* CandleLightFD has an externel 8MHz crystal */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_HSI48;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+	RCC_OscInitStruct.PLL.PLLN = 40;
+	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV5;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
+	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV8;
+#else
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
 	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
 	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
@@ -55,10 +66,11 @@ void device_sysclock_config(void) {
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
 	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-	RCC_OscInitStruct.PLL.PLLN = 8;
+	RCC_OscInitStruct.PLL.PLLN = 20;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
+	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV5;
+#endif
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 	/** Initializes the CPU, AHB and APB buses clocks
 	*/

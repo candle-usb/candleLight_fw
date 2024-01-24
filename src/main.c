@@ -28,7 +28,9 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "board.h"
 #include "can.h"
+#include "can_common.h"
 #include "config.h"
 #include "device.h"
 #include "dfu.h"
@@ -44,18 +46,35 @@ THE SOFTWARE.
 #include "usbd_gs_can.h"
 #include "util.h"
 
-void HAL_MspInit(void);
-static void SystemClock_Config(void);
-
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
+
+static void DisableUSBSOFInterrupt(USBD_HandleTypeDef *pdev)
+{
+#if defined(USB) || defined(USB_DRD_FS)
+	// F0, G0 and G4 do not respect sof_enable field in their init structures
+	PCD_HandleTypeDef *pcd = (PCD_HandleTypeDef*)pdev->pData;
+
+#if defined(USB_DRD_FS)
+	// G0
+	USB_DRD_TypeDef *usb = pcd->Instance;
+#else
+	// F0 and G4
+	USB_TypeDef *usb = pcd->Instance;
+#endif
+
+	usb->CNTR &= ~(USB_CNTR_SOFM | USB_CNTR_ESOFM);
+#else
+	(void)pdev;
+#endif
+}
 
 int main(void)
 {
 	HAL_Init();
-	SystemClock_Config();
+	device_sysclock_config();
 
-	gpio_init();
+	config.setup(&hGS_CAN);
 	timer_init();
 
 	INIT_LIST_HEAD(&hGS_CAN.list_frame_pool);
@@ -66,149 +85,52 @@ int main(void)
 	}
 
 	for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+		const struct BoardChannelConfig *channel_config = &config.channels[i];
+		const struct LEDConfig *led_config = channel_config->leds;
 		can_data_t *channel = &hGS_CAN.channels[i];
+
+		channel->nr = i;
 
 		INIT_LIST_HEAD(&channel->list_from_host);
 
 		led_init(&channel->leds,
-				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
-				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
+				 led_config[LED_RX].port, led_config[LED_RX].pin, led_config[LED_RX].active_high,
+				 led_config[LED_TX].port, led_config[LED_TX].pin, led_config[LED_TX].active_high);
 
 		/* nice wake-up pattern */
 		for (uint8_t j = 0; j < 10; j++) {
-			HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
+			HAL_GPIO_TogglePin(led_config[LED_RX].port, led_config[LED_RX].pin);
 			HAL_Delay(50);
-			HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
+			HAL_GPIO_TogglePin(led_config[LED_TX].port, led_config[LED_TX].pin);
 		}
 
-		led_set_mode(&channel->leds, led_mode_off);
+		led_set_mode(&channel->leds, LED_MODE_OFF);
 
-		can_init(channel, CAN_INTERFACE);
+		can_init(channel, config.channels[i].interface);
 		can_disable(channel);
-
-#ifdef CAN_S_GPIO_Port
-		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_RESET);
-#endif
 	}
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hGS_CAN, &hUSB);
 	USBD_Start(&hUSB);
+	DisableUSBSOFInterrupt(&hUSB);
 
 	while (1) {
-		can_data_t *channel = &hGS_CAN.channels[0];
-		struct gs_host_frame_object *frame_object;
+		USBD_GS_CAN_SendReceiveFromHost(&hUSB);
 
-		bool was_irq_enabled = disable_irq();
-		frame_object = list_first_entry_or_null(&channel->list_from_host,
-												struct gs_host_frame_object,
-												list);
-		if (frame_object) { // send CAN message from host
-			struct gs_host_frame *frame = &frame_object->frame;
+		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+			can_data_t *channel = &hGS_CAN.channels[i];
 
-			list_del(&frame_object->list);
-			restore_irq(was_irq_enabled);
+			CAN_SendFrame(&hGS_CAN, channel);
+			CAN_ReceiveFrame(&hGS_CAN, channel);
+			CAN_HandleError(&hGS_CAN, channel);
 
-			if (can_send(channel, frame)) {
-				// Echo sent frame back to host
-				frame->flags = 0x0;
-				frame->reserved = 0x0;
-				frame->timestamp_us = timer_get();
-
-				list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-
-				led_indicate_trx(&channel->leds, led_tx);
-			} else {
-				list_add_locked(&frame_object->list, &channel->list_from_host);
-			}
-		} else {
-			restore_irq(was_irq_enabled);
+			led_update(&channel->leds);
 		}
-
-		if (USBD_GS_CAN_TxReady(&hUSB)) {
-			USBD_GS_CAN_SendToHost(&hUSB);
-		}
-
-		if (can_is_rx_pending(channel)) {
-			bool was_irq_enabled = disable_irq();
-			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
-													struct gs_host_frame_object,
-													list);
-			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
-
-				list_del(&frame_object->list);
-				restore_irq(was_irq_enabled);
-
-				if (can_receive(channel, frame)) {
-
-					frame->timestamp_us = timer_get();
-					frame->echo_id = 0xFFFFFFFF; // not a echo frame
-					frame->channel = 0;
-					frame->flags = 0;
-					frame->reserved = 0;
-
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-
-					led_indicate_trx(&channel->leds, led_rx);
-				} else {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
-				}
-			} else {
-				restore_irq(was_irq_enabled);
-			}
-			// If there are frames to receive, don't report any error frames. The
-			// best we can localize the errors to is "after the last successfully
-			// received frame", so wait until we get there. LEC will hold some error
-			// to report even if multiple pass by.
-		} else {
-			uint32_t can_err = can_get_error_status(channel);
-
-			bool was_irq_enabled = disable_irq();
-			frame_object = list_first_entry_or_null(&hGS_CAN.list_frame_pool,
-													struct gs_host_frame_object,
-													list);
-			if (frame_object) {
-				struct gs_host_frame *frame = &frame_object->frame;
-
-				list_del(&frame_object->list);
-				restore_irq(was_irq_enabled);
-
-				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(channel, frame, can_err)) {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_to_host);
-				} else {
-					list_add_tail_locked(&frame_object->list, &hGS_CAN.list_frame_pool);
-				}
-			} else {
-				restore_irq(was_irq_enabled);
-			}
-		}
-
-		led_update(&channel->leds);
 
 		if (USBD_GS_CAN_DfuDetachRequested(&hUSB)) {
 			dfu_run_bootloader();
 		}
-
 	}
-}
-
-void HAL_MspInit(void)
-{
-	__HAL_RCC_SYSCFG_CLK_ENABLE();
-#if defined(STM32F4)
-	__HAL_RCC_PWR_CLK_ENABLE();
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-#elif defined(STM32G0)
-	__HAL_RCC_PWR_CLK_ENABLE();
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
-#endif
-	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-}
-
-void SystemClock_Config(void)
-{
-	device_sysclock_config();
 }

@@ -24,18 +24,47 @@
 
  */
 
+#include "board.h"
 #include "can.h"
 #include "config.h"
 #include "device.h"
 #include "gpio.h"
 #include "gs_usb.h"
 #include "hal_include.h"
+#include "timer.h"
+
+const struct gs_device_bt_const CAN_btconst = {
+	.feature =
+		GS_CAN_FEATURE_LISTEN_ONLY |
+		GS_CAN_FEATURE_LOOP_BACK |
+		GS_CAN_FEATURE_HW_TIMESTAMP |
+		GS_CAN_FEATURE_IDENTIFY |
+		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+#ifdef TERM_Pin
+		| GS_CAN_FEATURE_TERMINATION
+#endif
+	,
+	.fclk_can = CAN_CLOCK_SPEED,
+	.tseg1_min = 1,
+	.tseg1_max = 16,
+	.tseg2_min = 1,
+	.tseg2_max = 8,
+	.sjw_max = 4,
+	.brp_min = 1,
+	.brp_max = 1024,
+	.brp_inc = 1,
+};
 
 // The STM32F0 only has one CAN interface, define it as CAN1 as
 // well, so it doesn't need to be handled separately.
 #if !defined(CAN1) && defined(CAN)
 #define CAN1 CAN
 #endif
+
+// Define helpers for accessing last error code field
+#define BXCAN_ESR_LEC_MASK (0x70)
+#define BXCAN_ESR_LEC_SHIFT (4)
+#define BXCAN_ESR_LEC(esr) (((esr) & BXCAN_ESR_LEC_MASK) >> BXCAN_ESR_LEC_SHIFT)
 
 // Completely reset the CAN pheriperal, including bus-state and error counters
 static void rcc_reset(CAN_TypeDef *instance)
@@ -55,44 +84,45 @@ static void rcc_reset(CAN_TypeDef *instance)
 #endif
 }
 
-void can_init(can_data_t *hcan, CAN_TypeDef *instance)
+void can_init(can_data_t *channel, CAN_TypeDef *instance)
 {
-	device_can_init(hcan, instance);
+	device_can_init(channel, instance);
 }
 
-bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
+void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
 {
-	if (  (brp>0) && (brp<=1024)
-	   && (phase_seg1>0) && (phase_seg1<=16)
-	   && (phase_seg2>0) && (phase_seg2<=8)
-	   && (sjw>0) && (sjw<=4)
-		  ) {
-		hcan->brp = brp & 0x3FF;
-		hcan->phase_seg1 = phase_seg1;
-		hcan->phase_seg2 = phase_seg2;
-		hcan->sjw = sjw;
-		return true;
-	} else {
-		return false;
-	}
+	const uint8_t tseg1 = timing->prop_seg + timing->phase_seg1;
+
+	channel->brp = timing->brp;
+	channel->phase_seg1 = tseg1;
+	channel->phase_seg2 = timing->phase_seg2;
+	channel->sjw = timing->sjw;
 }
 
-void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot)
+void can_enable(can_data_t *channel, uint32_t mode)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
 	uint32_t mcr = CAN_MCR_INRQ
 				   | CAN_MCR_ABOM
-				   | CAN_MCR_TXFP
-				   | (one_shot ? CAN_MCR_NART : 0);
+				   | CAN_MCR_TXFP;
 
-	uint32_t btr = ((uint32_t)(hcan->sjw-1)) << 24
-				   | ((uint32_t)(hcan->phase_seg1-1)) << 16
-				   | ((uint32_t)(hcan->phase_seg2-1)) << 20
-				   | (hcan->brp - 1)
-				   | (loop_back ? CAN_MODE_LOOPBACK : 0)
-				   | (listen_only ? CAN_MODE_SILENT : 0);
+	if (mode & GS_CAN_MODE_ONE_SHOT) {
+		mcr |= CAN_MCR_NART;
+	}
 
+	uint32_t btr = ((uint32_t)(channel->sjw-1)) << 24
+				   | ((uint32_t)(channel->phase_seg1-1)) << 16
+				   | ((uint32_t)(channel->phase_seg2-1)) << 20
+				   | (channel->brp - 1);
+
+	if (mode & GS_CAN_MODE_LISTEN_ONLY) {
+		btr |= CAN_MODE_SILENT;
+	}
+
+	if (mode & GS_CAN_MODE_LOOP_BACK) {
+		btr |= CAN_MODE_LOOPBACK;
+	}
 
 	// Reset CAN peripheral
 	can->MCR |= CAN_MCR_RESET;
@@ -123,38 +153,37 @@ void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_sho
 	can->FA1R |= filter_bit;         // enable filter
 	can->FMR &= ~CAN_FMR_FINIT;
 
-#ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, !GPIO_INIT_STATE(nCANSTBY_Active_High));
-#endif
+	if (config.phy_power_set) config.phy_power_set(channel, true);
 }
 
-void can_disable(can_data_t *hcan)
+void can_disable(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
-#ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
-#endif
+	CAN_TypeDef *can = channel->instance;
+
+	if (config.phy_power_set) config.phy_power_set(channel, false);
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 
-bool can_is_enabled(can_data_t *hcan)
+bool can_is_enabled(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 	return (can->MCR & CAN_MCR_INRQ) == 0;
 }
 
-bool can_is_rx_pending(can_data_t *hcan)
+bool can_is_rx_pending(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
-bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
+bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
-	if (can_is_rx_pending(hcan)) {
+	if (can_is_rx_pending(channel)) {
 		CAN_FIFOMailBox_TypeDef *fifo = &can->sFIFOMailBox[0];
+
+		rx_frame->classic_can_ts->timestamp_us = timer_get();
 
 		if (fifo->RIR &  CAN_RI0R_IDE) {
 			rx_frame->can_id = CAN_EFF_FLAG | ((fifo->RIR >> 3) & 0x1FFFFFFF);
@@ -167,15 +196,17 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 		}
 
 		rx_frame->can_dlc = fifo->RDTR & CAN_RDT0R_DLC;
+		rx_frame->channel = channel->nr;
+		rx_frame->flags = 0;
 
-		rx_frame->data[0] = (fifo->RDLR >>  0) & 0xFF;
-		rx_frame->data[1] = (fifo->RDLR >>  8) & 0xFF;
-		rx_frame->data[2] = (fifo->RDLR >> 16) & 0xFF;
-		rx_frame->data[3] = (fifo->RDLR >> 24) & 0xFF;
-		rx_frame->data[4] = (fifo->RDHR >>  0) & 0xFF;
-		rx_frame->data[5] = (fifo->RDHR >>  8) & 0xFF;
-		rx_frame->data[6] = (fifo->RDHR >> 16) & 0xFF;
-		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
+		rx_frame->classic_can->data[0] = (fifo->RDLR >>  0) & 0xFF;
+		rx_frame->classic_can->data[1] = (fifo->RDLR >>  8) & 0xFF;
+		rx_frame->classic_can->data[2] = (fifo->RDLR >> 16) & 0xFF;
+		rx_frame->classic_can->data[3] = (fifo->RDLR >> 24) & 0xFF;
+		rx_frame->classic_can->data[4] = (fifo->RDHR >>  0) & 0xFF;
+		rx_frame->classic_can->data[5] = (fifo->RDHR >>  8) & 0xFF;
+		rx_frame->classic_can->data[6] = (fifo->RDHR >> 16) & 0xFF;
+		rx_frame->classic_can->data[7] = (fifo->RDHR >> 24) & 0xFF;
 
 		can->RF0R |= CAN_RF0R_RFOM0;         // release FIFO
 
@@ -185,9 +216,9 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 	}
 }
 
-static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
+static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
 	uint32_t tsr = can->TSR;
 	if ( tsr & CAN_TSR_TME0 ) {
@@ -201,9 +232,9 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *hcan)
 	}
 }
 
-bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
+bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 {
-	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(hcan);
+	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(channel);
 	if (mb != 0) {
 
 		/* first, clear transmission request */
@@ -223,19 +254,25 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 		mb->TDTR |= frame->can_dlc & 0x0F;
 
 		mb->TDLR =
-			( frame->data[3] << 24 )
-			| ( frame->data[2] << 16 )
-			| ( frame->data[1] <<  8 )
-			| ( frame->data[0] <<  0 );
+			( frame->classic_can->data[3] << 24 )
+			| ( frame->classic_can->data[2] << 16 )
+			| ( frame->classic_can->data[1] <<  8 )
+			| ( frame->classic_can->data[0] <<  0 );
 
 		mb->TDHR =
-			( frame->data[7] << 24 )
-			| ( frame->data[6] << 16 )
-			| ( frame->data[5] <<  8 )
-			| ( frame->data[4] <<  0 );
+			( frame->classic_can->data[7] << 24 )
+			| ( frame->classic_can->data[6] << 16 )
+			| ( frame->classic_can->data[5] <<  8 )
+			| ( frame->classic_can->data[4] <<  0 );
 
 		/* request transmission */
 		mb->TIR |= CAN_TI0R_TXRQ;
+
+		/*
+		 * struct gs_host_frame in CAN-2.0 mode doesn't use flags from
+		 * Host -> Device, so initialize here to 0.
+		 */
+		frame->flags = 0;
 
 		return true;
 	} else {
@@ -243,9 +280,9 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame)
 	}
 }
 
-uint32_t can_get_error_status(can_data_t *hcan)
+uint32_t can_get_error_status(can_data_t *channel)
 {
-	CAN_TypeDef *can = hcan->instance;
+	CAN_TypeDef *can = channel->instance;
 
 	uint32_t err = can->ESR;
 
@@ -255,34 +292,55 @@ uint32_t can_get_error_status(can_data_t *hcan)
 	return err;
 }
 
+void can_manage_bus_off_recovery(can_data_t *channel, uint32_t err)
+{
+	(void)channel;
+	(void)err;
+
+	// No-op for bxcan as the hardware recovers from bus-off automatically
+}
+
+bool can_has_error_status_changed(uint32_t last_err, uint32_t curr_err)
+{
+	uint8_t curr_lec = BXCAN_ESR_LEC(curr_err);
+
+	if ((0x0 != curr_lec) && (0x7 != curr_lec))
+	{
+		// An error is being reported in last error code field
+		return true;
+	}
+
+	// Error status reported by any other field has changed
+	return (last_err & ~BXCAN_ESR_LEC_MASK) != (curr_err & ~BXCAN_ESR_LEC_MASK);
+}
+
 static bool status_is_active(uint32_t err)
 {
 	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
 }
 
-bool can_parse_error_status(can_data_t *hcan, struct gs_host_frame *frame, uint32_t err)
+bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t last_err, uint32_t curr_err)
 {
-	uint32_t last_err = hcan->reg_esr_old;
+	(void)channel;
+
 	/* We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final
 	 * result. */
 	bool should_send = false;
 
-	hcan->reg_esr_old = err;
-
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;
 	frame->can_dlc = CAN_ERR_DLC;
-	frame->data[0] = CAN_ERR_LOSTARB_UNSPEC;
-	frame->data[1] = CAN_ERR_CRTL_UNSPEC;
-	frame->data[2] = CAN_ERR_PROT_UNSPEC;
-	frame->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
-	frame->data[4] = CAN_ERR_TRX_UNSPEC;
-	frame->data[5] = 0;
-	frame->data[6] = 0;
-	frame->data[7] = 0;
+	frame->classic_can->data[0] = CAN_ERR_LOSTARB_UNSPEC;
+	frame->classic_can->data[1] = CAN_ERR_CRTL_UNSPEC;
+	frame->classic_can->data[2] = CAN_ERR_PROT_UNSPEC;
+	frame->classic_can->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
+	frame->classic_can->data[4] = CAN_ERR_TRX_UNSPEC;
+	frame->classic_can->data[5] = 0;
+	frame->classic_can->data[6] = 0;
+	frame->classic_can->data[7] = 0;
 
-	if (err & CAN_ESR_BOFF) {
+	if (curr_err & CAN_ESR_BOFF) {
 		if (!(last_err & CAN_ESR_BOFF)) {
 			/* We transitioned to bus-off. */
 			frame->can_id |= CAN_ERR_BUSOFF;
@@ -298,43 +356,43 @@ bool can_parse_error_status(can_data_t *hcan, struct gs_host_frame *frame, uint3
 	}
 
 	/* We transitioned from passive/bus-off to active, so report the edge. */
-	if (!status_is_active(last_err) && status_is_active(err)) {
+	if (!status_is_active(last_err) && status_is_active(curr_err)) {
 		frame->can_id |= CAN_ERR_CRTL;
-		frame->data[1] |= CAN_ERR_CRTL_ACTIVE;
+		frame->classic_can->data[1] |= CAN_ERR_CRTL_ACTIVE;
 		should_send = true;
 	}
 
-	uint8_t tx_error_cnt = (err>>16) & 0xFF;
-	uint8_t rx_error_cnt = (err>>24) & 0xFF;
+	uint8_t tx_error_cnt = (curr_err>>16) & 0xFF;
+	uint8_t rx_error_cnt = (curr_err>>24) & 0xFF;
 	/* The Linux sja1000 driver puts these counters here. Seems like as good a
 	 * place as any. */
-	frame->data[6] = tx_error_cnt;
-	frame->data[7] = rx_error_cnt;
+	frame->classic_can->data[6] = tx_error_cnt;
+	frame->classic_can->data[7] = rx_error_cnt;
 
-	if (err & CAN_ESR_EPVF) {
+	if (curr_err & CAN_ESR_EPVF) {
 		if (!(last_err & CAN_ESR_EPVF)) {
 			frame->can_id |= CAN_ERR_CRTL;
-			frame->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
+			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
 			should_send = true;
 		}
-	} else if (err & CAN_ESR_EWGF) {
+	} else if (curr_err & CAN_ESR_EWGF) {
 		if (!(last_err & CAN_ESR_EWGF)) {
 			frame->can_id |= CAN_ERR_CRTL;
-			frame->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
+			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
 			should_send = true;
 		}
 	}
 
-	uint8_t lec = (err>>4) & 0x07;
+	uint8_t lec = BXCAN_ESR_LEC(curr_err);
 	switch (lec) {
 		case 0x01: /* stuff error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_STUFF;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
 			should_send = true;
 			break;
 		case 0x02: /* form error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_FORM;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
 			should_send = true;
 			break;
 		case 0x03: /* ack error */
@@ -343,17 +401,17 @@ bool can_parse_error_status(can_data_t *hcan, struct gs_host_frame *frame, uint3
 			break;
 		case 0x04: /* bit recessive error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_BIT1;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
 			should_send = true;
 			break;
 		case 0x05: /* bit dominant error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[2] |= CAN_ERR_PROT_BIT0;
+			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
 			should_send = true;
 			break;
 		case 0x06: /* CRC error */
 			frame->can_id |= CAN_ERR_PROT;
-			frame->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
+			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
 			should_send = true;
 			break;
 		default: /* 0=no error, 7=no change */

@@ -29,6 +29,8 @@ THE SOFTWARE.
 #include "can.h"
 #include "hal_include.h"
 
-void device_can_init(can_data_t *hcan, CAN_TypeDef *instance);
+#if !defined(STM32G0) && !defined(STM32G4)
+void device_can_init(can_data_t *channel, CAN_TypeDef *instance);
+#endif
 
 void device_sysclock_config(void);

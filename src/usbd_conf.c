@@ -134,24 +134,35 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	pdev->pData = &hpcd_USB_FS;
 
 	hpcd_USB_FS.Instance = USB_INTERFACE;
+
+	// Common to all devices
 	hpcd_USB_FS.Init.dev_endpoints = 5U;
 	hpcd_USB_FS.Init.speed = PCD_SPEED_FULL;
 	hpcd_USB_FS.Init.ep0_mps = EP_MPS_64;
 	hpcd_USB_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+	hpcd_USB_FS.Init.Sof_enable = DISABLE;
 	hpcd_USB_FS.Init.low_power_enable = DISABLE;
 	hpcd_USB_FS.Init.lpm_enable = DISABLE;
+	hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+
 #if defined(STM32F4)
+	// See: libs/STM32_HAL/include/stm32f4xx/stm32f4xx_ll_usb.h
+	hpcd_USB_FS.Init.Host_channels = 0U;
 	hpcd_USB_FS.Init.dma_enable = DISABLE;
-	hpcd_USB_FS.Init.Sof_enable = DISABLE;
 	hpcd_USB_FS.Init.vbus_sensing_enable = DISABLE;
 	hpcd_USB_FS.Init.use_dedicated_ep1 = DISABLE;
+	hpcd_USB_FS.Init.use_external_vbus = DISABLE;
+
 #elif defined(STM32G0)
-	hpcd_USB_FS.Init.Sof_enable = DISABLE;
-	hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+	// See: libs/STM32_HAL/include/stm32g0xx/stm32g0xx_ll_usb.h
+	hpcd_USB_FS.Init.Host_channels = 0U;
+	hpcd_USB_FS.Init.dma_enable = DISABLE;
 	hpcd_USB_FS.Init.vbus_sensing_enable = DISABLE;
 	hpcd_USB_FS.Init.bulk_doublebuffer_enable = ENABLE;
 	hpcd_USB_FS.Init.iso_singlebuffer_enable = DISABLE;
+
 #endif
+
 	HAL_PCD_Init(&hpcd_USB_FS);
 	/*
 	* PMA layout
@@ -166,7 +177,15 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x00, PCD_SNG_BUF, 0x18);
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x80, PCD_SNG_BUF, 0x58);
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x81, PCD_SNG_BUF, 0x98);
+#if defined(STM32G4)
+	// Double buffering doesn't seem to work properly on the G4, requiring further investigation.
+	// Linux kernel periodically reports "usb xmit fail", with EPIPE being returned in the URB (according to wireshark)
+	// Once 10 of the above failures occur, gs_can within the kernel has exhausted its transmit ids and locks up
+	// canfdtest also reports databyte mismatches occasionally during transfers
+	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x02, PCD_SNG_BUF, 0xD8);
+#else
 	HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, 0x02, PCD_DBL_BUF, 0x00D80158);
+#endif
 #elif defined(USB_OTG_FS)
 	HAL_PCDEx_SetRxFiFo((PCD_HandleTypeDef*)pdev->pData, USB_RX_FIFO_SIZE); // shared RX FIFO
 	HAL_PCDEx_SetTxFiFo((PCD_HandleTypeDef*)pdev->pData, 0U, 64U / 4U);     // 0x80, 64 bytes (div by 4 for words)

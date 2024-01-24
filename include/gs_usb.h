@@ -247,9 +247,7 @@ struct gs_device_bittiming {
 	u32 brp;
 } __packed __aligned(4);
 
-struct gs_device_bt_const {
-	u32 feature;
-	u32 fclk_can;
+struct can_bittiming_const {
 	u32 tseg1_min;
 	u32 tseg1_max;
 	u32 tseg2_min;
@@ -260,26 +258,54 @@ struct gs_device_bt_const {
 	u32 brp_inc;
 } __packed __aligned(4);
 
-struct gs_device_bt_const_extended {
+struct gs_device_bt_const {
 	u32 feature;
 	u32 fclk_can;
-	u32 tseg1_min;
-	u32 tseg1_max;
-	u32 tseg2_min;
-	u32 tseg2_max;
-	u32 sjw_max;
-	u32 brp_min;
-	u32 brp_max;
-	u32 brp_inc;
+	union {
+		struct can_bittiming_const btc;
+		struct {
+			u32 tseg1_min;
+			u32 tseg1_max;
+			u32 tseg2_min;
+			u32 tseg2_max;
+			u32 sjw_max;
+			u32 brp_min;
+			u32 brp_max;
+			u32 brp_inc;
+		};
+	};
+} __packed __aligned(4);
 
-	u32 dtseg1_min;
-	u32 dtseg1_max;
-	u32 dtseg2_min;
-	u32 dtseg2_max;
-	u32 dsjw_max;
-	u32 dbrp_min;
-	u32 dbrp_max;
-	u32 dbrp_inc;
+struct gs_device_bt_const_extended {
+	union {
+		struct {
+			u32 feature;
+			u32 fclk_can;
+			u32 tseg1_min;
+			u32 tseg1_max;
+			u32 tseg2_min;
+			u32 tseg2_max;
+			u32 sjw_max;
+			u32 brp_min;
+			u32 brp_max;
+			u32 brp_inc;
+		};
+		struct gs_device_bt_const device_bt_const;
+	};
+
+	union {
+		struct can_bittiming_const dbtc;
+		struct {
+			u32 dtseg1_min;
+			u32 dtseg1_max;
+			u32 dtseg2_min;
+			u32 dtseg2_max;
+			u32 dsjw_max;
+			u32 dbrp_min;
+			u32 dbrp_max;
+			u32 dbrp_inc;
+		};
+	};
 } __packed __aligned(4);
 
 struct gs_identify_mode {
@@ -288,6 +314,24 @@ struct gs_identify_mode {
 
 struct gs_device_termination_state {
 	u32 state;
+} __packed __aligned(4);
+
+struct classic_can {
+	u8 data[8];
+} __packed __aligned(4);
+
+struct classic_can_ts {
+	u8 data[8];
+	u32 timestamp_us;
+} __packed __aligned(4);
+
+struct canfd {
+	u8 data[64];
+} __packed __aligned(4);
+
+struct canfd_ts {
+	u8 data[64];
+	u32 timestamp_us;
 } __packed __aligned(4);
 
 struct gs_host_frame {
@@ -299,20 +343,10 @@ struct gs_host_frame {
 	u8 flags;
 	u8 reserved;
 
-	u8 data[8];
-
-	u32 timestamp_us;
-
-} __packed __aligned(4);
-
-struct gs_host_frame_canfd {
-	u32 echo_id;
-	u32 can_id;
-
-	u8 can_dlc;
-	u8 channel;
-	u8 flags;
-	u8 reserved;
-
-	u8 data[64];
+	union {
+		DECLARE_FLEX_ARRAY(struct classic_can,	  classic_can);
+		DECLARE_FLEX_ARRAY(struct classic_can_ts, classic_can_ts);
+		DECLARE_FLEX_ARRAY(struct canfd,		  canfd);
+		DECLARE_FLEX_ARRAY(struct canfd_ts,		  canfd_ts);
+	};
 } __packed __aligned(4);

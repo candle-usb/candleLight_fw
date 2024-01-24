@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "device.h"
 #include "hal_include.h"
 
-void device_can_init(can_data_t *hcan, CAN_TypeDef *instance) {
+void device_can_init(can_data_t *channel, CAN_TypeDef *instance) {
 	__HAL_RCC_CAN1_CLK_ENABLE();
 
 	GPIO_InitTypeDef itd;
@@ -41,11 +41,11 @@ void device_can_init(can_data_t *hcan, CAN_TypeDef *instance) {
 	itd.Alternate = GPIO_AF9_CAN1;
 	HAL_GPIO_Init(GPIOD, &itd);
 
-	hcan->instance   = instance;
-	hcan->brp        = 6;
-	hcan->sjw        = 1;
-	hcan->phase_seg1 = 12;
-	hcan->phase_seg2 = 1;
+	channel->instance   = instance;
+	channel->brp        = 6;
+	channel->sjw        = 1;
+	channel->phase_seg1 = 12;
+	channel->phase_seg2 = 1;
 	return;
 }
 
@@ -53,6 +53,16 @@ void device_sysclock_config(void) {
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
+	__HAL_RCC_SYSCFG_CLK_ENABLE();
+	__HAL_RCC_PWR_CLK_ENABLE();
+
+	/** Configure the main internal regulator output voltage
+	 */
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
 	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;

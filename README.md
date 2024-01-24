@@ -23,6 +23,13 @@ Beware also the smaller packages in the F042 series which map a USB and CAN_TX s
 This implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
 
+## Limitations
+
+STM32G0B1-based devices are not yet supported by the mainline
+firmware. Support for these devices is discussed in
+https://github.com/candle-usb/candleLight_fw/pull/139 and
+https://github.com/candle-usb/candleLight_fw/pull/176.
+
 ## Known issues
 
 Be aware that there is a bug in the gs_usb module in linux<4.5 that can crash the kernel on device removal.

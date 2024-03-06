@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "usbd_gs_can.h"
 
+int can_check_bittiming(const struct can_bittiming_const *btc, const struct gs_device_bittiming *timing);
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);

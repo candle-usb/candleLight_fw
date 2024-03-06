@@ -29,13 +29,18 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "config.h"
 #include "gs_usb.h"
 #include "hal_include.h"
 #include "led.h"
 #include "list.h"
 
 typedef struct {
+#if defined(STM32G0)
+	FDCAN_HandleTypeDef channel;
+#else
 	CAN_TypeDef *instance;
+#endif
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t reg_esr_old;
@@ -47,9 +52,28 @@ typedef struct {
 } can_data_t;
 
 extern const struct gs_device_bt_const CAN_btconst;
+extern const struct gs_device_bt_const_extended CAN_btconst_ext;
 
+#if defined(STM32G0)
+void can_init(can_data_t *channel, FDCAN_GlobalTypeDef *instance);
+#else
 void can_init(can_data_t *channel, CAN_TypeDef *instance);
-bool can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
+#endif
+void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
+
+#ifdef CONFIG_CANFD
+void can_set_data_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
+#else
+static inline bool can_set_data_bittiming(can_data_t *channel,
+										  const struct gs_device_bittiming *timing)
+{
+	(void)channel;
+	(void)timing;
+
+	return false;
+}
+#endif
+
 void can_enable(can_data_t *channel, uint32_t mode);
 void can_disable(can_data_t *channel);
 bool can_is_enabled(can_data_t *channel);

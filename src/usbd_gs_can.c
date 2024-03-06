@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <string.h>
 
 #include "can.h"
+#include "can_common.h"
 #include "compiler.h"
 #include "config.h"
 #include "gpio.h"
@@ -322,6 +323,14 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		}
 	}
 
+	if (!IS_ENABLED(CONFIG_CANFD)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_DATA_BITTIMING:
+			case GS_USB_BREQ_BT_CONST_EXT:
+				goto out_fail;
+		}
+	}
+
 	switch (req->bRequest) {
 		// Host -> Device
 		case GS_USB_BREQ_HOST_FORMAT:
@@ -348,8 +357,15 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_IDENTIFY:
 			len = sizeof(struct gs_identify_mode);
 			break;
+		case GS_USB_BREQ_DATA_BITTIMING:
+			len = sizeof(struct gs_device_bittiming);
+			break;
+		case GS_USB_BREQ_BT_CONST_EXT:
+			src = &CAN_btconst_ext;
+			len = sizeof(CAN_btconst_ext);
+			break;
 		case GS_USB_BREQ_SET_TERMINATION:
-			if (get_term(req->wValue) == GS_CAN_TERMINATION_UNSUPPORTED) {
+			if (get_term(channel) == GS_CAN_TERMINATION_UNSUPPORTED) {
 				goto out_fail;
 			}
 
@@ -358,7 +374,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_GET_TERMINATION: {
 			enum gs_can_termination_state state;
 
-			state = get_term(req->wValue);
+			state = get_term(channel);
 			if (state == GS_CAN_TERMINATION_UNSUPPORTED) {
 				goto out_fail;
 			}
@@ -381,6 +397,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_BITTIMING:
 		case GS_USB_BREQ_MODE:
 		case GS_USB_BREQ_IDENTIFY:
+		case GS_USB_BREQ_DATA_BITTIMING:
 		case GS_USB_BREQ_SET_TERMINATION:
 			if (req->wLength > sizeof(hcan->ep0_buf)) {
 				goto out_fail;
@@ -394,6 +411,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_BT_CONST:
 		case GS_USB_BREQ_DEVICE_CONFIG:
 		case GS_USB_BREQ_TIMESTAMP:
+		case GS_USB_BREQ_BT_CONST_EXT:
 		case GS_USB_BREQ_GET_TERMINATION:
 			USBD_CtlSendData(pdev, (uint8_t *)src, len);
 			break;
@@ -463,6 +481,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	can_data_t *channel = NULL;
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+	uint8_t err;
 
 	/*
 	 * The control messages GS_USB_BREQ_HOST_FORMAT and
@@ -489,6 +508,10 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 		case GS_USB_BREQ_BITTIMING: {
 			const struct gs_device_bittiming *timing = (struct gs_device_bittiming *)hcan->ep0_buf;
+
+			err = can_check_bittiming(&CAN_btconst.btc, timing);
+			if (err)
+				goto out_fail;
 
 			can_set_bittiming(channel, timing);
 			break;
@@ -523,12 +546,22 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			}
 			break;
 		}
+		case GS_USB_BREQ_DATA_BITTIMING: {
+			const struct gs_device_bittiming *timing = (struct gs_device_bittiming *)hcan->ep0_buf;
+
+			err = can_check_bittiming(&CAN_btconst_ext.dbtc, timing);
+			if (err)
+				goto out_fail;
+
+			can_set_data_bittiming(channel, timing);
+			break;
+		}
 		case GS_USB_BREQ_SET_TERMINATION: {
-			if (get_term(req->wValue) != GS_CAN_TERMINATION_UNSUPPORTED) {
+			if (get_term(channel) != GS_CAN_TERMINATION_UNSUPPORTED) {
 				struct gs_device_termination_state *term_state;
 
 				term_state = (struct gs_device_termination_state *)hcan->ep0_buf;
-				if (set_term(req->wValue, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
+				if (set_term(channel, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
 					USBD_CtlError(pdev, req);
 				}
 			}
@@ -540,6 +573,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 
 	req->bRequest = 0xFF;
 	return USBD_OK;
+
+out_fail:
+	return USBD_FAIL;
 }
 
 static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {

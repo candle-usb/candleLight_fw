@@ -1,8 +1,11 @@
+#pragma once
+
 /*
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Hubert Denkmair
+Copyright (c) 2023 Pengutronix,
+              Jonas Martin <kernel@pengutronix.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,33 +27,29 @@ THE SOFTWARE.
 
 */
 
-#pragma once
+#include "usbd_gs_can.h"
 
-#include "can.h"
-#include "config.h"
-#include "gs_usb.h"
+struct LEDConfig {
+	GPIO_TypeDef *port;
+	uint16_t pin;
+	bool active_high;
+};
 
-void gpio_init(void);
-
-/* macro to define init (i.e. reset) state of a pin */
-#define GPIO_INIT_STATE(active_high) (((active_high) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
-
-#ifdef TERM_Pin
-enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state);
-enum gs_can_termination_state get_term(can_data_t *channel);
-
+struct BoardChannelConfig {
+#if defined(STM32G0)
+	FDCAN_GlobalTypeDef *interface;
 #else
-static inline enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state)
-{
-	(void)channel;
-	(void)state;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
-}
-
-static inline enum gs_can_termination_state get_term(can_data_t * channel)
-{
-	(void)channel;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
-}
-
+	CAN_TypeDef *interface;
 #endif
+	struct LEDConfig leds[LED_MAX];
+};
+
+struct BoardConfig {
+	void (*setup)(USBD_GS_CAN_HandleTypeDef *hcan);
+	void (*phy_power_set)(can_data_t *channel, bool enable);
+	void (*termination_set)(can_data_t *channel, enum gs_can_termination_state state);
+
+	struct BoardChannelConfig channels[NUM_CAN_CHANNEL];
+};
+
+extern const struct BoardConfig config;

@@ -327,6 +327,18 @@ THE SOFTWARE.
 
 /*************** STM32G0B1 ***************/
 
+#elif defined(BOARD_2C2L_USB)
+	#define USBD_PRODUCT_STRING_FS	 "intive 2C2L-USB gs_usb"
+	#define USBD_MANUFACTURER_STRING "intive"
+	#define DFU_INTERFACE_STRING_FS	 "intive 2C2L-USB firmware upgrade interface"
+
+	#define HSE_OSC_SPEED			 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
+
 #elif defined(BOARD_CONVERTDEVICE_xCANFD)
 	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
 	#define USBD_MANUFACTURER_STRING "ConvertDevice"

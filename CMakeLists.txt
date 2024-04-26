@@ -446,6 +446,7 @@ set(TGTF407_LIST
 	"STM32F4_DevBoard"
 )
 set(TGTG0B1_LIST
+	"2C2L_USB"
 	"ConvertDevice_xCANFD"
 	"budgetcan"
 	"candleLightFD"

@@ -11,7 +11,7 @@ This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, nota
 - CANAlyze: <https://kkuchera.github.io/canalyze/> (STM32F042C6)
 - VulCAN Gen1: <https://shop.copperforge.cc/products/ac41> (STM32F042x6)
 - Entreé: <https://github.com/tuna-f1sh/entree> (STM32F042x6)
-- CANable-MKS: <https://github.com/makerbase-mks/CANable-MKS> (STM32F072xB)
+- CANable-MKS 1.0: <https://github.com/makerbase-mks/CANable-MKS> (STM32F072xB)
 - ConvertDevice-xCAN: <https://github.com/ConvertDevice/xCAN> (STM32F072xB)
 - ConvertDevice-xCANFD: <https://github.com/ConvertDevice/xCANFD> (STM32G0B1CBT6)
 - DSD TECH SH-C30A: <https://www.deshide.com/product-details.html?pid=384242&_t=1671089557> (STM32F072xB)
@@ -29,6 +29,9 @@ STM32G0B1-based devices are not yet supported by the mainline
 firmware. Support for these devices is discussed in
 https://github.com/candle-usb/candleLight_fw/pull/139 and
 https://github.com/candle-usb/candleLight_fw/pull/176.
+
+STM32G431-based devices (e.g. CANable-MKS 2.0) are not yet supported.
+
 
 ## Known issues
 

@@ -51,6 +51,15 @@ static void SystemClock_Config(void);
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 
+void __weak _close(void) {
+}
+void __weak _lseek(void) {
+}
+void __weak _read(void) {
+}
+void __weak _write(void) {
+}
+
 int main(void)
 {
 	HAL_Init();

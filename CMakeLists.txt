@@ -195,7 +195,7 @@ populate_ldscript(CPU_FAMILY STM32F407XE
 	HEAP_SIZE 1k
 )
 
-populate_ldscript(CPU_FAMILY STM32G0B1XK
+populate_ldscript(CPU_FAMILY STM32G0B1xx
 	FLASH_START 0x08000000
 	FLASH_SIZE 512k
 	RAM_START 0x20000000
@@ -248,12 +248,12 @@ function(add_f407_target TGTNAME)
 endfunction()
 
 function(add_g0b1_target TGTNAME)
-	add_target_common(${TGTNAME} STM32G0B1XK)
+	add_target_common(${TGTNAME} STM32G0B1xx)
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32G0)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_g0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
-	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32G0B1xK STM32_USB_Device_Library_STM32G0B1xK)
+	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32G0B1xx STM32_USB_Device_Library_STM32G0B1xx)
 endfunction()
 
 ########## generate list of targets.

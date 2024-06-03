@@ -140,9 +140,9 @@ endfunction()
 # at configure time.
 
 function(populate_ldscript)
-    set(prefix LDV)
-    set(options)
-    set(oneValueArgs
+	set(prefix LDV)
+	set(options)
+	set(oneValueArgs
 		CPU_FAMILY
 		FLASH_START
 		FLASH_SIZE

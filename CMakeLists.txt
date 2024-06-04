@@ -258,10 +258,27 @@ endfunction()
 
 ########## generate list of targets.
 # the "_fw" part is appended automatically
-set(TGTF042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette")
-set(TGTF072_LIST "candleLight" "CANable_MKS" "CONVERTDEVICE_xCAN" "DSD_TECH_SH_C30A" "FYSETC_UCAN")
-set(TGTF407_LIST "STM32F4_DevBoard")
-set(TGTG0B1_LIST "budgetcan" "CONVERTDEVICE_xCANFD")
+set(TGTF042_LIST
+	"canable"
+	"canalyze"
+	"cannette"
+	"cantact"
+	"usb2can"
+)
+set(TGTF072_LIST
+	"CANable_MKS"
+	"CONVERTDEVICE_xCAN"
+	"DSD_TECH_SH_C30A"
+	"FYSETC_UCAN"
+	"candleLight"
+)
+set(TGTF407_LIST
+	"STM32F4_DevBoard"
+)
+set(TGTG0B1_LIST
+	"CONVERTDEVICE_xCANFD"
+	"budgetcan"
+)
 
 foreach (TGTNAME IN LISTS TGTF042_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)

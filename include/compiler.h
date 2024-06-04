@@ -53,14 +53,14 @@
 #define ACCESS_ONCE(x) (*(volatile __typeof(x) *)&(x))
 
 #define WRITE_ONCE(x,v) \
-	do { \
-		barrier(); \
-		ACCESS_ONCE(x) = (v); \
-		barrier(); \
-	} while (0)
+		do { \
+			barrier(); \
+			ACCESS_ONCE(x) = (v); \
+			barrier(); \
+		} while (0)
 
 #define READ_ONCE(x) \
-	({ \
+		({ \
 		__typeof(x) __var = ({ \
 			barrier(); \
 			ACCESS_ONCE(x); \
@@ -77,21 +77,21 @@
 #define sizeof_field(_s, _m)	sizeof(((_s *)0)->_m)
 
 #define container_of(ptr, type, member) \
-	({ \
+		({ \
 		__typeof(((type *)0)->member) *_p = (ptr); \
 		(type *)((char *)_p - offsetof(type, member)); \
 	})
 
 #define struct_size(ptr, field, num) \
-	(offsetof(__typeof(*(ptr)), field) + sizeof((ptr)->field[0]) * (num))
+		(offsetof(__typeof(*(ptr)), field) + sizeof((ptr)->field[0]) * (num))
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 #define DECLARE_FLEX_ARRAY(_t, _n) \
-	struct { \
-		struct { } __dummy_ ## _n; \
-		_t _n[0]; \
-	}
+		struct { \
+			struct { } __dummy_ ## _n; \
+			_t _n[0]; \
+		}
 
 #define min(x, y)			((x) < (y) ? (x) : (y))
 #define max(x, y)			((x) > (y) ? (x) : (y))

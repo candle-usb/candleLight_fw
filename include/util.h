@@ -88,9 +88,9 @@ static inline void restore_irq(bool was_enabled)
  *
  */
 #define assert_basic(exp)   \
-	if (exp) {          \
-	} else              \
-	assert_failed()
+		if (exp) {          \
+		} else              \
+		assert_failed()
 
 /** halt / set core to debug state with BKPT.
  *

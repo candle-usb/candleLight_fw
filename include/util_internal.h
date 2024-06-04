@@ -23,7 +23,7 @@
  *   ENABLED:   Z_IS_ENABLED2(_XXXX1)
  *   DISABLED   Z_IS_ENABLED2(_XXXX)
  */
-#define Z_IS_ENABLED1(config_macro) Z_IS_ENABLED2(_XXXX##config_macro)
+#define Z_IS_ENABLED1(config_macro) Z_IS_ENABLED2(_XXXX ## config_macro)
 
 /* Here's the core trick, we map "_XXXX1" to "_YYYY," (i.e. a string
  * with a trailing comma), so it has the effect of making this a

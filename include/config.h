@@ -349,10 +349,6 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 0
 
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
-
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
 	#define USBD_MANUFACTURER_STRING "budgetcan"
@@ -381,10 +377,6 @@ THE SOFTWARE.
 	#define LEDTX_Pin				 GPIO_PIN_3
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 1
-
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
 
 	#define TERM_GPIO_Port			 GPIOA
 	#define TERM_Pin				 GPIO_PIN_1

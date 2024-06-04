@@ -249,20 +249,10 @@ THE SOFTWARE.
 
 // SILENT pin not connected
 
-	#define LED4_GPIO_Port GPIOA
-	#define LED4_Pin	   GPIO_PIN_0 /* white */
-	#define LED4_Mode	   GPIO_MODE_OUTPUT_OD
-	#define LED4_Active_Low
-
 	#define LEDTX_GPIO_Port	  GPIOA
 	#define LEDTX_Pin		  GPIO_PIN_1 /* blue */
 	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High 0
-
-	#define LED3_GPIO_Port	  GPIOA
-	#define LED3_Pin		  GPIO_PIN_2 /* red */
-	#define LED3_Mode		  GPIO_MODE_OUTPUT_OD
-	#define LED3_Active_Low
 
 	#define LEDRX_GPIO_Port	  GPIOB
 	#define LEDRX_Pin		  GPIO_PIN_3 /* green */

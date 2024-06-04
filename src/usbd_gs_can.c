@@ -301,7 +301,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	struct gs_device_termination_state term_state;
-	can_data_t *channel;
+	can_data_t *channel = NULL;
 	const void *src = NULL;
 	size_t len;
 

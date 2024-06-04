@@ -83,8 +83,6 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
 
-// SILENT pin not connected
-
 	#define LEDRX_GPIO_Port	  GPIOA
 	#define LEDRX_Pin		  GPIO_PIN_1
 	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_OD
@@ -105,8 +103,6 @@ THE SOFTWARE.
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
-
-// SILENT pin not connected
 
 	#define LEDRX_GPIO_Port	  GPIOA
 	#define LEDRX_Pin		  GPIO_PIN_0
@@ -155,8 +151,6 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
 
-// SILENT pin not connected
-
 	#define LEDRX_GPIO_Port	  GPIOB
 	#define LEDRX_Pin		  GPIO_PIN_1
 	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
@@ -177,8 +171,6 @@ THE SOFTWARE.
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
-
-// SILENT pin not connected
 
 	#define LEDRX_GPIO_Port	  GPIOA
 	#define LEDRX_Pin		  GPIO_PIN_1
@@ -201,8 +193,6 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
 
-// SILENT pin not connected
-
 	#define LEDRX_GPIO_Port	  GPIOB
 	#define LEDRX_Pin		  GPIO_PIN_0 /* green */
 	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
@@ -223,8 +213,6 @@ THE SOFTWARE.
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
-
-// SILENT pin not connected
 
 	#define LEDRX_GPIO_Port	  GPIOB
 	#define LEDRX_Pin		  GPIO_PIN_0 /* green */
@@ -247,8 +235,6 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
 
-// SILENT pin not connected
-
 	#define LEDTX_GPIO_Port	  GPIOA
 	#define LEDTX_Pin		  GPIO_PIN_1 /* blue */
 	#define LEDTX_Mode		  GPIO_MODE_OUTPUT_OD
@@ -270,8 +256,6 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
 
-// SILENT pin not connected
-
 	#define LEDRX_GPIO_Port	  GPIOB
 	#define LEDRX_Pin		  GPIO_PIN_0 /* green */
 	#define LEDRX_Mode		  GPIO_MODE_OUTPUT_PP
@@ -292,8 +276,6 @@ THE SOFTWARE.
 	#define CAN_INTERFACE			 CAN
 	#define CAN_CLOCK_SPEED			 48000000
 	#define NUM_CAN_CHANNEL			 1
-
-// SILENT pin not connected
 
 	#define LEDRX_GPIO_Port		 GPIOA
 	#define LEDRX_Pin			 GPIO_PIN_9 /* RX: green */

@@ -138,9 +138,7 @@ Name=cannette99
 - We include both a `.editorconfig` and `uncrustify.cfg` which should help with whitespace.
 
 Typical command to run uncrustify on all source files (ignoring HAL and third-party libs):
-`uncrustify -c ./uncrustify.cfg --replace $(find include src -name "*.[ch]")`
-
-Optionally append `--no-backup` to avoid creating .orig files.
+`uncrustify -c ./uncrustify.cfg --replace --no-backup $(find include src -name "*.[ch]")`
 
 ### Profiling
 Not great on cortex-M0 cores (F042, F072 targets etc) since they lack hardware support (ITM and SWO). However, it's possible to randomly sample the program counter and get some coarse profiling info.

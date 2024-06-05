@@ -48,7 +48,129 @@ THE SOFTWARE.
 #define USBD_CONFIGURATION_STRING_FS GIT_HASH
 #define USBD_INTERFACE_STRING_FS	 "gs_usb interface"
 
-#if defined(BOARD_candleLight)
+/*************** STM32F042 ***************/
+
+#if defined(BOARD_canable)
+	#define USBD_PRODUCT_STRING_FS	 "canable gs_usb"
+	#define USBD_MANUFACTURER_STRING "canable.io"
+	#define DFU_INTERFACE_STRING_FS	 "canable firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define LEDRX_GPIO_Port			 GPIOB
+	#define LEDRX_Pin				 GPIO_PIN_0 /* green */
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High		 1
+
+	#define LEDTX_GPIO_Port			 GPIOB
+	#define LEDTX_Pin				 GPIO_PIN_1 /* blue */
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High		 0
+
+#elif defined(BOARD_canalyze)
+	#define USBD_PRODUCT_STRING_FS	 "CANAlyze gs_usb"
+	#define USBD_MANUFACTURER_STRING "STMicroelectronics"
+	#define DFU_INTERFACE_STRING_FS	 "CANAlyze firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define LEDRX_GPIO_Port			 GPIOB
+	#define LEDRX_Pin				 GPIO_PIN_0 /* green */
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High		 1
+
+	#define LEDTX_GPIO_Port			 GPIOB
+	#define LEDTX_Pin				 GPIO_PIN_1 /* red */
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High		 1
+
+#elif defined(BOARD_cannette)
+	#define USBD_PRODUCT_STRING_FS	 "cannette gs_usb"
+	#define USBD_MANUFACTURER_STRING "chacaltech"
+	#define DFU_INTERFACE_STRING_FS	 "cannette firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Pin				 GPIO_PIN_9 /* RX: green */
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High		 0
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_8 /* TX: red */
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
+
+	#define nCANSTBY_Port			 GPIOC
+	#define nCANSTBY_Pin			 GPIO_PIN_14 /* control xceiver standby, active low */
+	#define nCANSTBY_Active_High	 1
+
+	#define nSI86EN_Port			 GPIOC
+	#define nSI86EN_Pin				 GPIO_PIN_13 /* enable power to Si86xx isolater, active low */
+
+	#define DCDCEN_Port				 GPIOC
+	#define DCDCEN_Pin				 GPIO_PIN_15 /* activate DCDC converter, active high */
+
+#elif defined(BOARD_cantact)
+	#define USBD_PRODUCT_STRING_FS	 "cantact gs_usb"
+	#define USBD_MANUFACTURER_STRING "cantact.io"
+	#define DFU_INTERFACE_STRING_FS	 "cantact firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define LEDRX_GPIO_Port			 GPIOB
+	#define LEDRX_Pin				 GPIO_PIN_0 /* green */
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High		 1
+
+	#define LEDTX_GPIO_Port			 GPIOB
+	#define LEDTX_Pin				 GPIO_PIN_1 /* red */
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High		 1
+
+#elif defined(BOARD_usb2can)
+	#define USBD_PRODUCT_STRING_FS	 "USB2CAN RCA gs_usb"
+	#define USBD_MANUFACTURER_STRING "Roboter Club Aachen"
+	#define DFU_INTERFACE_STRING_FS	 "usb2can firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_1 /* blue */
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
+
+	#define LEDRX_GPIO_Port			 GPIOB
+	#define LEDRX_Pin				 GPIO_PIN_3 /* green */
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High		 0
+
+#elif defined(BOARD_candleLight)
 	#define USBD_PRODUCT_STRING_FS	 "candleLight USB to CAN adapter"
 	#define USBD_MANUFACTURER_STRING "bytewerk"
 	#define DFU_INTERFACE_STRING_FS	 "candleLight firmware upgrade interface"
@@ -186,126 +308,6 @@ THE SOFTWARE.
 	#define LEDTX_Pin				 GPIO_PIN_0
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 1
-
-#elif defined(BOARD_cantact)
-	#define USBD_PRODUCT_STRING_FS	 "cantact gs_usb"
-	#define USBD_MANUFACTURER_STRING "cantact.io"
-	#define DFU_INTERFACE_STRING_FS	 "cantact firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 48000000
-
-	#define CAN_INTERFACE			 CAN
-	#define CAN_CLOCK_SPEED			 48000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CAN_FILTER		 1
-
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_0 /* green */
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 1
-
-	#define LEDTX_GPIO_Port			 GPIOB
-	#define LEDTX_Pin				 GPIO_PIN_1 /* red */
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 1
-
-#elif defined(BOARD_canable)
-	#define USBD_PRODUCT_STRING_FS	 "canable gs_usb"
-	#define USBD_MANUFACTURER_STRING "canable.io"
-	#define DFU_INTERFACE_STRING_FS	 "canable firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 48000000
-
-	#define CAN_INTERFACE			 CAN
-	#define CAN_CLOCK_SPEED			 48000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CAN_FILTER		 1
-
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_0 /* green */
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 1
-
-	#define LEDTX_GPIO_Port			 GPIOB
-	#define LEDTX_Pin				 GPIO_PIN_1 /* blue */
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 0
-
-#elif defined(BOARD_usb2can)
-	#define USBD_PRODUCT_STRING_FS	 "USB2CAN RCA gs_usb"
-	#define USBD_MANUFACTURER_STRING "Roboter Club Aachen"
-	#define DFU_INTERFACE_STRING_FS	 "usb2can firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 48000000
-
-	#define CAN_INTERFACE			 CAN
-	#define CAN_CLOCK_SPEED			 48000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CAN_FILTER		 1
-
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_1 /* blue */
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDTX_Active_High		 0
-
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_3 /* green */
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDRX_Active_High		 0
-
-#elif defined(BOARD_canalyze)
-	#define USBD_PRODUCT_STRING_FS	 "CANAlyze gs_usb"
-	#define USBD_MANUFACTURER_STRING "STMicroelectronics"
-	#define DFU_INTERFACE_STRING_FS	 "CANAlyze firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 48000000
-
-	#define CAN_INTERFACE			 CAN
-	#define CAN_CLOCK_SPEED			 48000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CAN_FILTER		 1
-
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_0 /* green */
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 1
-
-	#define LEDTX_GPIO_Port			 GPIOB
-	#define LEDTX_Pin				 GPIO_PIN_1 /* red */
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 1
-
-#elif defined(BOARD_cannette)
-	#define USBD_PRODUCT_STRING_FS	 "cannette gs_usb"
-	#define USBD_MANUFACTURER_STRING "chacaltech"
-	#define DFU_INTERFACE_STRING_FS	 "cannette firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 48000000
-
-	#define CAN_INTERFACE			 CAN
-	#define CAN_CLOCK_SPEED			 48000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CAN_FILTER		 1
-
-	#define LEDRX_GPIO_Port			 GPIOA
-	#define LEDRX_Pin				 GPIO_PIN_9 /* RX: green */
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDRX_Active_High		 0
-
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_8 /* TX: red */
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDTX_Active_High		 0
-
-	#define nCANSTBY_Port			 GPIOC
-	#define nCANSTBY_Pin			 GPIO_PIN_14 /* control xceiver standby, active low */
-	#define nCANSTBY_Active_High	 1
-
-	#define nSI86EN_Port			 GPIOC
-	#define nSI86EN_Pin				 GPIO_PIN_13 /* enable power to Si86xx isolater, active low */
-
-	#define DCDCEN_Port				 GPIOC
-	#define DCDCEN_Pin				 GPIO_PIN_15 /* activate DCDC converter, active high */
 
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"

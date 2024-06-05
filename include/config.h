@@ -320,6 +320,8 @@ THE SOFTWARE.
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
 	#define TERM_Active_High		 1
 
+/*************** STM32G0B1 ***************/
+
 #elif defined(BOARD_CONVERTDEVICE_xCANFD)
 	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
 	#define USBD_MANUFACTURER_STRING "ConvertDevice"

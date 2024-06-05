@@ -275,27 +275,7 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High		 0
 
-#elif defined(BOARD_CONVERTDEVICE_xCANFD)
-	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
-	#define USBD_MANUFACTURER_STRING "ConvertDevice"
-	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCANFD firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 64000000
-
-	#define CAN_CLOCK_SPEED			 40000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CANFD			 1
-
-#elif defined(BOARD_budgetcan)
-	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
-	#define USBD_MANUFACTURER_STRING "budgetcan"
-	#define DFU_INTERFACE_STRING_FS	 "budgetcan firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 64000000
-
-	#define CAN_CLOCK_SPEED			 40000000
-	#define NUM_CAN_CHANNEL			 2
-	#define CONFIG_CANFD			 1
+/*************** STM32F407 ***************/
 
 #elif defined(BOARD_STM32F4_DevBoard)
 	#define USBD_PRODUCT_STRING_FS	 "STM32F4VE Dev Board"
@@ -329,6 +309,28 @@ THE SOFTWARE.
 	#define TERM_Pin				 GPIO_PIN_3
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
 	#define TERM_Active_High		 1
+
+#elif defined(BOARD_CONVERTDEVICE_xCANFD)
+	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
+	#define USBD_MANUFACTURER_STRING "ConvertDevice"
+	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCANFD firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
+
+#elif defined(BOARD_budgetcan)
+	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
+	#define USBD_MANUFACTURER_STRING "budgetcan"
+	#define DFU_INTERFACE_STRING_FS	 "budgetcan firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
 
 #else
 	#error please define BOARD

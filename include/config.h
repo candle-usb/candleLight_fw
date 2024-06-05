@@ -170,30 +170,7 @@ THE SOFTWARE.
 	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
 	#define LEDRX_Active_High		 0
 
-#elif defined(BOARD_candleLight)
-	#define USBD_PRODUCT_STRING_FS	 "candleLight USB to CAN adapter"
-	#define USBD_MANUFACTURER_STRING "bytewerk"
-	#define DFU_INTERFACE_STRING_FS	 "candleLight firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 48000000
-
-	#define CAN_INTERFACE			 CAN
-	#define CAN_CLOCK_SPEED			 48000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CAN_FILTER		 1
-
-	#define CAN_S_Pin				 GPIO_PIN_13
-	#define CAN_S_GPIO_Port			 GPIOC
-
-	#define LEDRX_Pin				 GPIO_PIN_0
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDRX_GPIO_Port			 GPIOA
-	#define LEDRX_Active_High		 0
-
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_1
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDTX_Active_High		 0
+/*************** STM32F072 ***************/
 
 #elif defined(BOARD_CANable_MKS)
 	#define USBD_PRODUCT_STRING_FS	 "CANable-MKS gs_usb"
@@ -239,32 +216,6 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 0
 
-#elif defined(BOARD_CONVERTDEVICE_xCANFD)
-	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
-	#define USBD_MANUFACTURER_STRING "ConvertDevice"
-	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCANFD firmware upgrade interface"
-
-	#define TIM2_CLOCK_SPEED		 64000000
-
-	#define CAN_INTERFACE			 FDCAN1
-	#define CAN_CLOCK_SPEED			 64000000
-	#define NUM_CAN_CHANNEL			 1
-	#define CONFIG_CANFD			 1
-
-	#define LEDRX_GPIO_Port			 GPIOA
-	#define LEDRX_Pin				 GPIO_PIN_0
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 0
-
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_1
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 0
-
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
-
 #elif defined(BOARD_DSD_TECH_SH_C30A)
 	#define USBD_PRODUCT_STRING_FS	 "SH-C30A USB to CAN adapter"
 	#define USBD_MANUFACTURER_STRING "DSD TECH"
@@ -308,6 +259,57 @@ THE SOFTWARE.
 	#define LEDTX_Pin				 GPIO_PIN_0
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 1
+
+#elif defined(BOARD_candleLight)
+	#define USBD_PRODUCT_STRING_FS	 "candleLight USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING "bytewerk"
+	#define DFU_INTERFACE_STRING_FS	 "candleLight firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define CAN_S_Pin				 GPIO_PIN_13
+	#define CAN_S_GPIO_Port			 GPIOC
+
+	#define LEDRX_Pin				 GPIO_PIN_0
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Active_High		 0
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_1
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
+
+#elif defined(BOARD_CONVERTDEVICE_xCANFD)
+	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
+	#define USBD_MANUFACTURER_STRING "ConvertDevice"
+	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCANFD firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_INTERFACE			 FDCAN1
+	#define CAN_CLOCK_SPEED			 64000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
+
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Pin				 GPIO_PIN_0
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High		 0
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_1
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High		 0
+
+	#define USB_GPIO_Port			 GPIOA
+	#define USB_Pin_DM				 GPIO_PIN_11
+	#define USB_Pin_DP				 GPIO_PIN_12
 
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"

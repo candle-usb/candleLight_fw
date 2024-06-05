@@ -41,7 +41,7 @@ add_link_options(
 
 add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 
 # Add a custom target that produces version.h, plus
@@ -110,18 +110,18 @@ find_package(DFUSuffix)
 
 function(dfu_flash target)
 	if (DFU_SUFFIX_EXECUTABLE)
-		add_custom_command( TARGET ${target}
+		add_custom_command(TARGET ${target}
 			BYPRODUCTS ${target}.dfu
 			COMMAND ${CMAKE_OBJCOPY} -O binary ${target} ${target}.dfu
 			COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${target}.dfu --vid 1d50 --pid 606f 1>/dev/null
 			COMMENT "create and sign dfu bin file: ${TGTNAME}_fw"
 		)
 
-		add_custom_target( flash-${target}
+		add_custom_target(flash-${target}
 			dfu-util -a 0 -R -s 0x08000000 -D ${target}.dfu
 		)
 	else()
-		add_custom_target( flash-${target}
+		add_custom_target(flash-${target}
 			dfu-util -d 1d50:606f -a 0 -R -s 0x08000000 -D ${target}.bin
 		)
 	endif()

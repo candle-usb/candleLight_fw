@@ -205,7 +205,7 @@ populate_ldscript(CPU_FAMILY STM32G0B1XK
 )
 
 ######### commands for adding each target have a lot in common: make helper func.
-# Split into two categories, F042-based and F072-based.
+# one helper func per STM32 CPU family
 
 function(add_target_common TGTNAME CPU_FAMILY)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
@@ -235,7 +235,6 @@ function(add_f072_target TGTNAME)
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32F072xB STM32_USB_Device_Library_STM32F072xB)
-
 endfunction()
 
 function(add_f407_target TGTNAME)

@@ -45,13 +45,13 @@ THE SOFTWARE.
 #define USBD_VID					 0x1d50
 #define USBD_PID_FS					 0x606f
 #define USBD_LANGID_STRING			 1033
-#define USBD_CONFIGURATION_STRING_FS (uint8_t*) GIT_HASH
-#define USBD_INTERFACE_STRING_FS	 (uint8_t*) "gs_usb interface"
+#define USBD_CONFIGURATION_STRING_FS GIT_HASH
+#define USBD_INTERFACE_STRING_FS	 "gs_usb interface"
 
 #if defined(BOARD_candleLight)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "candleLight USB to CAN adapter"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "bytewerk"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "candleLight firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "candleLight USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING "bytewerk"
+	#define DFU_INTERFACE_STRING_FS	 "candleLight firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -73,9 +73,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_CANable_MKS)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "CANable-MKS gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "makerbase"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANable-MKS firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "CANable-MKS gs_usb"
+	#define USBD_MANUFACTURER_STRING "makerbase"
+	#define DFU_INTERFACE_STRING_FS	 "CANable-MKS firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -94,9 +94,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_CONVERTDEVICE_xCAN)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "ConvertDevice xCAN"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "ConvertDevice"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCAN firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCAN"
+	#define USBD_MANUFACTURER_STRING "ConvertDevice"
+	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCAN firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -115,9 +115,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_CONVERTDEVICE_xCANFD)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "ConvertDevice xCANFD"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "ConvertDevice"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "ConvertDevice xCANFD firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
+	#define USBD_MANUFACTURER_STRING "ConvertDevice"
+	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCANFD firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
@@ -141,9 +141,9 @@ THE SOFTWARE.
 	#define USB_Pin_DP				 GPIO_PIN_12
 
 #elif defined(BOARD_DSD_TECH_SH_C30A)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "SH-C30A USB to CAN adapter"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "DSD TECH"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "SH-C30A firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "SH-C30A USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING "DSD TECH"
+	#define DFU_INTERFACE_STRING_FS	 "SH-C30A firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -162,9 +162,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_FYSETC_UCAN)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "UCAN USB to CAN adapter"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "FYSETC"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "UCAN firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "UCAN USB to CAN adapter"
+	#define USBD_MANUFACTURER_STRING "FYSETC"
+	#define DFU_INTERFACE_STRING_FS	 "UCAN firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -183,9 +183,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 1
 
 #elif defined(BOARD_cantact)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cantact gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "cantact.io"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cantact firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "cantact gs_usb"
+	#define USBD_MANUFACTURER_STRING "cantact.io"
+	#define DFU_INTERFACE_STRING_FS	 "cantact firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -204,9 +204,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 1
 
 #elif defined(BOARD_canable)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "canable gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "canable.io"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "canable firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "canable gs_usb"
+	#define USBD_MANUFACTURER_STRING "canable.io"
+	#define DFU_INTERFACE_STRING_FS	 "canable firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -225,9 +225,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 0
 
 #elif defined(BOARD_usb2can)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "USB2CAN RCA gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "Roboter Club Aachen"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "usb2can firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "USB2CAN RCA gs_usb"
+	#define USBD_MANUFACTURER_STRING "Roboter Club Aachen"
+	#define DFU_INTERFACE_STRING_FS	 "usb2can firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -246,9 +246,9 @@ THE SOFTWARE.
 	#define LEDRX_Active_High		 0
 
 #elif defined(BOARD_canalyze)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "CANAlyze gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "STMicroelectronics"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANAlyze firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "CANAlyze gs_usb"
+	#define USBD_MANUFACTURER_STRING "STMicroelectronics"
+	#define DFU_INTERFACE_STRING_FS	 "CANAlyze firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -267,9 +267,9 @@ THE SOFTWARE.
 	#define LEDTX_Active_High		 1
 
 #elif defined(BOARD_cannette)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "cannette gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "chacaltech"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "cannette firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "cannette gs_usb"
+	#define USBD_MANUFACTURER_STRING "chacaltech"
+	#define DFU_INTERFACE_STRING_FS	 "cannette firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 48000000
 
@@ -298,9 +298,9 @@ THE SOFTWARE.
 	#define DCDCEN_Pin				 GPIO_PIN_15 /* activate DCDC converter, active high */
 
 #elif defined(BOARD_budgetcan)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "budgetcan gs_usb"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "budgetcan"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "budgetcan firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
+	#define USBD_MANUFACTURER_STRING "budgetcan"
+	#define DFU_INTERFACE_STRING_FS	 "budgetcan firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
@@ -334,9 +334,9 @@ THE SOFTWARE.
 	#define TERM_Active_High		 1
 
 #elif defined(BOARD_STM32F4_DevBoard)
-	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "STM32F4VE Dev Board"
-	#define USBD_MANUFACTURER_STRING (uint8_t*) "misc"
-	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "STM32F4VE firmware upgrade interface"
+	#define USBD_PRODUCT_STRING_FS	 "STM32F4VE Dev Board"
+	#define USBD_MANUFACTURER_STRING "misc"
+	#define DFU_INTERFACE_STRING_FS	 "STM32F4VE firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 96000000
 

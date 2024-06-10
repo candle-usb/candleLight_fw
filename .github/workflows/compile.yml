@@ -1,0 +1,53 @@
+name: compile
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        release:
+        - "ubuntu:20.04"
+        - "ubuntu:22.04"
+        - "ubuntu:24.04"
+        - "ubuntu:rolling"
+        - "debian:oldstable-slim"
+        - "debian:stable-slim"
+        - "debian:testing-slim"
+        - "debian:unstable-slim"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Prepare ${{ matrix.release }} container
+      run: |
+        podman version
+        podman run --name stable -di --userns=keep-id:uid=1000,gid=1000 -v "$PWD":/home -w /home ${{ matrix.release }} bash
+        podman exec -i stable uname -a
+        podman exec -i stable id
+        podman exec -i -u root stable apt update
+        podman exec -e DEBIAN_FRONTEND='noninteractive' -i -u root stable apt install -o APT::Install-Suggests=false -qy \
+                clang \
+                cmake \
+                gcc-arm-none-eabi \
+                git \
+                make
+
+    - name: Configure & Build with arm-none-eabi-gcc
+      env:
+        toolchain: arm-none-eabi-gcc
+      run: |
+        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/${toolchain}.cmake -B build-${toolchain}
+        podman exec -i stable cmake --build build-${toolchain}
+
+    - name: Show logs
+      if: ${{ failure() }}
+      run: |
+        for log in build-*/CMakeFiles/{CMakeOutput.log,CMakeConfigureLog.yaml}; do \
+                if [ -e ${log} ]; then \
+                        echo "---------------- ${log} ----------------"; \
+                        cat ${log}; \
+                fi; \
+        done

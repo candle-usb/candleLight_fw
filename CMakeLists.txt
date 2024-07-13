@@ -65,6 +65,7 @@ set(
 	include/usbd_gs_can.h src/usbd_gs_can.c
 	src/usbd_conf.c
 
+	include/board.h
 	include/can.h
 	include/can_common.h src/can_common.c
 	include/device.h
@@ -221,6 +222,7 @@ function(add_f042_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F042X6)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0)
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
@@ -231,6 +233,7 @@ function(add_f072_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F072XB)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0)
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
@@ -241,6 +244,7 @@ function(add_f407_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F407XE)
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F4)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f4.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
@@ -251,6 +255,8 @@ function(add_g0b1_target TGTNAME)
 	add_target_common(${TGTNAME} STM32G0B1xx)
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32G0)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/g0b1-${TGTNAME}.c")
+	target_sources(${TGTNAME}_fw PRIVATE "src/can/m_can.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_g0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
 	target_link_libraries(${TGTNAME}_fw PRIVATE STM32_HAL_STM32G0B1xx STM32_USB_Device_Library_STM32G0B1xx)
@@ -258,10 +264,30 @@ endfunction()
 
 ########## generate list of targets.
 # the "_fw" part is appended automatically
-set(TGTF042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette")
-set(TGTF072_LIST "candleLight" "CANable_MKS" "CONVERTDEVICE_xCAN" "DSD_TECH_SH_C30A" "FYSETC_UCAN")
-set(TGTF407_LIST "STM32F4_DevBoard")
-set(TGTG0B1_LIST "budgetcan" "CONVERTDEVICE_xCANFD")
+set(TGTF042_LIST
+	"canable"
+	"canalyze"
+	"cannette"
+	"cantact"
+	"usb2can"
+)
+set(TGTF072_LIST
+	"CANable_MKS"
+	"CONVERTDEVICE_xCAN"
+	"DSD_TECH_SH_C30A"
+	"FYSETC_UCAN"
+	"candleLight"
+)
+set(TGTF407_LIST
+	"STM32F4_DevBoard"
+)
+set(TGTG0B1_LIST
+	"2C2L_USB"
+	"CONVERTDEVICE_xCANFD"
+	"budgetcan"
+	"candleLightFD"
+	"nucleo_g0b1re"
+)
 
 foreach (TGTNAME IN LISTS TGTF042_LIST)
 	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
@@ -285,7 +311,7 @@ foreach (TGTNAME IN LISTS TGTF407_LIST)
 endforeach()
 
 foreach (TGTNAME IN LISTS TGTG0B1_LIST)
-	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" OFF)
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
 	if (BUILD_${TGTNAME})
 		add_g0b1_target(${TGTNAME})
 	endif()

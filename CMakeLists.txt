@@ -296,6 +296,7 @@ set(TGTF407_LIST
 set(TGTG0B1_LIST
 	"2C2L_USB"
 	"CONVERTDEVICE_xCANFD"
+	"WeActStudio_USB2CANFDV1"
 	"budgetcan"
 	"candleLightFD"
 	"nucleo_g0b1re"

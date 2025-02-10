@@ -1,9 +1,6 @@
 name: CI
 
 on:
-  schedule:
-    # build every monday at 00:15 UTC
-    - cron:  '15 0 * * 1'
   push:
   pull_request:
     branches: [ master ]
@@ -43,16 +40,8 @@ jobs:
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-    - name: Upload weekly build
-      uses: actions/upload-artifact@v3
-      #only run step if event type was "schedule"
-      if: github.event.schedule
-      with:
-        name: weekly_${{steps.date.outputs.date}}_${{steps.vars.outputs.sha_short}}
-        path: ${{github.workspace}}/build/*_fw.bin
-
     - name: Upload dev snapshot
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ github.event_name != 'schedule'}}
       with:
         name: build_${{steps.date.outputs.date}}_${{steps.vars.outputs.sha_short}}

@@ -41,6 +41,19 @@ void device_can_init(can_data_t *channel, const struct board_channel_config *cha
 	};
 	HAL_GPIO_Init(GPIOD, &itd_can1);
 
+#ifdef CAN_INTERFACE2
+	__HAL_RCC_CAN2_CLK_ENABLE();
+
+	GPIO_InitTypeDef itd_can2 = {
+		.Pin = GPIO_PIN_12 | GPIO_PIN_13,
+		.Mode = GPIO_MODE_AF_PP,
+		.Pull = GPIO_NOPULL,
+		.Speed = GPIO_SPEED_FREQ_VERY_HIGH,
+		.Alternate = GPIO_AF9_CAN2,
+	};
+	HAL_GPIO_Init(GPIOB, &itd_can2);
+#endif
+
 	channel->instance = channel_config->interface;
 }
 

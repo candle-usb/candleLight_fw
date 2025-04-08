@@ -292,6 +292,7 @@ set(TGTF072_LIST
 )
 set(TGTF407_LIST
 	"STM32F4_DevBoard"
+	"STM32F4_DevBoardDualChannel"
 )
 set(TGTG0B1_LIST
 	"2C2L_USB"

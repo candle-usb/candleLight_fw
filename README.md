@@ -30,7 +30,7 @@ firmware. Support for these devices is discussed in
 https://github.com/candle-usb/candleLight_fw/pull/139 and
 https://github.com/candle-usb/candleLight_fw/pull/176.
 
-STM32G431-based devices (e.g. CANable-MKS 2.0) are not yet supported.
+STM32G431-based devices (e.g. CANable-MKS 2.0) are not supported by this project yet.
 
 Currently, the firmware sends back an echo frame to the host when the frame is written to the CAN peripheral, and not when the frame is actually sent successfully on the bus. This affects timestamps, one-shot mode, and other edge cases.
 

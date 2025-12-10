@@ -39,11 +39,14 @@ const struct gs_device_bt_const CAN_btconst = {
 		GS_CAN_FEATURE_ONE_SHOT |
 		GS_CAN_FEATURE_HW_TIMESTAMP |
 		GS_CAN_FEATURE_IDENTIFY |
-		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE
+		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE |
 #ifdef TERM_Pin
-		| GS_CAN_FEATURE_TERMINATION
+		GS_CAN_FEATURE_TERMINATION |
 #endif
-	,
+#ifdef CONFIG_CAN_FILTER
+		GS_CAN_FEATURE_FILTER |
+#endif
+		0,
 	.fclk_can = CAN_CLOCK_SPEED,
 	.btc = {
 		.tseg1_min = 1,
@@ -56,6 +59,12 @@ const struct gs_device_bt_const CAN_btconst = {
 		.brp_inc = 1,
 	},
 };
+
+#ifdef CONFIG_CAN_FILTER
+const struct gs_device_filter_info CAN_filter_info = {
+	.dev = GS_DEVICE_FILTER_DEV_BXCAN,
+};
+#endif
 
 // The STM32F0 only has one CAN interface, define it as CAN1 as
 // well, so it doesn't need to be handled separately.
@@ -102,6 +111,13 @@ void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *ti
 	channel->phase_seg2 = timing->phase_seg2;
 	channel->sjw = timing->sjw;
 }
+
+#ifdef CONFIG_CAN_FILTER
+void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter)
+{
+	channel->filter.bxcan = filter->bxcan;
+}
+#endif
 
 static bool can_apply_filter(const can_data_t *channel)
 {

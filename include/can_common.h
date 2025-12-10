@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 bool can_check_bittiming_ok(const struct can_bittiming_const *btc, const struct gs_device_bittiming *timing);
 #ifdef CONFIG_CAN_FILTER
+bool can_check_filter_ok(const struct gs_device_filter *filter);
 #else
 static inline bool can_check_filter_ok(const struct gs_device_filter *filter)
 {

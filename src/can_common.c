@@ -54,6 +54,13 @@ bool can_check_bittiming_ok(const struct can_bittiming_const *btc,
 	return true;
 }
 
+#ifdef CONFIG_CAN_FILTER
+bool can_check_filter_ok(const struct gs_device_filter *filter)
+{
+	return filter->info.dev == CAN_filter_info.dev;
+}
+#endif
+
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
 	struct gs_host_frame_object *frame_object;

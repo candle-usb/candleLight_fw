@@ -83,7 +83,14 @@ static void rcc_reset(CAN_TypeDef *instance)
 
 void can_init(can_data_t *channel, CAN_TypeDef *instance)
 {
+	struct gs_device_filter_bxcan *filter = &channel->filter.bxcan;
+
 	device_can_init(channel, instance);
+
+	filter->fs1r = 0x1;     // 32-bit for filter bank 0
+	filter->fm1r = 0x0;     // Mask mode for filter 0
+	filter->ffa1r = 0x0;    // Assign to FIFO 0
+	filter->fa1r = 0x1;     // Enable filter bank 0
 }
 
 void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
@@ -94,6 +101,37 @@ void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *ti
 	channel->phase_seg1 = tseg1;
 	channel->phase_seg2 = timing->phase_seg2;
 	channel->sjw = timing->sjw;
+}
+
+static bool can_apply_filter(const can_data_t *channel)
+{
+	const struct gs_device_filter_bxcan *filter = &channel->filter.bxcan;
+	CAN_TypeDef *can = channel->instance;
+
+	// disable filter configuration
+	can->FMR |= CAN_FMR_FINIT;
+
+	// use all filter banks for CAN1
+	can->FMR &= ~CAN_FMR_CAN2SB;
+
+	// disable filters
+	can->FA1R = 0x0;
+
+	can->FS1R = filter->fs1r;
+	can->FM1R = filter->fm1r;
+	can->FFA1R = filter->ffa1r;
+
+	for (uint32_t bank = 0; bank < ARRAY_SIZE(filter->fr1); bank++) {
+		can->sFilterRegister[bank].FR1 = filter->fr1[bank];
+		can->sFilterRegister[bank].FR2 = filter->fr2[bank];
+	}
+
+	can->FA1R = filter->fa1r;
+
+	// exit filter configuration mode
+	can->FMR &= ~CAN_FMR_FINIT;
+
+	return true;
 }
 
 void can_enable(can_data_t *channel, uint32_t mode)
@@ -135,20 +173,10 @@ void can_enable(can_data_t *channel, uint32_t mode)
 	can->MCR = mcr;
 	can->BTR = btr;
 
+	can_apply_filter(channel);
+
 	can->MCR &= ~CAN_MCR_INRQ;
 	while ((can->MSR & CAN_MSR_INAK) != 0);
-
-	uint32_t filter_bit = 0x00000001;
-	can->FMR |= CAN_FMR_FINIT;
-	can->FMR &= ~CAN_FMR_CAN2SB;
-	can->FA1R &= ~filter_bit;        // disable filter
-	can->FS1R |= filter_bit;         // set to single 32-bit filter mode
-	can->FM1R &= ~filter_bit;        // set filter mask mode for filter 0
-	can->sFilterRegister[0].FR1 = 0;     // filter ID = 0
-	can->sFilterRegister[0].FR2 = 0;     // filter Mask = 0
-	can->FFA1R &= ~filter_bit;       // assign filter 0 to FIFO 0
-	can->FA1R |= filter_bit;         // enable filter
-	can->FMR &= ~CAN_FMR_FINIT;
 
 #ifdef nCANSTBY_Pin
 	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, !GPIO_INIT_STATE(nCANSTBY_Active_High));

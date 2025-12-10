@@ -39,6 +39,7 @@ typedef struct {
 	CAN_TypeDef *instance;
 	struct list_head list_from_host;
 	led_data_t leds;
+	struct gs_device_filter filter;
 	uint32_t reg_esr_old;
 	uint16_t brp;
 	uint8_t phase_seg1;

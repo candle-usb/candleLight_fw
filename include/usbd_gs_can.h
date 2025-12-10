@@ -40,11 +40,13 @@ THE SOFTWARE.
 /* Define these here so they can be referenced in other files */
 
 #define GS_CAN_EP0_BUF_SIZE \
-		max5(sizeof(struct gs_host_config), \
+		max6(sizeof(struct gs_host_config), \
 			 sizeof(struct gs_device_bittiming), \
 			 sizeof(struct gs_device_mode), \
 			 sizeof(struct gs_identify_mode), \
-			 sizeof(struct gs_device_termination_state))
+			 sizeof(struct gs_device_termination_state), \
+			 sizeof(struct gs_device_filter))
+
 #ifdef CONFIG_CANFD
 #define CAN_DATA_MAX_PACKET_SIZE 64    /* Endpoint IN & OUT Packet size */
 #else

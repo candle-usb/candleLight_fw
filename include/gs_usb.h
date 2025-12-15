@@ -50,10 +50,11 @@ THE SOFTWARE.
 /* #define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX (1<<9) */
 /* #define GS_CAN_FEATURE_BT_CONST_EXT          (1<<10) */
 /* #define GS_CAN_FEATURE_TERMINATION           (1<<11) */
-#define GS_CAN_MODE_BERR_REPORTING				(1<<12)
+#define GS_CAN_MODE_BERR_REPORTING		(1<<12)
 /* GS_CAN_FEATURE_GET_STATE						(1<<13) */
-#define GS_CAN_MODE_ELM_PROTOCOL				(1<<14)
-#define GS_CAN_MODE_ELM_DISABLE_TX_ECHO			(1<<15)
+#define GS_CAN_MODE_ELM_PROTOCOL		(1<<14)
+#define GS_CAN_MODE_ELM_DISABLE_TX_ECHO (1<<15)
+/* #define GS_CAN_FEATURE_FILTER				(1<<16) */
 
 #define GS_CAN_FEATURE_LISTEN_ONLY				(1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK				(1<<1)
@@ -83,6 +84,13 @@ THE SOFTWARE.
 #define GS_CAN_FEATURE_GET_STATE				(1<<13)
 #define GS_CAN_FEATURE_ELM_PROTOCOL				(1<<14)
 #define GS_CAN_FEATURE_ELM_DISABLE_TX_ECHO		(1<<15)
+/* device supports HW filter, see:
+ * - GS_USB_BREQ_SET_FILTER,
+ * - GS_USB_BREQ_GET_FILTER,
+ * - struct gs_device_filter_info
+ * - struct gs_device_filter
+ */
+#define GS_CAN_FEATURE_FILTER					(1<<16)
 
 #define GS_CAN_FLAG_OVERFLOW					(1<<0)
 #define GS_CAN_FLAG_FD							(1<<1) /* is a CAN-FD frame */
@@ -185,8 +193,8 @@ enum gs_usb_breq {
 	GS_USB_BREQ_SET_TERMINATION,
 	GS_USB_BREQ_GET_TERMINATION,
 	GS_USB_BREQ_GET_STATE,
-	__GS_USB_BREQ_PLACEHOLDER_15,
-	__GS_USB_BREQ_PLACEHOLDER_16,
+	GS_USB_BREQ_SET_FILTER,
+	GS_USB_BREQ_GET_FILTER,
 	__GS_USB_BREQ_PLACEHOLDER_17,
 	__GS_USB_BREQ_PLACEHOLDER_18,
 	__GS_USB_BREQ_PLACEHOLDER_19,
@@ -218,6 +226,10 @@ enum gs_can_termination_state {
 	GS_CAN_TERMINATION_UNSUPPORTED = -1,    // private, not in kernel enum
 	GS_CAN_TERMINATION_STATE_OFF = 0,
 	GS_CAN_TERMINATION_STATE_ON,
+};
+
+enum gs_device_filter_dev {
+	GS_DEVICE_FILTER_DEV_BXCAN = 1,         // bxcan, 14 filters
 };
 
 /* data types passed between host and device */
@@ -292,6 +304,27 @@ struct gs_identify_mode {
 
 struct gs_device_termination_state {
 	u32 state;
+} __packed __aligned(4);
+
+struct gs_device_filter_info {
+	u8 dev;         // enum gs_device_filter_dev
+	u8 reserved[3];
+}  __packed __aligned(4);
+
+struct gs_device_filter_bxcan {
+	u32 fs1r;
+	u32 fm1r;
+	u32 ffa1r;
+	u32 fa1r;
+	u32 fr1[14];
+	u32 fr2[14];
+} __packed __aligned(4);
+
+struct gs_device_filter {
+	struct gs_device_filter_info info;
+	union {
+		struct gs_device_filter_bxcan bxcan;
+	};
 } __packed __aligned(4);
 
 struct classic_can {

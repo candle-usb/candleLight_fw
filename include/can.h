@@ -39,6 +39,7 @@ typedef struct {
 	CAN_TypeDef *instance;
 	struct list_head list_from_host;
 	led_data_t leds;
+	struct gs_device_filter filter;
 	uint32_t reg_esr_old;
 	uint16_t brp;
 	uint8_t phase_seg1;
@@ -49,6 +50,7 @@ typedef struct {
 
 extern const struct gs_device_bt_const CAN_btconst;
 extern const struct gs_device_bt_const_extended CAN_btconst_ext;
+extern const struct gs_device_filter_info CAN_filter_info;
 
 void can_init(can_data_t *channel, CAN_TypeDef *instance);
 void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
@@ -63,6 +65,16 @@ static inline bool can_set_data_bittiming(can_data_t *channel,
 	(void)timing;
 
 	return false;
+}
+#endif
+
+#ifdef CONFIG_CAN_FILTER
+void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter);
+#else
+static inline void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter)
+{
+	(void)channel;
+	(void)filter;
 }
 #endif
 

@@ -93,16 +93,19 @@
 			_t _n[0]; \
 		}
 
-#define min(x, y)			((x) < (y) ? (x) : (y))
-#define max(x, y)			((x) > (y) ? (x) : (y))
+#define min(x, y)			   ((x) < (y) ? (x) : (y))
+#define max(x, y)			   ((x) > (y) ? (x) : (y))
 
-#define min3(a, b, c)		min(a, min(b, c))
-#define max3(a, b, c)		max(a, max(b, c))
+#define min3(a, b, c)		   min(a, min(b, c))
+#define max3(a, b, c)		   max(a, max(b, c))
 
-#define min4(a, b, c, d)	min(min(a, b), min(c, d))
-#define max4(a, b, c, d)	max(max(a, b), max(b, d))
+#define min4(a, b, c, d)	   min(min(a, b), min(c, d))
+#define max4(a, b, c, d)	   max(max(a, b), max(b, d))
 
-#define min5(a, b, c, d, e) min3(min(a, b), min(c, d), e)
-#define max5(a, b, c, d, e) max3(max(a, b), max(b, d), e)
+#define min5(a, b, c, d, e)	   min3(min(a, b), min(c, d), e)
+#define max5(a, b, c, d, e)	   max3(max(a, b), max(b, d), e)
+
+#define min6(a, b, c, d, e, f) min3(min(a, b), min(c, d), min(e, f))
+#define max6(a, b, c, d, e, f) max3(max(a, b), max(b, d), max(e, f))
 
 #endif /* _LINUXKPI_LINUX_COMPILER_H_ */

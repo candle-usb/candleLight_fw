@@ -331,6 +331,14 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		}
 	}
 
+	if (!IS_ENABLED(CONFIG_CAN_FILTER)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_SET_FILTER:
+			case GS_USB_BREQ_GET_FILTER:
+				goto out_fail;
+		}
+	}
+
 	switch (req->bRequest) {
 		// Host -> Device
 		case GS_USB_BREQ_HOST_FORMAT:
@@ -384,6 +392,13 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(term_state);
 			break;
 		}
+		case GS_USB_BREQ_SET_FILTER:
+			len = sizeof(struct gs_device_filter);
+			break;
+		case GS_USB_BREQ_GET_FILTER:
+			src = &CAN_filter_info;
+			len = sizeof(CAN_filter_info);
+			break;
 		default:
 			goto out_fail;
 	}
@@ -399,6 +414,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_IDENTIFY:
 		case GS_USB_BREQ_DATA_BITTIMING:
 		case GS_USB_BREQ_SET_TERMINATION:
+		case GS_USB_BREQ_SET_FILTER:
 			if (req->wLength > sizeof(hcan->ep0_buf)) {
 				goto out_fail;
 			}
@@ -413,6 +429,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_TIMESTAMP:
 		case GS_USB_BREQ_BT_CONST_EXT:
 		case GS_USB_BREQ_GET_TERMINATION:
+		case GS_USB_BREQ_GET_FILTER:
 			USBD_CtlSendData(pdev, (uint8_t *)src, len);
 			break;
 		default:
@@ -562,6 +579,15 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 					USBD_CtlError(pdev, req);
 				}
 			}
+			break;
+		}
+		case GS_USB_BREQ_SET_FILTER: {
+			const struct gs_device_filter *filter = (struct gs_device_filter *)hcan->ep0_buf;
+
+			if (!can_check_filter_ok(filter) || can_is_enabled(channel))
+				goto out_fail;
+
+			can_set_filter(channel, filter);
 			break;
 		}
 		default:

@@ -111,7 +111,7 @@ find_package(DFUSuffix)
 function(dfu_flash target)
 	if (DFU_SUFFIX_EXECUTABLE)
 		add_custom_command(TARGET ${target}
-			DEPENDS ${target}
+			POST_BUILD
 			BYPRODUCTS ${target}.dfu
 			COMMAND ${CMAKE_OBJCOPY} -O binary ${target} ${target}.dfu
 			COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${target}.dfu --vid 1d50 --pid 606f 1>/dev/null

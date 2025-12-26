@@ -65,6 +65,8 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 #define GS_HOST_FRAME_SIZE struct_size((struct gs_host_frame *)NULL, classic_can_ts, 1)
 #endif
 
+#define USBD_GS_CAN_RX_BUFFER_COUNT 1
+
 struct gs_host_frame_object {
 	struct list_head list;
 	union {
@@ -81,7 +83,7 @@ typedef struct {
 	struct list_head list_frame_pool;
 	struct list_head list_to_host;
 
-	struct gs_host_frame_object *from_host_buf;
+	struct gs_host_frame_object *from_host_buf[USBD_GS_CAN_RX_BUFFER_COUNT];
 	struct gs_host_frame_object *to_host_buf;
 
 	can_data_t channels[NUM_CAN_CHANNEL];

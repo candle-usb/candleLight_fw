@@ -226,7 +226,7 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	struct gs_host_frame *frame = &hcan->from_host_buf->frame;
+	struct gs_host_frame *frame = &hcan->from_host_buf[0]->frame;
 	uint16_t size;
 
 	if (IS_ENABLED(CONFIG_CANFD)) {
@@ -619,33 +619,33 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	can_data_t *channel;
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
-	if (rxlen < (struct_size(&hcan->from_host_buf->frame, classic_can, 1))) {
+	if (rxlen < (struct_size(&hcan->from_host_buf[0]->frame, classic_can, 1))) {
 		// Invalid frame length, just ignore it and receive into the same buffer
 		// again next time.
 		goto out_prepare_receive;
 	}
 
-	channel = USBD_GS_CAN_GetChannel(hcan, hcan->from_host_buf->frame.channel);
+	channel = USBD_GS_CAN_GetChannel(hcan, hcan->from_host_buf[0]->frame.channel);
 	if (!channel) {
 		goto out_prepare_receive;
 	}
 
 	if (IS_ENABLED(CONFIG_CANFD) &&
-		hcan->from_host_buf->frame.flags & GS_CAN_FLAG_FD &&
-		rxlen < struct_size(&hcan->from_host_buf->frame, canfd, 1)) {
+		hcan->from_host_buf[0]->frame.flags & GS_CAN_FLAG_FD &&
+		rxlen < struct_size(&hcan->from_host_buf[0]->frame, canfd, 1)) {
 		goto out_prepare_receive;
 	}
 
 	bool was_irq_enabled = disable_irq();
 	// Enqueue the frame we just received.
-	list_add_tail(&hcan->from_host_buf->list, &channel->list_from_host);
+	list_add_tail(&hcan->from_host_buf[0]->list, &channel->list_from_host);
 
 	// Grab a buffer for the next frame from the pool.
-	hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,
-												   struct gs_host_frame_object,
-												   list);
-	if (hcan->from_host_buf) {
-		list_del(&hcan->from_host_buf->list);
+	hcan->from_host_buf[0] = list_first_entry_or_null(&hcan->list_frame_pool,
+													  struct gs_host_frame_object,
+													  list);
+	if (hcan->from_host_buf[0]) {
+		list_del(&hcan->from_host_buf[0]->list);
 		restore_irq(was_irq_enabled);
 
 		// We got a buffer! Get ready to receive from the USB host into it.
@@ -760,20 +760,20 @@ void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev)
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 
 	bool was_irq_enabled = disable_irq();
-	if (hcan->from_host_buf) {
+	if (hcan->from_host_buf[0]) {
 		restore_irq(was_irq_enabled);
 		return;
 	}
 
-	hcan->from_host_buf = list_first_entry_or_null(&hcan->list_frame_pool,
-												   struct gs_host_frame_object,
-												   list);
-	if (!hcan->from_host_buf) {
+	hcan->from_host_buf[0] = list_first_entry_or_null(&hcan->list_frame_pool,
+													  struct gs_host_frame_object,
+													  list);
+	if (!hcan->from_host_buf[0]) {
 		restore_irq(was_irq_enabled);
 		return;
 	}
 
-	list_del(&hcan->from_host_buf->list);
+	list_del(&hcan->from_host_buf[0]->list);
 
 	USBD_GS_CAN_PrepareReceive(pdev);
 	restore_irq(was_irq_enabled);

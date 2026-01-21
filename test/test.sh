@@ -1,6 +1,9 @@
 #!/bin/sh
 
+BITRATE=1000000
 GDB=arm-none-eabi-gdb
+
+trap cleanup EXIT INT TERM
 
 exit_help() {
     cat<<EOF
@@ -14,7 +17,8 @@ EOF
     exit 0
 }
 
-exit_error() {
+exit_arguments() {
+    printf "$@"
     printf "Try '%s -h' for more information.\n" $0
     exit 2
 }
@@ -26,7 +30,7 @@ set_skip_send() {
 tbreak led_update
 continue
 EOF
-    wait $!
+    wait $! || exit 1
     cat >$gdb_in <<EOF
 set skip_send=$1
 continue
@@ -40,16 +44,37 @@ get_free_buffers() {
 tbreak led_update
 continue
 EOF
-    wait $!
+    wait $! || exit 1
     sleep 1
     tail -f -n 0 $gdb_out | head -1 >$tmpdir/get_free_buffers &
     cat >$gdb_in <<EOF
 count_nexts hGS_CAN.list_frame_pool
 continue
 EOF
-    wait $!
-    sed 's/$[[:digit:]]* = //' $tmpdir/get_free_buffers
+    wait $! || exit 1
+    free_buffers=`sed 's/$[[:digit:]]* = //' $tmpdir/get_free_buffers`
 }
+
+cleanup() {
+    kill "$!" 2>/dev/null
+    kill "$candump_dut_pid" 2>/dev/null
+    kill "$candump_aux_pid" 2>/dev/null
+    if [ -n "$gdb_pid" ]
+    then
+	kill -INT $gdb_pid
+	echo "quit" > $gdb_in
+    fi
+    if $keep_tmpdir
+    then
+	printf "Keeping temporary directory in %s\n" $tmpdir
+    else
+	rm -rf $tmpdit
+    fi
+    trap - EXIT
+    exit
+}
+
+keep_tmpdir=false
 
 dut_gdb_remote=:3333
 dflag=
@@ -63,15 +88,11 @@ do
 	l) lflag=1;;
 	r) rflag=1; lflag=1;;
 	h) exit_help;;
-	?) exit_error;;
+	?) exit_arguments;;
     esac
 done
 shift $(($OPTIND - 1))
-if [ $# -lt 3 ]
-then
-    printf "Not enough arguements.\n"
-    exit_error
-fi
+test $# -lt 3 && exit_arguments "Not enough arguements.\n"
 
 binary=$1_test_fw
 interface_dut=$2
@@ -87,6 +108,14 @@ candump_dut=$tmpdir/candump_dut
 candump_aux=$tmpdir/candump_aux
 
 mkfifo $gdb_in
+
+if ! command -v $GDB >/dev/null
+then
+    printf "%s not found\n" $GDB
+    exit 2
+fi
+
+keep_tmpdir=true
 
 $GDB <>$gdb_in $binary >>$gdb_out 2>&1 &
 gdb_pid=$!
@@ -114,14 +143,15 @@ else
 fi
 
 sudo ip link set $interface_aux down
-sudo ip link set $interface_aux type can bitrate 500000
+sudo ip link set $interface_aux type can bitrate $BITRATE
 sudo ip link set $interface_aux up
 
 sudo ip link set $interface_dut down
-sudo ip link set $interface_dut type can bitrate 500000
+sudo ip link set $interface_dut type can bitrate $BITRATE
 sudo ip link set $interface_dut up
 
-msgbuf_count_idle=`get_free_buffers`
+get_free_buffers
+msgbuf_count_idle=$free_buffers
 
 candump $interface_dut >>$candump_dut &
 candump_dut_pid=$!
@@ -135,17 +165,14 @@ set_skip_send 0
 
 sleep 2
 
-msgbuf_count_after=`get_free_buffers`
+get_free_buffers
+msgbuf_count_after=$free_buffers
+
 printf "Free buffers idle=%d, after=%d\n" $msgbuf_count_idle $msgbuf_count_after
 test $msgbuf_count_idle -eq $msgbuf_count_after || exit 1
-
-kill $candump_dut_pid $candump_aux_pid
-kill -INT $gdb_pid
-echo "quit" > $gdb_in
-wait
 
 awk '{$1=""; print $0}' $candump_dut >> $tmpdir/frames_dut
 awk '{$1=""; print $0}' $candump_aux >> $tmpdir/frames_aux
 test -z "$dflag" || diff $tmpdir/frames_aux $tmpdir/frames_dut || exit 1
 
-rm -rf $tmpdir
+keep_tmpdir=false

@@ -1,6 +1,5 @@
 #!/bin/sh
 
-BITRATE=1000000
 GDB=arm-none-eabi-gdb
 
 trap cleanup EXIT INT TERM
@@ -8,6 +7,7 @@ trap cleanup EXIT INT TERM
 exit_help() {
     cat<<EOF
 Usage: $0 [OPTION] BOARD INTERFACE_DUT INTERFACE_AUX
+  -b              CAN bitrate [500000]
   -d              check diff between sent/received frames
   -g              GDB remote address [:3333]
   -l              skip program loading
@@ -76,13 +76,15 @@ cleanup() {
 
 keep_tmpdir=false
 
+bitrate=500000
 dut_gdb_remote=:3333
 dflag=
 lflag=
 rflag=
-while getopts dg:lrh name
+while getopts b:dg:lrh name
 do
     case $name in
+	b) bitrate=$OPTARG;;
 	d) dflag=1;;
 	g) dut_gdb_remote=$OPTARG;;
 	l) lflag=1;;
@@ -143,11 +145,11 @@ else
 fi
 
 sudo ip link set $interface_aux down
-sudo ip link set $interface_aux type can bitrate $BITRATE
+sudo ip link set $interface_aux type can bitrate $bitrate
 sudo ip link set $interface_aux up
 
 sudo ip link set $interface_dut down
-sudo ip link set $interface_dut type can bitrate $BITRATE
+sudo ip link set $interface_dut type can bitrate $bitrate
 sudo ip link set $interface_dut up
 
 get_free_buffers

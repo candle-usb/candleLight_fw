@@ -38,8 +38,6 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "version.h"
-
 #define CAN_QUEUE_SIZE				 (64 * NUM_CAN_CHANNEL)
 
 #define USBD_VID					 0x1d50

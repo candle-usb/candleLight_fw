@@ -29,6 +29,6 @@ THE SOFTWARE.
 #include "can.h"
 #include "hal_include.h"
 
-void device_can_init(can_data_t *channel, CAN_TypeDef *instance);
+void device_can_init(can_data_t *channel, const struct board_channel_config *channel_config);
 
 void device_sysclock_config(void);

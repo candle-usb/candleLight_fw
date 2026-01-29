@@ -24,6 +24,7 @@
 
  */
 
+#include "board.h"
 #include "can.h"
 #include "config.h"
 #include "device.h"
@@ -90,11 +91,11 @@ static void rcc_reset(CAN_TypeDef *instance)
 #endif
 }
 
-void can_init(can_data_t *channel, CAN_TypeDef *instance)
+void can_init(can_data_t *channel, const struct board_channel_config *channel_config)
 {
 	struct gs_device_filter_bxcan *filter = &channel->filter.bxcan;
 
-	device_can_init(channel, instance);
+	device_can_init(channel, channel_config);
 
 	filter->fs1r = 0x1;     // 32-bit for filter bank 0
 	filter->fm1r = 0x0;     // Mask mode for filter 0

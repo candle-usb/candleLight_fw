@@ -86,14 +86,6 @@ int main(void)
 				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
 				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
-		/* nice wake-up pattern */
-		for (uint8_t j = 0; j < 10; j++) {
-			HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
-			HAL_Delay(50);
-			HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
-		}
-
-		led_set_mode(&channel->leds, LED_MODE_OFF);
 
 		can_init(channel, CAN_INTERFACE);
 		can_disable(channel);
@@ -107,6 +99,13 @@ int main(void)
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hGS_CAN, &hUSB);
 	USBD_Start(&hUSB);
+
+	/* nice wake-up pattern */
+	for (uint8_t j = 0; j < 10; j++) {
+		HAL_GPIO_TogglePin(LEDRX_GPIO_Port, LEDRX_Pin);
+		HAL_Delay(50);
+		HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
+	}
 
 	while (1) {
 		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {

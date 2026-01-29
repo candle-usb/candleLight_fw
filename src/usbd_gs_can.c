@@ -613,37 +613,10 @@ static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	return USBD_OK;
 }
 
-// Prefill the buffers from RX from host.
-// Return true if managed to fill the pre-allocate buffer list
-// and RX can be enabled, false otherwise.
-// Must be called with IRQ disabled.
-static bool USBD_GS_Prefill_RX_Buffers(USBD_GS_CAN_HandleTypeDef *hcan)
-{
-	unsigned i;
-
-	for (i = 0; i < ARRAY_SIZE(hcan->from_host_buf); ++i) {
-		if (hcan->from_host_buf[i])
-			continue;
-
-		hcan->from_host_buf[i] = list_first_entry_or_null(&hcan->list_frame_pool,
-														  struct gs_host_frame_object,
-														  list);
-		if (!hcan->from_host_buf[i])
-			return false;
-
-		list_del(&hcan->from_host_buf[i]->list);
-	}
-
-	return true;
-}
-
 // Note that the return value is completely ignored by the stack.
 static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 	can_data_t *channel;
-
-	/* If we do not have a valid incoming frame pointer, something broke. */
-	assert_basic (hcan->from_host_buf[0]);
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen < (struct_size(&hcan->from_host_buf[0]->frame, classic_can, 1))) {
@@ -667,42 +640,26 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	// Enqueue the frame we just received.
 	list_add_tail(&hcan->from_host_buf[0]->list, &channel->list_from_host);
 
-	int last;
-	for (last = 0; last < (int)ARRAY_SIZE(hcan->from_host_buf) - 1; ++last)
-		hcan->from_host_buf[last] = hcan->from_host_buf[last + 1];
-	hcan->from_host_buf[last] = NULL;
-
-	bool rx_ready = USBD_GS_Prefill_RX_Buffers(hcan);
-
-	if (rx_ready) {
+	// Grab a buffer for the next frame from the pool.
+	hcan->from_host_buf[0] = list_first_entry_or_null(&hcan->list_frame_pool,
+													  struct gs_host_frame_object,
+													  list);
+	if (hcan->from_host_buf[0]) {
+		list_del(&hcan->from_host_buf[0]->list);
 		restore_irq(was_irq_enabled);
 
-		// All RX buffers are ready. Enable RX.
+		// We got a buffer! Get ready to receive from the USB host into it.
 		USBD_GS_CAN_PrepareReceive(pdev);
 	} else {
 		restore_irq(was_irq_enabled);
 
-#if defined(USB) || defined(USB_DRD_FS)
-		// Not all RX buffers are ready. We got enough in the
-		// pre-allocated reserve to ensure callbacks which are going
-		// to be called due to USB frames being received into double
-		// buffer, but disable further RX. If double buffer not in use,
-		// RX would have already been disabled by USB HW.
-		USBD_GS_CAN_PrepareReceive(pdev);
-		PCD_SET_EP_RX_STATUS(((PCD_HandleTypeDef*)pdev->pData)->Instance,
-							 GSUSB_ENDPOINT_OUT,
-							 USB_EP_RX_NAK);
-#endif
+		// gs_can has no way to drop packets. If we just drop this one, gs_can
+		// will fill up its queue of packets awaiting ACKs and then hang. Instead,
+		// wait to call PrepareReceive until we have a frame to receive into.
 	}
 	return USBD_OK;
 
 out_prepare_receive:
-	// We can not unconditionally re-enable RX if the pre-allocated
-	// buffers are not fully ready.
-	for (unsigned i = 0; i < ARRAY_SIZE(hcan->from_host_buf); ++i) {
-		if (!hcan->from_host_buf[i])
-			return USBD_OK;
-	}
 	USBD_GS_CAN_PrepareReceive(pdev);
 	return USBD_OK;
 }
@@ -803,14 +760,22 @@ void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev)
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 
 	bool was_irq_enabled = disable_irq();
+	if (hcan->from_host_buf[0]) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
 
-	// Reserve the multiple RX buffers we need to ensure no frame loss
-	// with OUT endpoint double-buffering before (re)starting the RX. */
-	bool rx_ready = USBD_GS_Prefill_RX_Buffers(hcan);
+	hcan->from_host_buf[0] = list_first_entry_or_null(&hcan->list_frame_pool,
+													  struct gs_host_frame_object,
+													  list);
+	if (!hcan->from_host_buf[0]) {
+		restore_irq(was_irq_enabled);
+		return;
+	}
 
-	if (rx_ready)
-		USBD_GS_CAN_PrepareReceive(pdev);
+	list_del(&hcan->from_host_buf[0]->list);
 
+	USBD_GS_CAN_PrepareReceive(pdev);
 	restore_irq(was_irq_enabled);
 }
 

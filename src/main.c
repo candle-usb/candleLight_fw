@@ -45,9 +45,6 @@ THE SOFTWARE.
 #include "usbd_gs_can.h"
 #include "util.h"
 
-void HAL_MspInit(void);
-static void SystemClock_Config(void);
-
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};
 
@@ -63,7 +60,7 @@ void __weak _write(void) {
 int main(void)
 {
 	HAL_Init();
-	SystemClock_Config();
+	device_sysclock_config();
 
 	gpio_init();
 	timer_init();
@@ -130,22 +127,4 @@ int main(void)
 			dfu_run_bootloader();
 		}
 	}
-}
-
-void HAL_MspInit(void)
-{
-	__HAL_RCC_SYSCFG_CLK_ENABLE();
-#if defined(STM32F4)
-	__HAL_RCC_PWR_CLK_ENABLE();
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-#elif defined(STM32G0)
-	__HAL_RCC_PWR_CLK_ENABLE();
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
-#endif
-	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-}
-
-void SystemClock_Config(void)
-{
-	device_sysclock_config();
 }

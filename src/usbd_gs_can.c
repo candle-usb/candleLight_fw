@@ -614,13 +614,16 @@ static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 }
 
 // Prefill the buffers from RX from host.
-// Return true if managed to fill the pre-allocate buffer list
-// and RX can be enabled, false otherwise.
+// Return true if pre-allocated buffer list buffer list
+// was changed and is now ready, meaning and RX can be
+// re-enabled, false otherwise.
 // Must be called with IRQ disabled.
 static bool USBD_GS_Prefill_RX_Buffers(USBD_GS_CAN_HandleTypeDef *hcan)
 {
 	unsigned i;
+	bool changed;
 
+	changed = false;
 	for (i = 0; i < ARRAY_SIZE(hcan->from_host_buf); ++i) {
 		if (hcan->from_host_buf[i])
 			continue;
@@ -632,9 +635,11 @@ static bool USBD_GS_Prefill_RX_Buffers(USBD_GS_CAN_HandleTypeDef *hcan)
 			return false;
 
 		list_del(&hcan->from_host_buf[i]->list);
+
+		changed = true;
 	}
 
-	return true;
+	return changed;
 }
 
 // Note that the return value is completely ignored by the stack.

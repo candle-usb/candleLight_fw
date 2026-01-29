@@ -36,7 +36,9 @@ THE SOFTWARE.
 #include "list.h"
 
 typedef struct {
+#if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
+#endif
 	struct list_head list_from_host;
 	led_data_t leds;
 	struct gs_device_filter filter;

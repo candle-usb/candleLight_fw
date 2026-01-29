@@ -74,6 +74,7 @@ int main(void)
 	}
 
 	for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
+		const struct board_channel_config *channel_config = &config.channel[i];
 		can_data_t *channel = &hGS_CAN.channels[i];
 
 		channel->nr = i;
@@ -85,7 +86,7 @@ int main(void)
 				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
 
-		can_init(channel, config.channel[i].interface);
+		can_init(channel, channel_config);
 		can_disable(channel);
 
 #ifdef CAN_S_GPIO_Port

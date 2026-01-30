@@ -27,11 +27,12 @@ THE SOFTWARE.
  * F0 device-specific code
  */
 
+#include "board.h"
 #include "can.h"
 #include "device.h"
 #include "hal_include.h"
 
-void device_can_init(can_data_t *channel, CAN_TypeDef *instance) {
+void device_can_init(can_data_t *channel, const struct board_channel_config *channel_config) {
 	__HAL_RCC_CAN1_CLK_ENABLE();
 
 	GPIO_InitTypeDef itd;
@@ -43,7 +44,7 @@ void device_can_init(can_data_t *channel, CAN_TypeDef *instance) {
 	itd.Alternate = GPIO_AF4_CAN;
 	HAL_GPIO_Init(GPIOB, &itd);
 
-	channel->instance   = instance;
+	channel->instance   = channel_config->interface;
 	channel->brp        = 6;
 	channel->sjw        = 1;
 	channel->phase_seg1 = 13;

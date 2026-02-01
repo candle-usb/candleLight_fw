@@ -42,6 +42,10 @@
 #define __packed __attribute__((__packed__))
 #endif
 
+#ifndef __maybe_unused
+#define __maybe_unused __attribute__((__unused__))
+#endif
+
 #if __has_attribute(__fallthrough__)
 #define fallthrough __attribute__((__fallthrough__))
 #else

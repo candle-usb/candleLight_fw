@@ -2,8 +2,19 @@ cmake_minimum_required(VERSION 3.13)
 project(candleLightFirmware C ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(default_build_type "Release")
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+
+    # Set the possible values for cmake-gui drop-down
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+endif()
 
 add_compile_options(
+	$<$<CONFIG:Release>:-flto>
+	$<$<CONFIG:Release>:-ffat-lto-objects>
 	--specs=nano.specs
 	--specs=nosys.specs
 	-O2
@@ -12,10 +23,8 @@ add_compile_options(
 	-Wextra
 	-Wstrict-prototypes
 	-fdata-sections
-	-ffat-lto-objects
 	-ffreestanding
 	-ffunction-sections
-	-flto
 	-fmessage-length=0
 	-fsigned-char
 	-g3

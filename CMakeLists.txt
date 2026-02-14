@@ -14,7 +14,7 @@ endif()
 
 add_compile_options(
 	$<$<CONFIG:Release>:-flto>
-	$<$<CONFIG:Release>:-ffat-lto-objects>
+	$<$<CONFIG:Release>:-fno-fat-lto-objects>
 	--specs=nano.specs
 	--specs=nosys.specs
 	-O2

@@ -197,9 +197,6 @@ typedef struct
 #endif /* FLASH_DBANK_SUPPORT */
 #define FLASH_FLAG_BSY                  FLASH_FLAG_BSY1                                                       /*!< FLASH Operation Busy flag - legacy name for single bank */
 #define FLASH_FLAG_CFGBSY               ((FLASH_FLAG_SR_ID << FLASH_FLAG_REG_POS) | FLASH_SR_CFGBSY_Pos)      /*!< FLASH Configuration Busy flag */
-#if defined(FLASH_DBANK_SUPPORT)
-#define FLASH_FLAG_PESD                 ((FLASH_FLAG_SR_ID << FLASH_FLAG_REG_POS) | FLASH_SR_PESD_Pos)        /*!< FLASH Programming/erase operation suspended */
-#endif /* FLASH_DBANK_SUPPORT */
 #define FLASH_FLAG_ECCC1                ((FLASH_FLAG_ECCR1_ID << FLASH_FLAG_REG_POS) | FLASH_ECCR_ECCC_Pos)   /*!< FLASH ECC correction on bank 1 */
 #define FLASH_FLAG_ECCD1                ((FLASH_FLAG_ECCR1_ID << FLASH_FLAG_REG_POS) | FLASH_ECCR_ECCD_Pos)   /*!< FLASH ECC detection on bank 1 */
 #if defined(FLASH_DBANK_SUPPORT)
@@ -557,8 +554,8 @@ typedef struct
 /** @defgroup FLASH_OB_USER_INPUT_RESET_HOLDER FLASH Option Bytes User input reset holder bit
   * @{
   */
-#define OB_IRH_ENABLE                   0x00000000U           /*!< Internal Reset handler enable */
-#define OB_IRH_DISABLE                  FLASH_OPTR_IRHEN      /*!< Internal Reset handler disable */
+#define OB_IRH_ENABLE                   FLASH_OPTR_IRHEN        /*!< Internal Reset handler enable */
+#define OB_IRH_DISABLE                  0x00000000U             /*!< Internal Reset handler disable */
 /**
   * @}
   */
@@ -763,8 +760,8 @@ typedef struct
 #endif /* FLASH_DBANK_SUPPORT */
 
 /**
-  * @brief  Clear the FLASH pending flags.
-  * @param  __FLAG__ specifies the FLASH flags to clear.
+  * @brief  Clear the FLASH pending flag.
+  * @param  __FLAG__ specifies the FLASH flag to clear.
   *         This parameter can be one of the following values :
   *     @arg @ref FLASH_FLAG_EOP FLASH End of Operation flag
   *     @arg @ref FLASH_FLAG_OPERR FLASH Operation error flag
@@ -788,12 +785,12 @@ typedef struct
   */
 #if defined(FLASH_DBANK_SUPPORT)
 #define __HAL_FLASH_CLEAR_FLAG(__FLAG__)        do { if(((__FLAG__) & (FLASH_FLAG_SR_ID << FLASH_FLAG_REG_POS)) != 0U)         { FLASH->SR = (1uL << ((__FLAG__) & 0x1Fu)); }    \
-                                                     else if(((__FLAG__) & (FLASH_FLAG_ECCR1_ID << FLASH_FLAG_REG_POS)) != 0U) { FLASH->ECCR = (1uL << ((__FLAG__) & 0x1Fu)); }  \
-                                                     else if(((__FLAG__) & (FLASH_FLAG_ECCR2_ID << FLASH_FLAG_REG_POS)) != 0U) { FLASH->ECC2R = (1uL << ((__FLAG__) & 0x1Fu)); }  \
+                                                     else if(((__FLAG__) & (FLASH_FLAG_ECCR1_ID << FLASH_FLAG_REG_POS)) != 0U) { FLASH->ECCR |= (1uL << ((__FLAG__) & 0x1Fu)); }  \
+                                                     else if(((__FLAG__) & (FLASH_FLAG_ECCR2_ID << FLASH_FLAG_REG_POS)) != 0U) { FLASH->ECC2R |= (1uL << ((__FLAG__) & 0x1Fu)); }  \
                                                    } while(0U)
 #else
 #define __HAL_FLASH_CLEAR_FLAG(__FLAG__)        do { if(((__FLAG__) & (FLASH_FLAG_SR_ID << FLASH_FLAG_REG_POS)) != 0U)         { FLASH->SR = (1uL << ((__FLAG__) & 0x1Fu)); }    \
-                                                     else if(((__FLAG__) & (FLASH_FLAG_ECCR1_ID << FLASH_FLAG_REG_POS)) != 0U) { FLASH->ECCR = (1uL << ((__FLAG__) & 0x1Fu)); }  \
+                                                     else if(((__FLAG__) & (FLASH_FLAG_ECCR1_ID << FLASH_FLAG_REG_POS)) != 0U) { FLASH->ECCR |= (1uL << ((__FLAG__) & 0x1Fu)); }  \
                                                    } while(0U)
 #endif /* FLASH_DBANK_SUPPORT */
 /**
@@ -905,11 +902,7 @@ HAL_StatusTypeDef  FLASH_WaitForLastOperation(uint32_t Timeout);
                                          FLASH_SR_OPTVERR) /*!< All SR error flags */
 #endif /* FLASH_PCROP_SUPPORT */
 
-#if defined(FLASH_DBANK_SUPPORT)
-#define FLASH_SR_CLEAR                  (FLASH_SR_ERRORS | FLASH_SR_EOP | FLASH_SR_PESD)
-#else
 #define FLASH_SR_CLEAR                  (FLASH_SR_ERRORS | FLASH_SR_EOP)
-#endif /* FLASH_DBANK_SUPPORT */
 
 /* Internal defines for HAL macro usage */
 #define FLASH_FLAG_REG_POS              16u

@@ -221,6 +221,9 @@ function(add_target_common TGTNAME CPU_FAMILY)
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld LINKER:-Map=${TGTNAME}_fw.map)
+	set_target_properties(${TGTNAME}_fw PROPERTIES
+		ADDITIONAL_CLEAN_FILES "${TGTNAME}_fw.map"
+	)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)
 	show_object_size(${TGTNAME}_fw)

@@ -24,38 +24,36 @@ THE SOFTWARE.
 
 */
 
+#include "board.h"
+#include "config.h"
 #include "gpio.h"
 #include "hal_include.h"
 
-#ifdef TERM_Pin
+#ifdef CONFIG_TERMINATION
 static int term_state = 0;
 
-enum gs_can_termination_state get_term(unsigned int channel)
+enum gs_can_termination_state get_term(can_data_t * channel)
 {
-	if (term_state & (1 << channel)) {
+	const uint8_t nr = channel->nr;
+
+	if (term_state & (1 << nr)) {
 		return GS_CAN_TERMINATION_STATE_ON;
 	} else {
 		return GS_CAN_TERMINATION_STATE_OFF;
 	}
 }
 
-enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state)
+enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state)
 {
+	const uint8_t nr = channel->nr;
+
 	if (state == GS_CAN_TERMINATION_STATE_ON) {
-		term_state |= 1 << channel;
+		term_state |= 1 << nr;
 	} else {
-		term_state &= ~(1 << channel);
+		term_state &= ~(1 << nr);
 	}
 
-#if (TERM_Active_High == 1)
-	#define TERM_ON	 GPIO_PIN_SET
-	#define TERM_OFF GPIO_PIN_RESET
-#else
-	#define TERM_ON	 GPIO_PIN_RESET
-	#define TERM_OFF GPIO_PIN_SET
-#endif
-
-	HAL_GPIO_WritePin(TERM_GPIO_Port, TERM_Pin, (state ? TERM_ON : TERM_OFF));
+	board_termination_set(channel, state);
 
 	return state;
 }
@@ -94,14 +92,14 @@ void gpio_init(void)
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 #endif
 
-#ifdef CAN_S_Pin
-	HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
-	GPIO_InitStruct.Pin = CAN_S_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
-#endif
+	if (IS_ENABLED(CONFIG_PHY_SILENT)) {
+		HAL_GPIO_WritePin(CAN_S_GPIO_Port, CAN_S_Pin, GPIO_PIN_SET);
+		GPIO_InitStruct.Pin = CAN_S_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		HAL_GPIO_Init(CAN_S_GPIO_Port, &GPIO_InitStruct);
+	}
 
 #ifdef LEDRX_Pin
 	HAL_GPIO_WritePin(LEDRX_GPIO_Port, LEDRX_Pin, GPIO_INIT_STATE(LEDRX_Active_High));
@@ -121,14 +119,14 @@ void gpio_init(void)
 	HAL_GPIO_Init(LEDTX_GPIO_Port, &GPIO_InitStruct);
 #endif
 
-#ifdef nCANSTBY_Pin
-	HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
-	GPIO_InitStruct.Pin = nCANSTBY_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(nCANSTBY_Port, &GPIO_InitStruct); //xceiver standby.
-#endif
+	if (IS_ENABLED(CONFIG_PHY_STANDBY)) {
+		HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin, GPIO_INIT_STATE(nCANSTBY_Active_High));
+		GPIO_InitStruct.Pin = nCANSTBY_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		HAL_GPIO_Init(nCANSTBY_Port, &GPIO_InitStruct);     //xceiver standby.
+	}
 
 #ifdef DCDCEN_Pin
 	HAL_GPIO_WritePin(DCDCEN_Port, DCDCEN_Pin, GPIO_PIN_SET);

@@ -74,6 +74,7 @@ set(
 	include/usbd_gs_can.h src/usbd_gs_can.c
 	src/usbd_conf.c
 
+	include/board.h
 	include/can.h
 	include/can_common.h src/can_common.c
 	include/device.h
@@ -232,7 +233,8 @@ endfunction()
 function(add_f042_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F042X6)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
-	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0)
+	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0 CONFIG_BXCAN)
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
@@ -242,7 +244,8 @@ endfunction()
 function(add_f072_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F072XB)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
-	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0)
+	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F0 CONFIG_BXCAN)
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F0})
@@ -251,8 +254,9 @@ endfunction()
 
 function(add_f407_target TGTNAME)
 	add_target_common(${TGTNAME} STM32F407XE)
-	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F4)
+	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32F4 CONFIG_BXCAN)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/bxcan.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_f4.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_F4})
@@ -261,7 +265,7 @@ endfunction()
 
 function(add_g0b1_target TGTNAME)
 	add_target_common(${TGTNAME} STM32G0B1xx)
-	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32G0)
+	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32G0 CONFIG_M_CAN)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_g0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})

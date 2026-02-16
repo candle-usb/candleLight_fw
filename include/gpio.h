@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #pragma once
 
+#include "can.h"
 #include "config.h"
 #include "gs_usb.h"
 
@@ -34,19 +35,19 @@ void gpio_init(void);
 /* macro to define init (i.e. reset) state of a pin */
 #define GPIO_INIT_STATE(active_high) (((active_high) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
 
-#ifdef TERM_Pin
-enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state);
-enum gs_can_termination_state get_term(unsigned int channel);
+#ifdef CONFIG_TERMINATION
+enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state);
+enum gs_can_termination_state get_term(can_data_t *channel);
 
 #else
-static inline enum gs_can_termination_state set_term(unsigned int channel, enum gs_can_termination_state state)
+static inline enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state)
 {
 	(void)channel;
 	(void)state;
 	return GS_CAN_TERMINATION_UNSUPPORTED;
 }
 
-static inline enum gs_can_termination_state get_term(unsigned int channel)
+static inline enum gs_can_termination_state get_term(can_data_t * channel)
 {
 	(void)channel;
 	return GS_CAN_TERMINATION_UNSUPPORTED;

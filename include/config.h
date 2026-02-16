@@ -114,6 +114,8 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
 	#define LEDTX_Active_High		 0
 
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_STANDBY		 1
 	#define nCANSTBY_Port			 GPIOC
 	#define nCANSTBY_Pin			 GPIO_PIN_14 /* control xceiver standby, active low */
 	#define nCANSTBY_Active_High	 1
@@ -270,6 +272,8 @@ THE SOFTWARE.
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CAN_FILTER		 1
 
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_SILENT		 1
 	#define CAN_S_Pin				 GPIO_PIN_13
 	#define CAN_S_GPIO_Port			 GPIOC
 
@@ -296,6 +300,8 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 42000000
 	#define NUM_CAN_CHANNEL			 1
 
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_SILENT		 1
 	#define CAN_S_Pin				 GPIO_PIN_10
 	#define CAN_S_GPIO_Port			 GPIOA
 
@@ -313,6 +319,7 @@ THE SOFTWARE.
 	#define USB_Pin_DM				 GPIO_PIN_11
 	#define USB_Pin_DP				 GPIO_PIN_12
 
+	#define CONFIG_TERMINATION		 1
 	#define TERM_GPIO_Port			 GPIOB
 	#define TERM_Pin				 GPIO_PIN_3
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
@@ -359,6 +366,8 @@ THE SOFTWARE.
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
 
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_STANDBY		 1
 	#define nCANSTBY_Port			 GPIOA
 	#define nCANSTBY_Pin			 GPIO_PIN_0 /* control xceiver standby, active low */
 	#define nCANSTBY_Active_High	 0
@@ -384,4 +393,40 @@ THE SOFTWARE.
 
 #else
 	#error please define BOARD
+#endif
+
+#ifndef CONFIG_PHY
+#if defined(CONFIG_PHY_STANDBY) || defined(CONFIG_PHY_SILENT)
+#error Defined CONFIG_PHY_STANDBY or CONFIG_PHY_SILENT without CONFIG_PHY
+#endif
+#endif
+
+#ifdef nCANSTBY_Pin
+#ifndef CONFIG_PHY_STANDBY
+#error Defined nCANSTBY_Pin without CONFIG_PHY_STANDBY
+#endif
+#else
+#define nCANSTBY_Pin		 GPIO_PIN_0
+#define nCANSTBY_Port		 GPIOA
+#define nCANSTBY_Active_High 0
+#endif
+
+#ifdef CAN_S_Pin
+#ifndef CONFIG_PHY_SILENT
+#error Defined CAN_S_Pin without CONFIG_PHY_SILENT
+#endif
+#else
+#define CAN_S_Pin		GPIO_PIN_0
+#define CAN_S_GPIO_Port GPIOA
+#endif
+
+#ifdef TERM_Pin
+#ifndef CONFIG_TERMINATION
+#error Defined TERM_Pin without CONFIG_TERMINATION
+#endif
+#else
+#define TERM_Pin		 GPIO_PIN_0
+#define TERM_GPIO_Port	 GPIOA
+#define TERM_Mode		 GPIO_MODE_OUTPUT_PP
+#define TERM_Active_High 1
 #endif

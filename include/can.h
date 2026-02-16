@@ -36,7 +36,9 @@ THE SOFTWARE.
 #include "list.h"
 
 typedef struct {
+#if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
+#endif
 	struct list_head list_from_host;
 	led_data_t leds;
 	struct gs_device_filter filter;
@@ -52,7 +54,9 @@ extern const struct gs_device_bt_const CAN_btconst;
 extern const struct gs_device_bt_const_extended CAN_btconst_ext;
 extern const struct gs_device_filter_info CAN_filter_info;
 
-void can_init(can_data_t *channel, CAN_TypeDef *instance);
+struct board_channel_config;
+
+void can_init(can_data_t *channel, const struct board_channel_config *config);
 void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
 
 #ifdef CONFIG_CANFD

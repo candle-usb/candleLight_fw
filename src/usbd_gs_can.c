@@ -876,8 +876,13 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 	return USBD_GS_CAN_Transmit(pdev, send_addr, len);
 }
 
+static volatile int skip_send;
+
 void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)
 {
+	if (IS_ENABLED(USBD_TEST) && skip_send)
+		return;
+
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
 
 	bool was_irq_enabled = disable_irq();

@@ -325,7 +325,56 @@ THE SOFTWARE.
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
 	#define TERM_Active_High		 1
 
+#elif defined(BOARD_STM32F4_DevBoardDualChannel)
+	#define USBD_PRODUCT_STRING_FS	 "STM32F4VE Dev Board Dual Channel"
+	#define USBD_MANUFACTURER_STRING "misc"
+	#define DFU_INTERFACE_STRING_FS	 "STM32F4VE firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 84000000
+
+	#define CAN_INTERFACE			 CAN1
+	#define CAN_INTERFACE2			 CAN2
+	#define CAN_CLOCK_SPEED			 42000000
+	#define NUM_CAN_CHANNEL			 2
+
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_SILENT		 1
+	#define CAN_S_Pin				 GPIO_PIN_10
+	#define CAN_S_GPIO_Port			 GPIOA
+
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Pin				 GPIO_PIN_6
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDRX_Active_High		 0
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_7
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_OD
+	#define LEDTX_Active_High		 0
+
+	#define USB_GPIO_Port			 GPIOA
+	#define USB_Pin_DM				 GPIO_PIN_11
+	#define USB_Pin_DP				 GPIO_PIN_12
+
+	#define CONFIG_TERMINATION		 1
+	#define TERM_GPIO_Port			 GPIOB
+	#define TERM_Pin				 GPIO_PIN_3
+	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
+	#define TERM_Active_High		 1
+
 /*************** STM32G0B1 ***************/
+
+#elif defined(BOARD_2C2L_USB)
+	#define USBD_PRODUCT_STRING_FS	 "intive 2C2L-USB gs_usb"
+	#define USBD_MANUFACTURER_STRING "intive"
+	#define DFU_INTERFACE_STRING_FS	 "intive 2C2L-USB firmware upgrade interface"
+
+	#define HSE_OSC_SPEED			 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
 
 #elif defined(BOARD_CONVERTDEVICE_xCANFD)
 	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
@@ -334,24 +383,21 @@ THE SOFTWARE.
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define CAN_INTERFACE			 FDCAN1
-	#define CAN_CLOCK_SPEED			 64000000
+	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CANFD			 1
 
-	#define LEDRX_GPIO_Port			 GPIOA
-	#define LEDRX_Pin				 GPIO_PIN_0
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 0
+#elif defined(BOARD_WeActStudio_USB2CANFDV1)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "USB2CANFDV1 gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "WeActStudio"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "USB2CANFDV1 firmware upgrade interface"
 
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_1
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 0
+	#define HSE_OSC_SPEED			 16000000
+	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
 
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
@@ -360,36 +406,47 @@ THE SOFTWARE.
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define CAN_INTERFACE			 FDCAN1
-	#define CAN_INTERFACE2			 FDCAN2
-	#define CAN_CLOCK_SPEED			 64000000
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
+	#define CONFIG_PHY				 1
+	#define CONFIG_TERMINATION		 1
+
+#elif defined(BOARD_candleLightFD)
+	#define USBD_PRODUCT_STRING_FS	 "candleLightFD gs_usb"
+	#define USBD_MANUFACTURER_STRING "candleLightFD"
+	#define DFU_INTERFACE_STRING_FS	 "candleLightFD firmware upgrade interface"
+
+	#define HSE_OSC_SPEED			 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
 
-	#define CONFIG_PHY				 1
-	#define CONFIG_PHY_STANDBY		 1
-	#define nCANSTBY_Port			 GPIOA
-	#define nCANSTBY_Pin			 GPIO_PIN_0 /* control xceiver standby, active low */
-	#define nCANSTBY_Active_High	 0
+#elif defined(BOARD_nucleo_g0b1re)
+	#define USBD_PRODUCT_STRING_FS	 "NUCLEO-G0B1RE gs_usb"
+	#define USBD_MANUFACTURER_STRING "STMicroelectronics"
+	#define DFU_INTERFACE_STRING_FS	 "NUCLEO-G0B1RE firmware upgrade interface"
 
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_4
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 1
+	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define LEDTX_GPIO_Port			 GPIOB
-	#define LEDTX_Pin				 GPIO_PIN_3
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 1
+	#define CAN_CLOCK_SPEED			 64000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
 
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
+/*************** STM32G431 ***************/
 
-	#define TERM_GPIO_Port			 GPIOA
-	#define TERM_Pin				 GPIO_PIN_1
-	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
-	#define TERM_Active_High		 1
+	#elif defined(BOARD_CANable2_MKS)
+	#define USBD_PRODUCT_STRING_FS	 (uint8_t*) "CANable2-MKS gs_usb"
+	#define USBD_MANUFACTURER_STRING (uint8_t*) "CANable2-MKS"
+	#define DFU_INTERFACE_STRING_FS	 (uint8_t*) "CANable2-MKS firmware upgrade interface"
+
+	#define TIM2_CLOCK_SPEED		 160000000
+
+	#define CAN_CLOCK_SPEED			 80000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
 
 #else
 	#error please define BOARD

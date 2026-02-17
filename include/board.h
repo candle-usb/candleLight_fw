@@ -33,14 +33,24 @@
 #include "config.h"
 #include "usbd_gs_can.h"
 
+struct led_config {
+	GPIO_TypeDef *port;
+	uint16_t pin;
+	bool active_high;
+};
+
 struct board_channel_config {
 #if defined(CONFIG_BXCAN)
 	CAN_TypeDef *interface;
+#elif defined(CONFIG_M_CAN)
+	FDCAN_GlobalTypeDef *interface;
 #endif
+	struct led_config leds[LED_MAX];
 };
 
 struct board_config {
 	struct board_channel_config channel[NUM_CAN_CHANNEL];
+	void (*setup)(USBD_GS_CAN_HandleTypeDef *hcan);
 #ifdef CONFIG_PHY
 	void (*phy_power_set)(can_data_t *channel, bool enable);
 #endif
@@ -50,6 +60,11 @@ struct board_config {
 };
 
 extern const struct board_config config;
+
+static inline void board_setup(USBD_GS_CAN_HandleTypeDef *hcan)
+{
+	config.setup(hcan);
+}
 
 #ifdef CONFIG_PHY
 #define SET_PHY_POWER_FN(set_fn) \

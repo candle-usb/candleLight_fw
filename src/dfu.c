@@ -36,37 +36,6 @@
 
 static uint32_t dfu_reset_to_bootloader_magic;
 
-static void dfu_hack_boot_pin_f042(void);
-static void dfu_jump_to_bootloader(uint32_t sysmem_base);
-
-void dfu_run_bootloader(void)
-{
-	dfu_reset_to_bootloader_magic = RESET_TO_BOOTLOADER_MAGIC_CODE;
-	NVIC_SystemReset();
-}
-
-void __initialize_hardware_early(void)
-{
-	if (dfu_reset_to_bootloader_magic == RESET_TO_BOOTLOADER_MAGIC_CODE) {
-		switch (HAL_GetDEVID()) {
-			case 0x445: // STM32F04x
-				dfu_hack_boot_pin_f042();
-				dfu_jump_to_bootloader(SYSMEM_STM32F042);
-				break;
-
-			case 0x448: // STM32F07x
-				dfu_jump_to_bootloader(SYSMEM_STM32F072);
-				break;
-
-			case 0x467: // STM32G0B1
-				dfu_jump_to_bootloader(SYSMEM_STM32G0B1);
-				break;
-		}
-	}
-
-	SystemInit();
-}
-
 static void dfu_hack_boot_pin_f042(void)
 {
 	__HAL_RCC_GPIOF_CLK_ENABLE();
@@ -91,4 +60,32 @@ static void dfu_jump_to_bootloader(uint32_t sysmem_base)
 
 	while (42) {
 	}
+}
+
+void __initialize_hardware_early(void)
+{
+	if (dfu_reset_to_bootloader_magic == RESET_TO_BOOTLOADER_MAGIC_CODE) {
+		switch (HAL_GetDEVID()) {
+			case 0x445: // STM32F04x
+				dfu_hack_boot_pin_f042();
+				dfu_jump_to_bootloader(SYSMEM_STM32F042);
+				break;
+
+			case 0x448: // STM32F07x
+				dfu_jump_to_bootloader(SYSMEM_STM32F072);
+				break;
+
+			case 0x467: // STM32G0B1
+				dfu_jump_to_bootloader(SYSMEM_STM32G0B1);
+				break;
+		}
+	}
+
+	SystemInit();
+}
+
+void dfu_run_bootloader(void)
+{
+	dfu_reset_to_bootloader_magic = RESET_TO_BOOTLOADER_MAGIC_CODE;
+	NVIC_SystemReset();
 }

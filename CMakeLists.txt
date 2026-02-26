@@ -279,6 +279,7 @@ set(TGTF042_LIST
 	"canalyze"
 	"cannette"
 	"cantact"
+	"toucan"
 	"usb2can"
 )
 set(TGTF072_LIST

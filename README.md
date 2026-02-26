@@ -16,6 +16,7 @@ This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, nota
 - ConvertDevice-xCANFD: <https://github.com/ConvertDevice/xCANFD> (STM32G0B1CBT6)
 - DSD TECH SH-C30A: <https://www.deshide.com/product-details.html?pid=384242&_t=1671089557> (STM32F072xB)
 - FYSETC UCAN: <https://www.fysetc.com/products/fysetc-ucan-board-based-on-stm32f072-usb-to-can-adapter-support-with-canable-candlelight-klipper-firmware> (STM32F072xB)
+- TouCAN Probe <https://github.com/AndersBNielsen/TouCAN> (STM32F042C6)
 
 Of important note is that the common STM32F103 will NOT work with this firmware because its hardware cannot use both USB and CAN simultaneously.
 Beware also the smaller packages in the F042 series which map a USB and CAN_TX signal on the same pin and are therefore unusable !

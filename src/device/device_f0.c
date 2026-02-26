@@ -53,15 +53,29 @@ void device_sysclock_config(void) {
 	__HAL_RCC_PWR_CLK_ENABLE();
 
 	const RCC_OscInitTypeDef RCC_OscInitStruct = {
+#if defined(CONFIG_HSE_OSC_SPEED)
+		.OscillatorType = RCC_OSCILLATORTYPE_HSE,
+		.HSEState = RCC_HSE_ON,
+		.PLL.PLLState = RCC_PLL_ON,
+		.PLL.PLLSource = RCC_PLLSOURCE_HSE,
+		.PLL.PREDIV = RCC_PREDIV_DIV1,
+		.PLL.PLLMUL = FIELD_PREP(RCC_CFGR_PLLMUL,
+								 (48000000 / CONFIG_HSE_OSC_SPEED) - 2),
+#else
 		.OscillatorType = RCC_OSCILLATORTYPE_HSI48,
 		.HSI48State = RCC_HSI48_ON,
 		.PLL.PLLState = RCC_PLL_NONE,
+#endif
 	};
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
 	const RCC_ClkInitTypeDef RCC_ClkInitStruct = {
 		.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1,
+#if defined(CONFIG_HSE_OSC_SPEED)
+		.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK,
+#else
 		.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48,
+#endif
 		.AHBCLKDivider = RCC_SYSCLK_DIV1,
 		.APB1CLKDivider = RCC_HCLK_DIV1,
 	};
@@ -69,10 +83,15 @@ void device_sysclock_config(void) {
 
 	RCC_PeriphCLKInitTypeDef PeriphClkInit = {
 		.PeriphClockSelection = RCC_PERIPHCLK_USB,
+#if defined(CONFIG_HSE_OSC_SPEED)
+		.UsbClockSelection = RCC_USBCLKSOURCE_PLLCLK,
+#else
 		.UsbClockSelection = RCC_USBCLKSOURCE_HSI48,
+#endif
 	};
 	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
+#if !defined(CONFIG_HSE_OSC_SPEED)
 	__HAL_RCC_CRS_CLK_ENABLE();
 	RCC_CRSInitTypeDef RCC_CRSInitStruct = {
 		.Prescaler = RCC_CRS_SYNC_DIV1,
@@ -83,6 +102,7 @@ void device_sysclock_config(void) {
 		.HSI48CalibrationValue = 32,
 	};
 	HAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);
+#endif
 
 	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 

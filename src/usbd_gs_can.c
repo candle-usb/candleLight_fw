@@ -46,6 +46,24 @@ THE SOFTWARE.
 
 static volatile bool is_usb_suspend_cb = false;
 
+static uint8_t *USBD_GS_CAN_GetDeviceQualifierDesc(uint16_t *length);
+
+/* WARNING: GetDeviceQualifierDescriptor callback MUST NOT be NULL.
+ * STM32 USB library zero-initializes dev_speed to USBD_SPEED_HIGH (0).
+ * Before HAL_PCD_ResetCallback sets speed to FULL, a Device Qualifier
+ * request will call this callback; if NULL, the device hard-faults. */
+__ALIGN_BEGIN static uint8_t USBD_GS_CAN_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_DESC] __ALIGN_END = {
+	USB_LEN_DEV_QUALIFIER_DESC,       /* bLength */
+	USB_DESC_TYPE_DEVICE_QUALIFIER,   /* bDescriptorType */
+	0x00, 0x02,                       /* bcdUSB: USB 2.0 */
+	0x00,                             /* bDeviceClass */
+	0x00,                             /* bDeviceSubClass */
+	0x00,                             /* bDeviceProtocol */
+	USB_MAX_EP0_SIZE,                 /* bMaxPacketSize0 */
+	0x01,                             /* bNumConfigurations */
+	0x00,                             /* bReserved */
+};
+
 /* Configuration Descriptor */
 static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
 {
@@ -60,6 +78,21 @@ static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
 	USBD_IDX_CONFIG_STR,              /* iConfiguration */
 	0x80,                             /* bmAttributes */
 	0x4B,                             /* MaxPower 150 mA */
+	/*---------------------------------------------------------------------------*/
+
+	/*---------------------------------------------------------------------------*/
+	/* WARNING: IAD is required for composite device enumeration on AMD
+	 * xHCI controllers. bInterfaceCount MUST be 1 (gs_usb only).
+	 * If set to 2, Windows groups both interfaces into one function,
+	 * resulting in Code 28 "no driver" and no DFU device. */
+	0x08,                             /* bLength */
+	0x0B,                             /* bDescriptorType: IAD */
+	0x00,                             /* bFirstInterface */
+	0x01,                             /* bInterfaceCount */
+	0xFF,                             /* bFunctionClass: Vendor Specific */
+	0xFF,                             /* bFunctionSubClass: Vendor Specific */
+	0xFF,                             /* bFunctionProtocol: Vendor Specific */
+	0x00,                             /* iFunction */
 	/*---------------------------------------------------------------------------*/
 
 	/*---------------------------------------------------------------------------*/
@@ -135,23 +168,17 @@ static const uint8_t USBD_GS_CAN_WINUSB_STR[] =
 	0x00                     /* padding */
 };
 
-/*  Microsoft Compatible ID Feature Descriptor  */
+/* WARNING: Only 1 section mapping interface 0 to WINUSB. Do NOT add a
+ * WINUSB section for interface 1 (DFU); doing so prevents Windows from
+ * assigning the DFU class driver, and the DFU device will not appear. */
 static const uint8_t USBD_MS_COMP_ID_FEATURE_DESC[] = {
-	0x40, 0x00, 0x00, 0x00, /* length */
+	0x28, 0x00, 0x00, 0x00, /* length */
 	0x00, 0x01,             /* version 1.0 */
 	0x04, 0x00,             /* descr index (0x0004) */
-	0x02,                   /* number of sections */
+	0x01,                   /* number of sections */
 	0x00, 0x00, 0x00, 0x00, /* reserved */
 	0x00, 0x00, 0x00,
 	0x00,                   /* interface number */
-	0x01,                   /* reserved */
-	0x57, 0x49, 0x4E, 0x55, /* compatible ID ("WINUSB\0\0") */
-	0x53, 0x42, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, /* sub-compatible ID */
-	0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, /* reserved */
-	0x00, 0x00,
-	0x01,                   /* interface number */
 	0x01,                   /* reserved */
 	0x57, 0x49, 0x4E, 0x55, /* compatible ID ("WINUSB\0\0") */
 	0x53, 0x42, 0x00, 0x00,
@@ -476,12 +503,20 @@ static uint8_t USBD_GS_CAN_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef 
 					break;
 
 				case USB_REQ_SET_INTERFACE:
+					break;
+
 				default:
+					/* WARNING: Must STALL unknown standard requests
+					 * for Windows enumeration on AMD xHCI. */
+					USBD_CtlError(pdev, req);
 					break;
 			}
 			break;
 
 		default:
+			/* WARNING: Must STALL unhandled request types
+			 * for Windows enumeration on AMD xHCI. */
+			USBD_CtlError(pdev, req);
 			break;
 	}
 	return USBD_OK;
@@ -750,6 +785,12 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 	}
 }
 
+static uint8_t *USBD_GS_CAN_GetDeviceQualifierDesc(uint16_t *length)
+{
+	*length = sizeof(USBD_GS_CAN_DeviceQualifierDesc);
+	return USBD_GS_CAN_DeviceQualifierDesc;
+}
+
 /* CAN interface class callbacks structure */
 USBD_ClassTypeDef USBD_GS_CAN = {
 	.Init = USBD_GS_CAN_Start,
@@ -762,6 +803,7 @@ USBD_ClassTypeDef USBD_GS_CAN = {
 	.GetHSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	.GetFSConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
 	.GetOtherSpeedConfigDescriptor = USBD_GS_CAN_GetCfgDesc,
+	.GetDeviceQualifierDescriptor = USBD_GS_CAN_GetDeviceQualifierDesc,
 	.GetUsrStrDescriptor = USBD_GS_CAN_GetStrDesc,
 };
 
@@ -793,6 +835,10 @@ bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqType
 
 		}
 
+		/* WARNING: Must STALL unrecognized vendor requests.
+		 * Windows enumeration fails without this. */
+		USBD_CtlError(pdev, req);
+		return true;
 	}
 
 	return false;

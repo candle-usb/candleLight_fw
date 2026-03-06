@@ -38,6 +38,7 @@ set(CPUFLAGS_F4 -mcpu=cortex-m4)
 set(CPUFLAGS_G0 -mcpu=cortex-m0)
 
 add_link_options(
+	$<$<CONFIG:Release>:-flto>
 	--specs=nano.specs
 	--specs=nosys.specs
 	-Wall

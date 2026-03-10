@@ -287,6 +287,7 @@ set(TGTF072_LIST
 	"CONVERTDEVICE_xCAN"
 	"DSD_TECH_SH_C30A"
 	"FYSETC_UCAN"
+	"can_module_com_classic"
 	"candleLight"
 )
 set(TGTF407_LIST

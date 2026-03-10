@@ -34,24 +34,6 @@ THE SOFTWARE.
 #include "util.h"
 #include "version.h"
 
-static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-static uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-static uint8_t *USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-static uint8_t *USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-
-const USBD_DescriptorsTypeDef FS_Desc = {
-	USBD_FS_DeviceDescriptor,
-	USBD_FS_LangIDStrDescriptor,
-	USBD_FS_ManufacturerStrDescriptor,
-	USBD_FS_ProductStrDescriptor,
-	USBD_FS_SerialStrDescriptor,
-	USBD_FS_ConfigStrDescriptor,
-	USBD_FS_InterfaceStrDescriptor,
-};
-
 __ALIGN_BEGIN uint8_t USBD_DescBuf[USBD_DESC_BUF_SIZE] __ALIGN_END;
 
 /* USB_DeviceDescriptor */
@@ -141,3 +123,13 @@ static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef __maybe_unused 
 
 	return USBD_DescBuf;
 }
+
+const USBD_DescriptorsTypeDef FS_Desc = {
+	.GetDeviceDescriptor = USBD_FS_DeviceDescriptor,
+	.GetLangIDStrDescriptor = USBD_FS_LangIDStrDescriptor,
+	.GetManufacturerStrDescriptor = USBD_FS_ManufacturerStrDescriptor,
+	.GetProductStrDescriptor = USBD_FS_ProductStrDescriptor,
+	.GetSerialStrDescriptor = USBD_FS_SerialStrDescriptor,
+	.GetConfigurationStrDescriptor = USBD_FS_ConfigStrDescriptor,
+	.GetInterfaceStrDescriptor = USBD_FS_InterfaceStrDescriptor,
+};

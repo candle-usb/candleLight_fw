@@ -274,12 +274,12 @@ THE SOFTWARE.
 
 	#define CONFIG_PHY				 1
 	#define CONFIG_PHY_SILENT		 1
-	#define CAN_S_Pin				 GPIO_PIN_13
 	#define CAN_S_GPIO_Port			 GPIOC
+	#define CAN_S_Pin				 GPIO_PIN_13
 
+	#define LEDRX_GPIO_Port			 GPIOA
 	#define LEDRX_Pin				 GPIO_PIN_0
 	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_OD
-	#define LEDRX_GPIO_Port			 GPIOA
 	#define LEDRX_Active_High		 0
 
 	#define LEDTX_GPIO_Port			 GPIOA
@@ -302,8 +302,8 @@ THE SOFTWARE.
 
 	#define CONFIG_PHY				 1
 	#define CONFIG_PHY_SILENT		 1
-	#define CAN_S_Pin				 GPIO_PIN_10
 	#define CAN_S_GPIO_Port			 GPIOA
+	#define CAN_S_Pin				 GPIO_PIN_10
 
 	#define LEDRX_GPIO_Port			 GPIOA
 	#define LEDRX_Pin				 GPIO_PIN_6
@@ -406,8 +406,8 @@ THE SOFTWARE.
 #error Defined nCANSTBY_Pin without CONFIG_PHY_STANDBY
 #endif
 #else
-#define nCANSTBY_Pin		 GPIO_PIN_0
 #define nCANSTBY_Port		 GPIOA
+#define nCANSTBY_Pin		 GPIO_PIN_0
 #define nCANSTBY_Active_High 0
 #endif
 
@@ -416,8 +416,8 @@ THE SOFTWARE.
 #error Defined CAN_S_Pin without CONFIG_PHY_SILENT
 #endif
 #else
-#define CAN_S_Pin		GPIO_PIN_0
 #define CAN_S_GPIO_Port GPIOA
+#define CAN_S_Pin		GPIO_PIN_0
 #endif
 
 #ifdef TERM_Pin
@@ -425,8 +425,8 @@ THE SOFTWARE.
 #error Defined TERM_Pin without CONFIG_TERMINATION
 #endif
 #else
-#define TERM_Pin		 GPIO_PIN_0
 #define TERM_GPIO_Port	 GPIOA
+#define TERM_Pin		 GPIO_PIN_0
 #define TERM_Mode		 GPIO_MODE_OUTPUT_PP
 #define TERM_Active_High 1
 #endif

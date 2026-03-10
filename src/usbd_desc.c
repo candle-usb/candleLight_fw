@@ -84,7 +84,7 @@ static const uint8_t USBD_LangIDDesc[USB_LEN_LANGID_STR_DESC] =
 	HIBYTE(USBD_LANGID_STRING),
 };
 
-uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	UNUSED(speed);
 	*length = sizeof(USBD_FS_DeviceDesc);
@@ -92,7 +92,7 @@ uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 	return USBD_DescBuf;
 }
 
-uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	UNUSED(speed);
 	*length = sizeof(USBD_LangIDDesc);
@@ -100,21 +100,21 @@ uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 	return USBD_DescBuf;
 }
 
-uint8_t *USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	UNUSED(speed);
 	USBD_GetString((uint8_t *)USBD_PRODUCT_STRING_FS, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }
 
-uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	UNUSED(speed);
 	USBD_GetString ((uint8_t *)USBD_MANUFACTURER_STRING, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }
 
-uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	char buf[25];
 
@@ -128,14 +128,14 @@ uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 	return USBD_DescBuf;
 }
 
-uint8_t *USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	UNUSED(speed);
 	USBD_GetString((uint8_t *)USBD_CONFIGURATION_STRING_FS, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }
 
-uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
 	UNUSED(speed);
 	USBD_GetString((uint8_t *)USBD_INTERFACE_STRING_FS, USBD_DescBuf, length);

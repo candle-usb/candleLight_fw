@@ -89,6 +89,7 @@ static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef __maybe_unused speed,
 {
 	*length = sizeof(USBD_FS_DeviceDesc);
 	memcpy(USBD_DescBuf, USBD_FS_DeviceDesc, sizeof(USBD_FS_DeviceDesc));
+
 	return USBD_DescBuf;
 }
 
@@ -96,18 +97,21 @@ static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef __maybe_unused spe
 {
 	*length = sizeof(USBD_LangIDDesc);
 	memcpy(USBD_DescBuf, USBD_LangIDDesc, sizeof(USBD_LangIDDesc));
+
 	return USBD_DescBuf;
 }
 
 static uint8_t *USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
 	USBD_GetString((uint8_t *)USBD_PRODUCT_STRING_FS, USBD_DescBuf, length);
+
 	return USBD_DescBuf;
 }
 
 static uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
 	USBD_GetString ((uint8_t *)USBD_MANUFACTURER_STRING, USBD_DescBuf, length);
+
 	return USBD_DescBuf;
 }
 
@@ -120,17 +124,20 @@ static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef __maybe_unused spe
 	hex32(buf + 16, *(uint32_t*)(UID_BASE + 8));
 
 	USBD_GetString((uint8_t*)buf, USBD_DescBuf, length);
+
 	return USBD_DescBuf;
 }
 
 static uint8_t *USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
 	USBD_GetString((uint8_t *)USBD_CONFIGURATION_STRING_FS, USBD_DescBuf, length);
+
 	return USBD_DescBuf;
 }
 
 static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
 	USBD_GetString((uint8_t *)USBD_INTERFACE_STRING_FS, USBD_DescBuf, length);
+
 	return USBD_DescBuf;
 }

@@ -58,6 +58,14 @@ static const uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] = {
 	USBD_MAX_NUM_CONFIGURATION  /* bNumConfigurations */
 };
 
+static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
+{
+	*length = sizeof(USBD_FS_DeviceDesc);
+	memcpy(USBD_DescBuf, USBD_FS_DeviceDesc, sizeof(USBD_FS_DeviceDesc));
+
+	return USBD_DescBuf;
+}
+
 /* USB Standard Device Descriptor */
 static const uint8_t USBD_LangIDDesc[USB_LEN_LANGID_STR_DESC] =
 {
@@ -66,14 +74,6 @@ static const uint8_t USBD_LangIDDesc[USB_LEN_LANGID_STR_DESC] =
 	LOBYTE(USBD_LANGID_STRING),
 	HIBYTE(USBD_LANGID_STRING),
 };
-
-static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
-{
-	*length = sizeof(USBD_FS_DeviceDesc);
-	memcpy(USBD_DescBuf, USBD_FS_DeviceDesc, sizeof(USBD_FS_DeviceDesc));
-
-	return USBD_DescBuf;
-}
 
 static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {

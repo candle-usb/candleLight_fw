@@ -335,7 +335,7 @@ THE SOFTWARE.
 	#define TIM2_CLOCK_SPEED		 64000000
 
 	#define CAN_INTERFACE			 FDCAN1
-	#define CAN_CLOCK_SPEED			 64000000
+	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CANFD			 1
 
@@ -349,10 +349,6 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 0
 
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
-
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
 	#define USBD_MANUFACTURER_STRING "budgetcan"
@@ -362,7 +358,7 @@ THE SOFTWARE.
 
 	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_INTERFACE2			 FDCAN2
-	#define CAN_CLOCK_SPEED			 64000000
+	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
 
@@ -382,10 +378,7 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 1
 
-	#define USB_GPIO_Port			 GPIOA
-	#define USB_Pin_DM				 GPIO_PIN_11
-	#define USB_Pin_DP				 GPIO_PIN_12
-
+	#define CONFIG_TERMINATION		 1
 	#define TERM_GPIO_Port			 GPIOA
 	#define TERM_Pin				 GPIO_PIN_1
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP

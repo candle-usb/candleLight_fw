@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <string.h>
 
+#include "compiler.h"
 #include "config.h"
 #include "usbd_ctlreq.h"
 #include "usbd_desc.h"
@@ -84,41 +85,35 @@ static const uint8_t USBD_LangIDDesc[USB_LEN_LANGID_STR_DESC] =
 	HIBYTE(USBD_LANGID_STRING),
 };
 
-static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
-	UNUSED(speed);
 	*length = sizeof(USBD_FS_DeviceDesc);
 	memcpy(USBD_DescBuf, USBD_FS_DeviceDesc, sizeof(USBD_FS_DeviceDesc));
 	return USBD_DescBuf;
 }
 
-static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
-	UNUSED(speed);
 	*length = sizeof(USBD_LangIDDesc);
 	memcpy(USBD_DescBuf, USBD_LangIDDesc, sizeof(USBD_LangIDDesc));
 	return USBD_DescBuf;
 }
 
-static uint8_t *USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
-	UNUSED(speed);
 	USBD_GetString((uint8_t *)USBD_PRODUCT_STRING_FS, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }
 
-static uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
-	UNUSED(speed);
 	USBD_GetString ((uint8_t *)USBD_MANUFACTURER_STRING, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }
 
-static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
 	char buf[25];
-
-	UNUSED(speed);
 
 	hex32(buf,		*(uint32_t*)(UID_BASE    ));
 	hex32(buf +  8, *(uint32_t*)(UID_BASE + 4));
@@ -128,16 +123,14 @@ static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *l
 	return USBD_DescBuf;
 }
 
-static uint8_t *USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
-	UNUSED(speed);
 	USBD_GetString((uint8_t *)USBD_CONFIGURATION_STRING_FS, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }
 
-static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+static uint8_t *USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef __maybe_unused speed, uint16_t *length)
 {
-	UNUSED(speed);
 	USBD_GetString((uint8_t *)USBD_INTERFACE_STRING_FS, USBD_DescBuf, length);
 	return USBD_DescBuf;
 }

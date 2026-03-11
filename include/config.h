@@ -386,6 +386,7 @@ THE SOFTWARE.
 	#define USB_Pin_DM				 GPIO_PIN_11
 	#define USB_Pin_DP				 GPIO_PIN_12
 
+	#define CONFIG_TERMINATION		 1
 	#define TERM_GPIO_Port			 GPIOA
 	#define TERM_Pin				 GPIO_PIN_1
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP

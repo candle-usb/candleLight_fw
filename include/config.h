@@ -288,6 +288,29 @@ THE SOFTWARE.
 	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
 	#define LEDTX_Active_High		 1
 
+#elif defined(BOARD_can_module_com_classic)
+	#define USBD_PRODUCT_STRING_FS	 "USBCAN ADAPTER"
+	#define USBD_MANUFACTURER_STRING "can-module.com"
+	#define DFU_INTERFACE_STRING_FS	 "USBCAN firmware upgrade interface"
+
+	#define CONFIG_HSE_OSC_SPEED	 8000000
+	#define TIM2_CLOCK_SPEED		 48000000
+
+	#define CAN_INTERFACE			 CAN
+	#define CAN_CLOCK_SPEED			 48000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CAN_FILTER		 1
+
+	#define LEDRX_GPIO_Port			 GPIOB
+	#define LEDRX_Pin				 GPIO_PIN_0
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High		 1
+
+	#define LEDTX_GPIO_Port			 GPIOB
+	#define LEDTX_Pin				 GPIO_PIN_1
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High		 1
+
 #elif defined(BOARD_candleLight)
 	#define USBD_PRODUCT_STRING_FS	 "candleLight USB to CAN adapter"
 	#define USBD_MANUFACTURER_STRING "bytewerk"

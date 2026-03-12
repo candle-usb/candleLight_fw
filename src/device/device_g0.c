@@ -45,7 +45,7 @@ void device_sysclock_config(void) {
 		.HSEState = RCC_HSE_ON,
 		.HSI48State = RCC_HSI48_ON,
 		.PLL.PLLSource = RCC_PLLSOURCE_HSE,
-		.PLL.PLLN = 320000000 / HSE_OSC_SPEED,
+		.PLL.PLLN = 320000000 / CONFIG_HSE_OSC_SPEED,
 #else
 		.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI48,
 		.HSIState = RCC_HSI_ON,

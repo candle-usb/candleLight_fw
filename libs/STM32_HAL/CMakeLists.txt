@@ -200,10 +200,10 @@ set(STM32G0_SOURCES
 )
 
 set(INCLUDE_DIRS
-    include/
+    include
     include/cmsis
     include/cmsis/device
-    config/
+    config
 )
 
 add_library(STM32_HAL_STM32F042x6 STATIC ${STM32F0_SOURCES})

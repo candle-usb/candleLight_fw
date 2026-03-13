@@ -42,10 +42,6 @@ void device_can_init(can_data_t *channel, const struct board_channel_config *cha
 	HAL_GPIO_Init(GPIOB, &itd);
 
 	channel->instance = channel_config->interface;
-	channel->brp = 6;
-	channel->sjw = 1;
-	channel->phase_seg1 = 13;
-	channel->phase_seg2 = 2;
 }
 
 void device_sysclock_config(void) {

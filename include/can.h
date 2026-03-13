@@ -43,10 +43,7 @@ typedef struct {
 	led_data_t leds;
 	struct gs_device_filter filter;
 	uint32_t reg_esr_old;
-	uint16_t brp;
-	uint8_t phase_seg1;
-	uint8_t phase_seg2;
-	uint8_t sjw;
+	uint32_t btr;
 	uint8_t nr;
 } can_data_t;
 

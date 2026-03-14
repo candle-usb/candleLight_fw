@@ -1470,7 +1470,16 @@ HAL_StatusTypeDef HAL_PCD_EP_Receive(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, u
   ep->is_in = 0U;
   ep->num = ep_addr & EP_ADDR_MSK;
 
+  /* USER CODE BEGIN HAL_PCD_EP_Receive_Concurrency_Fix */
+  /* WARNING: Disable USB IRQ to prevent HAL_PCD_EP_Receive and
+   * HAL_PCD_EP_Transmit from preempting each other, avoiding
+   * USBD_BUSY deadlocks on AMD xHCI controllers.
+   * Ref: https://community.st.com/t5/stm32-mcus-embedded-software/usb-cdc-device-receive-fails-on-transmit/td-p/472929
+   * WARNING: STM32CubeMX will overwrite this file; reapply this fix. */
+  HAL_NVIC_DisableIRQ(USB_IRQn);
   (void)USB_EPStartXfer(hpcd->Instance, ep);
+  HAL_NVIC_EnableIRQ(USB_IRQn);
+  /* USER CODE END HAL_PCD_EP_Receive_Concurrency_Fix */
 
   return HAL_OK;
 }
@@ -1508,7 +1517,16 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
   ep->is_in = 1U;
   ep->num = ep_addr & EP_ADDR_MSK;
 
+  /* USER CODE BEGIN HAL_PCD_EP_Transmit_Concurrency_Fix */
+  /* WARNING: Disable USB IRQ to prevent HAL_PCD_EP_Transmit and
+   * HAL_PCD_EP_Receive from preempting each other, avoiding
+   * USBD_BUSY deadlocks on AMD xHCI controllers.
+   * Ref: https://community.st.com/t5/stm32-mcus-embedded-software/usb-cdc-device-receive-fails-on-transmit/td-p/472929
+   * WARNING: STM32CubeMX will overwrite this file; reapply this fix. */
+  HAL_NVIC_DisableIRQ(USB_IRQn);
   (void)USB_EPStartXfer(hpcd->Instance, ep);
+  HAL_NVIC_EnableIRQ(USB_IRQn);
+  /* USER CODE END HAL_PCD_EP_Transmit_Concurrency_Fix */
 
   return HAL_OK;
 }

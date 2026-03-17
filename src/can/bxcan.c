@@ -104,12 +104,10 @@ void can_init(can_data_t *channel, const struct board_channel_config *channel_co
 
 void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
 {
-	const uint8_t tseg1 = timing->prop_seg + timing->phase_seg1;
-
-	channel->brp = timing->brp;
-	channel->phase_seg1 = tseg1;
-	channel->phase_seg2 = timing->phase_seg2;
-	channel->sjw = timing->sjw;
+	channel->btr = FIELD_PREP(CAN_BTR_SJW, timing->sjw - 1) |
+				   FIELD_PREP(CAN_BTR_TS2, timing->phase_seg2 - 1) |
+				   FIELD_PREP(CAN_BTR_TS1, timing->prop_seg + timing->phase_seg1 - 1) |
+				   FIELD_PREP(CAN_BTR_BRP, timing->brp - 1);
 }
 
 #ifdef CONFIG_CAN_FILTER
@@ -162,10 +160,7 @@ void can_enable(can_data_t *channel, uint32_t mode)
 		mcr |= CAN_MCR_NART;
 	}
 
-	uint32_t btr = ((uint32_t)(channel->sjw-1)) << 24
-				   | ((uint32_t)(channel->phase_seg1-1)) << 16
-				   | ((uint32_t)(channel->phase_seg2-1)) << 20
-				   | (channel->brp - 1);
+	uint32_t btr = channel->btr;
 
 	if (mode & GS_CAN_MODE_LISTEN_ONLY) {
 		btr |= CAN_MODE_SILENT;

@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 project(candleLightFirmware C ASM)
+include(CheckLinkerFlag)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(default_build_type "Release")
@@ -47,6 +48,11 @@ add_link_options(
 	LINKER:--gc-sections
 	LINKER:--print-memory-usage
 )
+
+check_linker_flag(C "LINKER:--no-warn-rwx-segments" LINKER_SUPPORTS_NO_WARN_RWX_SEGMENTS)
+if(LINKER_SUPPORTS_NO_WARN_RWX_SEGMENTS)
+	add_link_options(LINKER:--no-warn-rwx-segments)
+endif()
 
 add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)

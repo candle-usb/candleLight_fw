@@ -63,12 +63,9 @@ void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *ti
 #ifdef CONFIG_CANFD
 void can_set_data_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
 #else
-static inline bool can_set_data_bittiming(can_data_t *channel,
-										  const struct gs_device_bittiming *timing)
+static inline bool can_set_data_bittiming(can_data_t __maybe_unused *channel,
+										  const struct gs_device_bittiming __maybe_unused *timing)
 {
-	(void)channel;
-	(void)timing;
-
 	return false;
 }
 #endif
@@ -76,10 +73,8 @@ static inline bool can_set_data_bittiming(can_data_t *channel,
 #ifdef CONFIG_CAN_FILTER
 void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter);
 #else
-static inline void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter)
+static inline void can_set_filter(can_data_t __maybe_unused *channel, const struct gs_device_filter  __maybe_unused *filter)
 {
-	(void)channel;
-	(void)filter;
 }
 #endif
 

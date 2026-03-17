@@ -34,10 +34,8 @@
 #include "gpio.h"
 #include "usbd_gs_can.h"
 
-static void __maybe_unused legacy_phy_power_set(can_data_t *channel, bool enable)
+static void __maybe_unused legacy_phy_power_set(can_data_t __maybe_unused *channel, bool enable)
 {
-	UNUSED(channel);
-
 	if (enable) {
 		if (IS_ENABLED(CONFIG_PHY_STANDBY)) {
 			HAL_GPIO_WritePin(nCANSTBY_Port, nCANSTBY_Pin,
@@ -57,11 +55,9 @@ static void __maybe_unused legacy_phy_power_set(can_data_t *channel, bool enable
 	}
 }
 
-static void __maybe_unused legacy_termination_set(can_data_t *channel,
+static void __maybe_unused legacy_termination_set(can_data_t __maybe_unused *channel,
 												  enum gs_can_termination_state state)
 {
-	UNUSED(channel);
-
 	HAL_GPIO_WritePin(TERM_GPIO_Port, TERM_Pin, state ?
 					  !GPIO_INIT_STATE(TERM_Active_High) : GPIO_INIT_STATE(TERM_Active_High));
 }

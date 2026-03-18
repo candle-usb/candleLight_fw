@@ -104,7 +104,7 @@
 #define max3(a, b, c)		   max(a, max(b, c))
 
 #define min4(a, b, c, d)	   min(min(a, b), min(c, d))
-#define max4(a, b, c, d)	   max(max(a, b), max(b, d))
+#define max4(a, b, c, d)	   max(max(a, b), max(c, d))
 
 #define min5(a, b, c, d, e)	   min3(min(a, b), min(c, d), e)
 #define max5(a, b, c, d, e)	   max3(max(a, b), max(c, d), e)

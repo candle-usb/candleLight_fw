@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "can_common.h"
 #include "compiler.h"
 #include "config.h"
+#include "dfu.h"
 #include "gpio.h"
 #include "gs_usb.h"
 #include "hal_include.h"
@@ -40,6 +41,7 @@ THE SOFTWARE.
 #include "usbd_ctlreq.h"
 #include "usbd_def.h"
 #include "usbd_desc.h"
+#include "usbd_dfu.h"
 #include "usbd_gs_can.h"
 #include "usbd_ioreq.h"
 #include "util.h"
@@ -263,27 +265,29 @@ static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 
 static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
-	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
-	switch (req->bRequest) {
+	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
 
-		case 0: // DETACH request
+	switch (req->bRequest) {
+		case USB_DFU_REQ_DETACH:
 			hcan->dfu_detach_requested = true;
 			break;
+		case USB_DFU_REQ_GETSTATUS: {
+			struct dfu_status *status = (struct dfu_status *)hcan->ep0_buf;
 
-		case 3: // GET_STATUS request
-			hcan->ep0_buf[0] = 0x00; // bStatus: 0x00 == OK
-			hcan->ep0_buf[1] = 0x00; // bwPollTimeout
-			hcan->ep0_buf[2] = 0x00;
-			hcan->ep0_buf[3] = 0x00;
-			hcan->ep0_buf[4] = 0x00; // bState: appIDLE
-			hcan->ep0_buf[5] = 0xFF; // status string descriptor index
-			USBD_CtlSendData(pdev, hcan->ep0_buf, 6);
+			status->status = ERR_OK;
+			status->poll_timeout[0] = 0x0;
+			status->poll_timeout[1] = 0x0;
+			status->poll_timeout[2] = 0x0;
+			status->state = APP_IDLE;
+			status->stringidx = 0xff; // status string descriptor index
+
+			USBD_CtlSendData(pdev, hcan->ep0_buf, sizeof(struct dfu_status));
 			break;
-
+		}
 		default:
 			USBD_CtlError(pdev, req);
-
 	}
+
 	return USBD_OK;
 }
 

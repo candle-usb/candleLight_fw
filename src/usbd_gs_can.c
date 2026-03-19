@@ -592,13 +592,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 		}
 		case GS_USB_BREQ_SET_TERMINATION: {
-			if (get_term(channel) != GS_CAN_TERMINATION_UNSUPPORTED) {
-				const struct gs_device_termination_state *term_state = &ep0->term_state;
+			const struct gs_device_termination_state *term_state = &ep0->term_state;
 
-				if (set_term(channel, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
-					USBD_CtlError(pdev, req);
-				}
-			}
+			set_term(channel, term_state->state);
 			break;
 		}
 		case GS_USB_BREQ_SET_FILTER: {

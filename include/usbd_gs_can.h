@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "compiler.h"
 #include "config.h"
+#include "dfu.h"
 #include "gs_usb.h"
 #include "led.h"
 #include "list.h"
@@ -83,7 +84,23 @@ struct gs_host_frame_object {
 };
 
 typedef struct {
-	uint8_t __aligned(4) ep0_buf[GS_CAN_EP0_BUF_SIZE];
+	union {
+		struct_group_tagged(ep0, data, union {
+			// Device -> Host
+			struct dfu_status dfu_status;
+
+			// Host -> Device
+			const struct gs_host_config config;
+			const struct gs_device_bittiming bittiming;
+			const struct gs_device_mode mode;
+			const struct gs_identify_mode identify_mode;
+			const struct gs_device_filter filter;
+
+			// Device <-> Host
+			struct gs_device_termination_state term_state;
+		}; );
+		uint8_t buf[sizeof(struct ep0)];
+	} ep0;
 
 	USBD_SetupReqTypedef last_setup_request;
 

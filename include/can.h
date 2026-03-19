@@ -73,6 +73,7 @@ typedef struct can_channel {
 extern const struct gs_device_bt_const CAN_btconst;
 extern const struct gs_device_bt_const_extended CAN_btconst_ext;
 extern const struct gs_device_filter_info CAN_filter_info;
+extern const struct gs_device_tdc_const CAN_tdc_const;
 
 struct board_channel_config;
 

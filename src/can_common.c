@@ -40,6 +40,7 @@
 
 #ifndef CONFIG_CANFD
 const struct gs_device_bt_const_extended CAN_btconst_ext;
+const struct gs_device_tdc_const CAN_tdc_const;
 #endif
 
 #ifndef CONFIG_CAN_FILTER

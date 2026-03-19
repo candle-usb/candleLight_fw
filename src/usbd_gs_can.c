@@ -305,6 +305,7 @@ static can_data_t *USBD_GS_CAN_GetChannel(USBD_GS_CAN_HandleTypeDef *hcan,
 static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+	union ep0 *ep0 = &hcan->ep0;
 	can_data_t *channel = NULL;
 	const void *src = NULL;
 	size_t len;
@@ -384,14 +385,14 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(struct gs_device_termination_state);
 			break;
 		case GS_USB_BREQ_GET_TERMINATION: {
-			struct gs_device_termination_state *term_state = &hcan->ep0.term_state;
+			struct gs_device_termination_state *term_state = &ep0->term_state;
 
 			term_state->state = get_term(channel);
 			if (term_state->state == GS_CAN_TERMINATION_UNSUPPORTED) {
 				goto out_fail;
 			}
 
-			src = &hcan->ep0.term_state;
+			src = &ep0->term_state;
 			len = sizeof(*term_state);
 			break;
 		}
@@ -418,7 +419,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_DATA_BITTIMING:
 		case GS_USB_BREQ_SET_TERMINATION:
 		case GS_USB_BREQ_SET_FILTER:
-			if (req->wLength > sizeof(hcan->ep0)) {
+			if (req->wLength > sizeof(*ep0)) {
 				goto out_fail;
 			}
 

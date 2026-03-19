@@ -502,6 +502,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 	can_data_t *channel = NULL;
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+	const union ep0 *ep0 = &hcan->ep0;
 
 	/*
 	 * The control messages GS_USB_BREQ_HOST_FORMAT and
@@ -527,7 +528,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 
 		case GS_USB_BREQ_BITTIMING: {
-			const struct gs_device_bittiming *timing = &hcan->ep0.bittiming;
+			const struct gs_device_bittiming *timing = &ep0->bittiming;
 
 			if (!can_check_bittiming_ok(&CAN_btconst.btc, timing))
 				goto out_fail;
@@ -536,7 +537,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 		}
 		case GS_USB_BREQ_MODE: {
-			const struct gs_device_mode *mode = &hcan->ep0.mode;
+			const struct gs_device_mode *mode = &ep0->mode;
 
 			if (mode->mode == GS_CAN_MODE_RESET) {
 				can_disable(channel);
@@ -552,7 +553,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 		}
 		case GS_USB_BREQ_IDENTIFY: {
-			const struct gs_identify_mode *imode = &hcan->ep0.identify_mode;
+			const struct gs_identify_mode *imode = &ep0->identify_mode;
 
 			if (imode->mode) {
 				led_run_sequence(&channel->leds, led_identify_seq, -1);
@@ -563,7 +564,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 		}
 		case GS_USB_BREQ_DATA_BITTIMING: {
-			const struct gs_device_bittiming *timing = &hcan->ep0.bittiming;
+			const struct gs_device_bittiming *timing = &ep0->bittiming;
 
 			if (!can_check_bittiming_ok(&CAN_btconst_ext.dbtc, timing))
 				goto out_fail;
@@ -573,7 +574,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 		}
 		case GS_USB_BREQ_SET_TERMINATION: {
 			if (get_term(channel) != GS_CAN_TERMINATION_UNSUPPORTED) {
-				const struct gs_device_termination_state *term_state = &hcan->ep0.term_state;
+				const struct gs_device_termination_state *term_state = &ep0->term_state;
 
 				if (set_term(channel, term_state->state) == GS_CAN_TERMINATION_UNSUPPORTED) {
 					USBD_CtlError(pdev, req);
@@ -582,7 +583,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			break;
 		}
 		case GS_USB_BREQ_SET_FILTER: {
-			const struct gs_device_filter *filter = &hcan->ep0.filter;
+			const struct gs_device_filter *filter = &ep0->filter;
 
 			if (!can_check_filter_ok(filter) || can_is_enabled(channel))
 				goto out_fail;

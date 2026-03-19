@@ -223,9 +223,9 @@ enum gs_can_state {
 };
 
 enum gs_can_termination_state {
-	GS_CAN_TERMINATION_UNSUPPORTED = -1,    // private, not in kernel enum
 	GS_CAN_TERMINATION_STATE_OFF = 0,
 	GS_CAN_TERMINATION_STATE_ON,
+	GS_CAN_TERMINATION_UNSUPPORTED = 0xffffffff,    // private, not in kernel enum
 };
 
 enum gs_device_filter_dev {

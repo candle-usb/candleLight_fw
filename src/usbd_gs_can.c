@@ -522,6 +522,28 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 		  req->bRequest == GS_USB_BREQ_DEVICE_CONFIG))
 		channel = USBD_GS_CAN_GetChannel(hcan, req->wValue);
 
+	if (!IS_ENABLED(CONFIG_CANFD)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_DATA_BITTIMING:
+				goto out_fail;
+		}
+	}
+
+	if (!IS_ENABLED(CONFIG_TERMINATION)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_SET_TERMINATION:
+			case GS_USB_BREQ_GET_TERMINATION:
+				goto out_fail;
+		}
+	}
+
+	if (!IS_ENABLED(CONFIG_CAN_FILTER)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_SET_FILTER:
+				goto out_fail;
+		}
+	}
+
 	switch (req->bRequest) {
 		case GS_USB_BREQ_HOST_FORMAT:
 			/* The firmware on the original USB2CAN by Geschwister Schneider

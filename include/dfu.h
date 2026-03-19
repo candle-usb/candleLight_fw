@@ -26,4 +26,13 @@ THE SOFTWARE.
 
 #pragma once
 
+#include <stdint.h>
+
+struct dfu_status {
+	uint8_t status;
+	uint8_t poll_timeout[3];
+	uint8_t state;
+	uint8_t stringidx;
+};
+
 void dfu_run_bootloader(void);

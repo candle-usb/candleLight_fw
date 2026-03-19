@@ -97,6 +97,24 @@
 			_t _n[0]; \
 		}
 
+#ifndef __struct_group
+#define __struct_group(_tag, _name, _attrs, _members ...) \
+		union { \
+			struct { _members } _attrs; \
+			struct _tag { _members } _attrs _name; \
+		} _attrs
+#endif
+
+#ifndef struct_group
+#define struct_group(_name, _members ...) \
+		__struct_group(/* no tag */, _name, /* no attrs */, _members)
+#endif
+
+#ifndef struct_group_tagged
+#define struct_group_tagged(_tag, _name, _members ...) \
+		__struct_group(_tag, _name, /* no attrs */, _members)
+#endif
+
 #define min(x, y)			   ((x) < (y) ? (x) : (y))
 #define max(x, y)			   ((x) > (y) ? (x) : (y))
 

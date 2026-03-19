@@ -386,24 +386,13 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(CAN_btconst_ext);
 			break;
 		case GS_USB_BREQ_SET_TERMINATION:
-			if (get_term(channel) == GS_CAN_TERMINATION_UNSUPPORTED) {
-				goto out_fail;
-			}
-
 			len = sizeof(ep0->term_state);
 			break;
-		case GS_USB_BREQ_GET_TERMINATION: {
-			struct gs_device_termination_state *term_state = &ep0->term_state;
-
-			term_state->state = get_term(channel);
-			if (term_state->state == GS_CAN_TERMINATION_UNSUPPORTED) {
-				goto out_fail;
-			}
-
+		case GS_USB_BREQ_GET_TERMINATION:
+			ep0->term_state.state = get_term(channel);
 			src = &ep0->term_state;
-			len = sizeof(*term_state);
+			len = sizeof(ep0->term_state);
 			break;
-		}
 		case GS_USB_BREQ_SET_FILTER:
 			len = sizeof(ep0->filter);
 			break;

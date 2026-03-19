@@ -336,6 +336,14 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		}
 	}
 
+	if (!IS_ENABLED(CONFIG_TERMINATION)) {
+		switch (req->bRequest) {
+			case GS_USB_BREQ_SET_TERMINATION:
+			case GS_USB_BREQ_GET_TERMINATION:
+				goto out_fail;
+		}
+	}
+
 	if (!IS_ENABLED(CONFIG_CAN_FILTER)) {
 		switch (req->bRequest) {
 			case GS_USB_BREQ_SET_FILTER:

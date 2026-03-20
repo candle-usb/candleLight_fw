@@ -36,21 +36,21 @@ void gpio_init(void);
 #define GPIO_INIT_STATE(active_high) (((active_high) == 1) ? GPIO_PIN_RESET : GPIO_PIN_SET)
 
 #ifdef CONFIG_TERMINATION
-enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state);
+void set_term(can_data_t *channel, enum gs_can_termination_state state);
 enum gs_can_termination_state get_term(can_data_t *channel);
 
 #else
-static inline enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state)
+static inline void set_term(can_data_t *channel, enum gs_can_termination_state state)
 {
 	(void)channel;
 	(void)state;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
 }
 
 static inline enum gs_can_termination_state get_term(can_data_t * channel)
 {
 	(void)channel;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
+
+	return -1;
 }
 
 #endif

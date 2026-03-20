@@ -76,8 +76,8 @@ struct gs_host_frame_object {
 };
 
 typedef struct {
-	union {
-		struct_group_tagged(ep0, data, union {
+	union ep0 {
+		struct_group_tagged(ep0_data, data, union {
 			// Device -> Host
 			struct dfu_status dfu_status;
 
@@ -91,7 +91,7 @@ typedef struct {
 			// Device <-> Host
 			struct gs_device_termination_state term_state;
 		}; );
-		uint8_t buf[sizeof(struct ep0)];
+		uint8_t buf[sizeof(struct ep0_data)];
 	} ep0;
 
 	USBD_SetupReqTypedef last_setup_request;

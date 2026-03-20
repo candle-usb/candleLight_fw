@@ -561,8 +561,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				can_disable(channel);
 				led_set_mode(&channel->leds, LED_MODE_OFF);
 			} else if (mode->mode == GS_CAN_MODE_START) {
-				hcan->timestamps_enabled = (mode->feature & GS_CAN_FEATURE_HW_TIMESTAMP) != 0;
-				hcan->pad_pkts_to_max_pkt_size = (mode->feature & GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE) != 0;
+				hcan->feature = mode->feature;
 
 				can_enable(channel, mode->feature);
 
@@ -853,13 +852,13 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 
 	if (IS_ENABLED(CONFIG_CANFD) &&
 		frame->flags & GS_CAN_FLAG_FD) {
-		if (hcan->timestamps_enabled) {
+		if (hcan->feature & GS_CAN_FEATURE_HW_TIMESTAMP) {
 			len = struct_size(frame, canfd_ts, 1);
 		} else {
 			len = struct_size(frame, canfd, 1);
 		}
 	} else {
-		if (hcan->timestamps_enabled) {
+		if (hcan->feature & GS_CAN_FEATURE_HW_TIMESTAMP) {
 			len = struct_size(frame, classic_can_ts, 1);
 		} else {
 			len = struct_size(frame, classic_can, 1);
@@ -878,7 +877,7 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_fr
 	 * packet of 64 byte), so don't do any padding for CAN-FD frames
 	 * for now.
 	 */
-	if (hcan->pad_pkts_to_max_pkt_size &&
+	if (hcan->feature & GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE &&
 		!((IS_ENABLED(CONFIG_CANFD) && frame->flags & GS_CAN_FLAG_FD))) {
 		memcpy(buf, frame, len);
 

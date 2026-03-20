@@ -106,10 +106,8 @@ typedef struct {
 
 	bool dfu_detach_requested;
 
-	bool timestamps_enabled;
+	uint32_t feature;
 	uint32_t sof_timestamp_us;
-
-	bool pad_pkts_to_max_pkt_size;
 
 	struct gs_host_frame_object msgbuf[CAN_QUEUE_SIZE];
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));

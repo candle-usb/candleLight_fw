@@ -566,7 +566,6 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	if (!IS_ENABLED(CONFIG_TERMINATION)) {
 		switch (req->bRequest) {
 			case GS_USB_BREQ_SET_TERMINATION:
-			case GS_USB_BREQ_GET_TERMINATION:
 				goto out_fail;
 		}
 	}

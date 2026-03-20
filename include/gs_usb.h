@@ -30,11 +30,11 @@ THE SOFTWARE.
 
 #include "compiler.h"
 
-#define u32				   uint32_t
-#define u8				   uint8_t
+#define u32										uint32_t
+#define u8										uint8_t
 
-#define GSUSB_ENDPOINT_IN  0x81
-#define GSUSB_ENDPOINT_OUT 0x02
+#define GSUSB_ENDPOINT_IN						0x81
+#define GSUSB_ENDPOINT_OUT						0x02
 
 #define GS_CAN_FEATURE_LISTEN_ONLY				(1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK				(1<<1)

@@ -36,26 +36,6 @@ THE SOFTWARE.
 #define GSUSB_ENDPOINT_IN  0x81
 #define GSUSB_ENDPOINT_OUT 0x02
 
-
-#define GS_CAN_MODE_NORMAL		  0
-#define GS_CAN_MODE_LISTEN_ONLY	  (1<<0)
-#define GS_CAN_MODE_LOOP_BACK	  (1<<1)
-#define GS_CAN_MODE_TRIPLE_SAMPLE (1<<2)
-#define GS_CAN_MODE_ONE_SHOT	  (1<<3)
-#define GS_CAN_MODE_HW_TIMESTAMP  (1<<4)
-/* #define GS_CAN_FEATURE_IDENTIFY              (1<<5) */
-/* #define GS_CAN_FEATURE_USER_ID               (1<<6) */
-#define GS_CAN_MODE_PAD_PKTS_TO_MAX_PKT_SIZE (1<<7)
-#define GS_CAN_MODE_FD						 (1<<8)    /* switch device to CAN-FD mode */
-/* #define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX (1<<9) */
-/* #define GS_CAN_FEATURE_BT_CONST_EXT          (1<<10) */
-/* #define GS_CAN_FEATURE_TERMINATION           (1<<11) */
-#define GS_CAN_MODE_BERR_REPORTING		(1<<12)
-/* GS_CAN_FEATURE_GET_STATE						(1<<13) */
-#define GS_CAN_MODE_ELM_PROTOCOL		(1<<14)
-#define GS_CAN_MODE_ELM_DISABLE_TX_ECHO (1<<15)
-/* #define GS_CAN_FEATURE_FILTER				(1<<16) */
-
 #define GS_CAN_FEATURE_LISTEN_ONLY				(1<<0)
 #define GS_CAN_FEATURE_LOOP_BACK				(1<<1)
 #define GS_CAN_FEATURE_TRIPLE_SAMPLE			(1<<2)

@@ -154,17 +154,17 @@ void can_enable(can_data_t *channel, uint32_t mode)
 				   | CAN_MCR_ABOM
 				   | CAN_MCR_TXFP;
 
-	if (mode & GS_CAN_MODE_ONE_SHOT) {
+	if (mode & GS_CAN_FEATURE_ONE_SHOT) {
 		mcr |= CAN_MCR_NART;
 	}
 
 	uint32_t btr = channel->btr;
 
-	if (mode & GS_CAN_MODE_LISTEN_ONLY) {
+	if (mode & GS_CAN_FEATURE_LISTEN_ONLY) {
 		btr |= CAN_MODE_SILENT;
 	}
 
-	if (mode & GS_CAN_MODE_LOOP_BACK) {
+	if (mode & GS_CAN_FEATURE_LOOP_BACK) {
 		btr |= CAN_MODE_LOOPBACK;
 	}
 

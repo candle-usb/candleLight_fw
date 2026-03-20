@@ -28,9 +28,7 @@
 #include "can.h"
 #include "config.h"
 #include "device.h"
-#include "gpio.h"
 #include "gs_usb.h"
-#include "hal_include.h"
 #include "timer.h"
 
 const struct gs_device_bt_const CAN_btconst = {

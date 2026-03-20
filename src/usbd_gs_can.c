@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include "dfu.h"
 #include "gpio.h"
 #include "gs_usb.h"
-#include "hal_include.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_core.h"

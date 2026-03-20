@@ -266,13 +266,14 @@ static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
+	union ep0 *ep0 = &hcan->ep0;
 
 	switch (req->bRequest) {
 		case USB_DFU_REQ_DETACH:
 			hcan->dfu_detach_requested = true;
 			break;
 		case USB_DFU_REQ_GETSTATUS: {
-			struct dfu_status *status = &hcan->ep0.dfu_status;
+			struct dfu_status *status = &ep0->dfu_status;
 
 			status->status = ERR_OK;
 			status->poll_timeout[0] = 0x0;
@@ -281,7 +282,7 @@ static uint8_t USBD_GS_CAN_DFU_Request(USBD_HandleTypeDef *pdev, USBD_SetupReqTy
 			status->state = APP_IDLE;
 			status->stringidx = 0xff; // status string descriptor index
 
-			USBD_CtlSendData(pdev, hcan->ep0.buf, sizeof(struct dfu_status));
+			USBD_CtlSendData(pdev, ep0->buf, sizeof(ep0->dfu_status));
 			break;
 		}
 		default:

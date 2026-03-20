@@ -236,7 +236,7 @@ struct gs_device_config {
 
 struct gs_device_mode {
 	u32 mode;
-	u32 flags;
+	u32 feature;
 } __packed __aligned(4);
 
 struct gs_device_state {

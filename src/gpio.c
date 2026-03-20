@@ -43,7 +43,7 @@ enum gs_can_termination_state get_term(can_data_t * channel)
 	}
 }
 
-enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_termination_state state)
+void set_term(can_data_t *channel, enum gs_can_termination_state state)
 {
 	const uint8_t nr = channel->nr;
 
@@ -54,8 +54,6 @@ enum gs_can_termination_state set_term(can_data_t *channel, enum gs_can_terminat
 	}
 
 	board_termination_set(channel, state);
-
-	return state;
 }
 
 static inline void gpio_init_term(void)

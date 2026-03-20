@@ -49,7 +49,8 @@ static inline void set_term(can_data_t *channel, enum gs_can_termination_state s
 static inline enum gs_can_termination_state get_term(can_data_t * channel)
 {
 	(void)channel;
-	return GS_CAN_TERMINATION_UNSUPPORTED;
+
+	return -1;
 }
 
 #endif

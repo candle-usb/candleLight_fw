@@ -347,13 +347,13 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 	switch (req->bRequest) {
 		// Host -> Device
 		case GS_USB_BREQ_HOST_FORMAT:
-			len = sizeof(struct gs_host_config);
+			len = sizeof(ep0->config);
 			break;
 		case GS_USB_BREQ_BITTIMING:
-			len = sizeof(struct gs_device_bittiming);
+			len = sizeof(ep0->bittiming);
 			break;
 		case GS_USB_BREQ_MODE:
-			len = sizeof(struct gs_device_mode);
+			len = sizeof(ep0->mode);
 			break;
 		case GS_USB_BREQ_BT_CONST:
 			src = &CAN_btconst;
@@ -368,10 +368,10 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			len = sizeof(hcan->sof_timestamp_us);
 			break;
 		case GS_USB_BREQ_IDENTIFY:
-			len = sizeof(struct gs_identify_mode);
+			len = sizeof(ep0->identify_mode);
 			break;
 		case GS_USB_BREQ_DATA_BITTIMING:
-			len = sizeof(struct gs_device_bittiming);
+			len = sizeof(ep0->bittiming);
 			break;
 		case GS_USB_BREQ_BT_CONST_EXT:
 			src = &CAN_btconst_ext;
@@ -382,7 +382,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 				goto out_fail;
 			}
 
-			len = sizeof(struct gs_device_termination_state);
+			len = sizeof(ep0->term_state);
 			break;
 		case GS_USB_BREQ_GET_TERMINATION: {
 			struct gs_device_termination_state *term_state = &ep0->term_state;
@@ -397,7 +397,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			break;
 		}
 		case GS_USB_BREQ_SET_FILTER:
-			len = sizeof(struct gs_device_filter);
+			len = sizeof(ep0->filter);
 			break;
 		case GS_USB_BREQ_GET_FILTER:
 			src = &CAN_filter_info;

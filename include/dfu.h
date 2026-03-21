@@ -28,11 +28,15 @@ THE SOFTWARE.
 
 #include <stdint.h>
 
+#include "compiler.h"
+
 struct dfu_status {
 	uint8_t status;
 	uint8_t poll_timeout[3];
 	uint8_t state;
 	uint8_t stringidx;
-};
+} __packed;
+
+static_assert(sizeof(struct dfu_status) == 6);
 
 void dfu_run_bootloader(void);

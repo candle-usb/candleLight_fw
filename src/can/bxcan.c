@@ -146,8 +146,9 @@ static bool can_apply_filter(const can_data_t *channel)
 	return true;
 }
 
-void can_enable(can_data_t *channel, uint32_t feature)
+void can_enable(can_data_t *channel)
 {
+	const uint32_t feature = channel->feature;
 	CAN_TypeDef *can = channel->instance;
 
 	uint32_t mcr = CAN_MCR_INRQ | CAN_MCR_ABOM | CAN_MCR_TXFP;

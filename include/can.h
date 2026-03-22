@@ -40,6 +40,7 @@ typedef struct {
 #endif
 	struct list_head list_from_host;
 	led_data_t leds;
+	uint32_t feature;
 	uint32_t reg_esr_old;
 #if defined (CONFIG_BXCAN)
 	struct gs_device_filter filter;
@@ -82,7 +83,7 @@ static inline void can_set_filter(can_data_t *channel, const struct gs_device_fi
 }
 #endif
 
-void can_enable(can_data_t *channel, uint32_t mode);
+void can_enable(can_data_t *channel);
 void can_disable(can_data_t *channel);
 bool can_is_enabled(can_data_t *channel);
 

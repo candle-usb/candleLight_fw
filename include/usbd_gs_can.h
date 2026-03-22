@@ -73,6 +73,9 @@ struct gs_host_frame_object {
 		uint8_t _buf[GS_HOST_FRAME_SIZE];
 		struct gs_host_frame frame;
 	};
+#if NUM_CAN_CHANNEL > 1
+	can_data_t *channel;
+#endif
 };
 
 typedef struct {
@@ -104,7 +107,6 @@ typedef struct {
 
 	can_data_t channels[NUM_CAN_CHANNEL];
 
-	uint32_t feature;
 	uint32_t sof_timestamp_us;
 
 	struct gs_host_frame_object msgbuf[CAN_QUEUE_SIZE];

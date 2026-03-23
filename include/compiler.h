@@ -118,4 +118,8 @@
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #define max(x, y) ((x) > (y) ? (x) : (y))
 
+#undef static_assert
+#define static_assert(x, ...)		 __static_assert(x, ## __VA_ARGS__, #x)
+#define __static_assert(x, msg, ...) _Static_assert(x, msg)
+
 #endif /* _LINUXKPI_LINUX_COMPILER_H_ */

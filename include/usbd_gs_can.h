@@ -91,7 +91,7 @@ typedef struct {
 			// Device <-> Host
 			struct gs_device_termination_state term_state;
 		}; );
-		uint8_t buf[sizeof(struct ep0_data)];
+		uint8_t __aligned(4) buf[sizeof(struct ep0_data)];
 	} ep0;
 
 	USBD_SetupReqTypedef last_setup_request;

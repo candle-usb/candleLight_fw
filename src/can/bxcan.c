@@ -26,6 +26,7 @@
 
 #include "board.h"
 #include "can.h"
+#include "can_common.h"
 #include "config.h"
 #include "device.h"
 #include "gs_usb.h"
@@ -230,7 +231,7 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 		}
 
 		rx_frame->can_dlc = fifo->RDTR & CAN_RDT0R_DLC;
-		rx_frame->channel = channel->nr;
+		rx_frame->channel = can_channel_get_nr(channel);
 		rx_frame->flags = 0;
 
 		rx_frame->classic_can->data[0] = (fifo->RDLR >>  0) & 0xFF;

@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "usbd_gs_can.h"
 
 bool can_check_bittiming_ok(const struct can_bittiming_const *btc, const struct gs_device_bittiming *timing);
+
 #ifdef CONFIG_CAN_FILTER
 bool can_check_filter_ok(const struct gs_device_filter *filter);
 #else
@@ -42,6 +43,28 @@ static inline bool can_check_filter_ok(const struct gs_device_filter *filter)
 	return false;
 }
 #endif
+
+#if (NUM_CAN_CHANNEL > 1)
+static inline void can_channel_set_nr(can_data_t *channel, const u8 nr)
+{
+	channel->nr = nr;
+}
+
+static inline u8 can_channel_get_nr(const can_data_t *channel)
+{
+	return channel->nr;
+}
+#else
+static inline void can_channel_set_nr(can_data_t __maybe_unused *channel, const u8 __maybe_unused nr)
+{
+}
+
+static inline u8 can_channel_get_nr(const can_data_t __maybe_unused *channel)
+{
+	return 0;
+}
+#endif
+
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);

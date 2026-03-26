@@ -77,7 +77,7 @@ int main(void)
 		const struct board_channel_config *channel_config = &config.channel[i];
 		can_data_t *channel = &hGS_CAN.channels[i];
 
-		channel->nr = i;
+		can_channel_set_nr(channel, i);
 
 		INIT_LIST_HEAD(&channel->list_from_host);
 

@@ -25,6 +25,7 @@ THE SOFTWARE.
 */
 
 #include "board.h"
+#include "can_common.h"
 #include "config.h"
 #include "gpio.h"
 #include "hal_include.h"
@@ -32,9 +33,9 @@ THE SOFTWARE.
 #ifdef CONFIG_TERMINATION
 static int term_state = 0;
 
-enum gs_can_termination_state get_term(can_data_t * channel)
+enum gs_can_termination_state get_term(can_data_t *channel)
 {
-	const uint8_t nr = channel->nr;
+	const uint8_t nr = can_channel_get_nr(channel);
 
 	if (term_state & (1 << nr)) {
 		return GS_CAN_TERMINATION_STATE_ON;
@@ -45,7 +46,7 @@ enum gs_can_termination_state get_term(can_data_t * channel)
 
 void set_term(can_data_t *channel, enum gs_can_termination_state state)
 {
-	const uint8_t nr = channel->nr;
+	const uint8_t nr = can_channel_get_nr(channel);
 
 	if (state == GS_CAN_TERMINATION_STATE_ON) {
 		term_state |= 1 << nr;

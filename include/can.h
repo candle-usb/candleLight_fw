@@ -46,7 +46,9 @@ typedef struct {
 	struct gs_device_filter filter;
 	uint32_t btr;
 #endif
+#if (NUM_CAN_CHANNEL > 1)
 	uint8_t nr;
+#endif
 } can_data_t;
 
 extern const struct gs_device_bt_const CAN_btconst;

@@ -381,6 +381,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			case GS_USB_BREQ_DATA_BITTIMING:
 			case GS_USB_BREQ_BT_CONST_EXT:
 			case GS_USB_BREQ_GET_TDC_CONST:
+			case GS_USB_BREQ_SET_TDC:
 				goto out_fail;
 		}
 	}
@@ -458,6 +459,9 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			src = &CAN_tdc_const;
 			len = sizeof(CAN_tdc_const);
 			break;
+		case GS_USB_BREQ_SET_TDC:
+			len = sizeof(ep0->tdc);
+			break;
 		case GS_USB_BREQ_BUS_OFF_RECOVERY:
 			len = 0;
 			break;
@@ -477,6 +481,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_DATA_BITTIMING:
 		case GS_USB_BREQ_SET_TERMINATION:
 		case GS_USB_BREQ_SET_FILTER:
+		case GS_USB_BREQ_SET_TDC:
 		case GS_USB_BREQ_BUS_OFF_RECOVERY:
 			if (req->wLength > sizeof(*ep0)) {
 				goto out_fail;
@@ -575,6 +580,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	if (!IS_ENABLED(CONFIG_CANFD)) {
 		switch (req->bRequest) {
 			case GS_USB_BREQ_DATA_BITTIMING:
+			case GS_USB_BREQ_SET_TDC:
 				goto out_fail;
 		}
 	}
@@ -661,6 +667,15 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				goto out_fail;
 
 			can_set_filter(channel, filter);
+			break;
+		}
+		case GS_USB_BREQ_SET_TDC: {
+			const struct gs_device_tdc *tdc = &ep0->tdc;
+
+			if (can_is_enabled(channel) || !can_check_tdc_ok(&CAN_tdc_const, tdc))
+				goto out_fail;
+
+			can_set_tdc(channel, tdc);
 			break;
 		}
 		case GS_USB_BREQ_BUS_OFF_RECOVERY:

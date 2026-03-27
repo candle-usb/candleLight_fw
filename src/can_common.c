@@ -77,6 +77,12 @@ bool can_check_feature_ok(const can_data_t *channel,
 	if (!IS_ENABLED(CONFIG_CANFD))
 		return true;
 
+	/* TDC requires TDC parameters to be set */
+	if (feature & GS_CAN_FEATURE_TDC &&
+		!(channel->flags & CAN_CHANNEL_FLAG_TDC_SET)) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -86,6 +92,48 @@ void can_set_data_bittiming(struct can_channel *channel, const struct gs_device_
 	channel->flags |= CAN_CHANNEL_FLAG_DATA_BITTIMING_SET;
 
 	channel->data_bittiming = *bt;
+}
+
+bool can_check_tdc_ok(const struct gs_device_tdc_const *tdc_const,
+					  const struct gs_device_tdc *tdc)
+{
+	if (tdc->tdcv < tdc_const->tdcv_min || tdc->tdcv > tdc_const->tdcv_max ||
+		tdc->tdco < tdc_const->tdco_min || tdc->tdco > tdc_const->tdco_max ||
+		tdc->tdcf < tdc_const->tdcf_min || tdc->tdcf > tdc_const->tdcf_max)
+		return false;
+
+	const uint32_t mode = tdc->mode & (GS_CAN_TDC_MODE_OFF | GS_CAN_TDC_MODE_AUTO | GS_CAN_TDC_MODE_MANUAL);
+
+	/* one of OFF, AUTO or MANUAL must be active */
+	if (!mode || mode & (mode - 1))
+		return false;
+
+	if (tdc->tdcv) {
+		/* TDCV is incompatible with AUTO */
+		if (mode & GS_CAN_TDC_MODE_AUTO) {
+			return false;
+		}
+	} else {
+		/* MANUAL requires TDCV */
+		if (mode & GS_CAN_TDC_MODE_MANUAL) {
+			return false;
+		}
+	}
+
+	/* TDCO is mandatory for AUTO or MANUAL */
+	if ((mode & GS_CAN_TDC_MODE_AUTO || mode & GS_CAN_TDC_MODE_MANUAL) &&
+		!tdc->tdco) {
+		return false;
+	}
+
+	return true;
+}
+
+void can_set_tdc(struct can_channel *channel, const struct gs_device_tdc *tdc)
+{
+	channel->flags |= CAN_CHANNEL_FLAG_TDC_SET;
+
+	channel->tdc = *tdc;
 }
 #endif
 

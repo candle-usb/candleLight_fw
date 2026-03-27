@@ -42,9 +42,12 @@ static const uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] = {
 	USB_DESC_TYPE_DEVICE,       /* bDescriptorType */
 	0x00,                       /* bcdUSB */
 	0x02,
-	0x00,                       /* bDeviceClass */
-	0x00,                       /* bDeviceSubClass */
-	0x00,                       /* bDeviceProtocol */
+	/* WARNING: Class 0xEF/0x02/0x01 (Misc/Common/IAD) is required for
+	 * composite device enumeration. Without this, AMD xHCI controllers
+	 * fail to split interfaces into separate child devices. */
+	0xEF,                       /* bDeviceClass: Miscellaneous */
+	0x02,                       /* bDeviceSubClass: Common Class */
+	0x01,                       /* bDeviceProtocol: IAD */
 	USB_MAX_EP0_SIZE,           /* bMaxPacketSize */
 	LOBYTE(USBD_VID),           /* idVendor */
 	HIBYTE(USBD_VID),

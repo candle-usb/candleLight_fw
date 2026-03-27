@@ -31,10 +31,13 @@
 struct can_channel;
 struct can_drv_reg_status;
 struct gs_device_state;
+struct gs_device_tdc;
 struct gs_host_frame;
 
 void can_drv_enable(struct can_channel *channel);
 void can_drv_disable(struct can_channel *channel);
+
+void can_drv_get_device_tdc(const struct can_channel *channel, struct gs_device_tdc *tdc);
 
 void can_drv_read_reg_status(struct can_channel *channel);
 

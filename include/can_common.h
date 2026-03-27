@@ -48,6 +48,7 @@ void can_set_bittiming(struct can_channel *channel, const struct gs_device_bitti
 void can_set_data_bittiming(struct can_channel *channel, const struct gs_device_bittiming *timing);
 bool can_check_tdc_ok(const struct gs_device_tdc_const *tdc_const, const struct gs_device_tdc *tdc);
 void can_set_tdc(struct can_channel *channel, const struct gs_device_tdc *tdc);
+void can_get_device_tdc(const struct can_channel *channel, struct gs_device_tdc *tdc);
 #else
 static inline void can_set_data_bittiming(struct can_channel __maybe_unused *channel,
 										  const struct gs_device_bittiming __maybe_unused *timing)
@@ -62,6 +63,11 @@ static inline bool can_check_tdc_ok(const struct gs_device_tdc_const __maybe_unu
 
 static inline void can_set_tdc(struct can_channel __maybe_unused *channel,
 							   const struct gs_device_tdc __maybe_unused *tdc)
+{
+}
+
+static inline void can_get_device_tdc(const struct can_channel __maybe_unused *channel,
+									  struct gs_device_tdc __maybe_unused *tdc)
 {
 }
 #endif

@@ -382,6 +382,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			case GS_USB_BREQ_BT_CONST_EXT:
 			case GS_USB_BREQ_GET_TDC_CONST:
 			case GS_USB_BREQ_SET_TDC:
+			case GS_USB_BREQ_GET_TDC:
 				goto out_fail;
 		}
 	}
@@ -462,6 +463,11 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_SET_TDC:
 			len = sizeof(ep0->tdc);
 			break;
+		case GS_USB_BREQ_GET_TDC:
+			can_get_device_tdc(channel, &ep0->tdc);
+			src = &ep0->tdc;
+			len = sizeof(ep0->tdc);
+			break;
 		case GS_USB_BREQ_BUS_OFF_RECOVERY:
 			len = 0;
 			break;
@@ -500,6 +506,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_GET_STATE:
 		case GS_USB_BREQ_GET_FILTER:
 		case GS_USB_BREQ_GET_TDC_CONST:
+		case GS_USB_BREQ_GET_TDC:
 			USBD_CtlSendData(pdev, (uint8_t *)src, len);
 			break;
 		default:

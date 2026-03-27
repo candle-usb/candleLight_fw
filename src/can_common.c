@@ -135,6 +135,19 @@ void can_set_tdc(struct can_channel *channel, const struct gs_device_tdc *tdc)
 
 	channel->tdc = *tdc;
 }
+
+void can_get_device_tdc(const struct can_channel *channel, struct gs_device_tdc *tdc)
+{
+	if (tdc->mode == GS_CAN_TDC_MODE_OFF) {
+		*tdc = (struct gs_device_tdc){
+			.mode = GS_CAN_TDC_MODE_OFF
+		};
+	} else {
+		*tdc = channel->tdc;
+		can_drv_get_device_tdc(channel, tdc);
+	}
+}
+
 #endif
 
 #ifdef CONFIG_CAN_FILTER

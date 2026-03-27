@@ -151,6 +151,8 @@ void can_enable(can_data_t *channel, uint32_t feature)
 {
 	CAN_TypeDef *can = channel->instance;
 
+	channel->feature = feature;
+
 	uint32_t mcr = CAN_MCR_INRQ
 				   | CAN_MCR_ABOM
 				   | CAN_MCR_TXFP;

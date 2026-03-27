@@ -25,6 +25,7 @@ THE SOFTWARE.
 */
 
 #include "can_common.h"
+#include "host_frame.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_gs_can.h"
@@ -125,6 +126,7 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 	frame->echo_id = 0xFFFFFFFF; // not an echo frame
 	frame->reserved = 0;
+	gs_host_frame_object_set_channel(frame_object, channel);
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 

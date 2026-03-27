@@ -12,7 +12,7 @@
  * below (APIs like IS_ENABLED(), COND_CODE_1(), etc.) are hidden away
  * in this file.
  */
-#include "util_internal.h"
+#include "zephyr/sys/util_internal.h"
 
 /** @brief Extract the Least Significant Bit from @p value. */
 #define LSB_GET(value) ((value) & -(value))

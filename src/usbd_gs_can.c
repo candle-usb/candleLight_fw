@@ -551,14 +551,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			const struct gs_device_mode *mode = &ep0->mode;
 
 			if (mode->mode == GS_CAN_MODE_RESET) {
-				can_disable(channel);
-				led_set_mode(&channel->leds, LED_MODE_OFF);
+				can_disable(hcan, channel);
 			} else if (mode->mode == GS_CAN_MODE_START) {
-				channel->feature = mode->feature;
-
-				can_enable(channel);
-
-				led_set_mode(&channel->leds, LED_MODE_NORMAL);
+				can_enable(channel, mode->feature);
 			}
 			break;
 		}
@@ -932,8 +927,7 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef *pdev)
 	for (unsigned int i = 0; i < ARRAY_SIZE(hcan->channels); i++) {
 		can_data_t *channel = &hcan->channels[i];
 
-		can_disable(channel);
-		led_set_mode(&channel->leds, LED_MODE_OFF);
+		can_disable(hcan, channel);
 	}
 
 	is_usb_suspend_cb = true;

@@ -24,6 +24,7 @@
  */
 
 #include "can_common.h"
+#include "can_drv.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_gs_can.h"
@@ -59,6 +60,20 @@ bool can_check_filter_ok(const struct gs_device_filter *filter)
 	return filter->info.dev == CAN_filter_info.dev;
 }
 #endif
+
+void can_enable(struct can_channel *channel, const uint32_t feature)
+{
+	channel->feature = feature;
+
+	led_set_mode(&channel->leds, LED_MODE_NORMAL);
+	can_drv_enable(channel);
+}
+
+void can_disable(USBD_GS_CAN_HandleTypeDef __maybe_unused *hcan, struct can_channel *channel)
+{
+	can_drv_disable(channel);
+	led_set_mode(&channel->leds, LED_MODE_OFF);
+}
 
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {

@@ -78,7 +78,7 @@ int main(void)
 				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
 		can_init(channel, channel_config);
-		can_disable(channel);
+		can_disable(&hGS_CAN, channel);
 	}
 
 	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef *)&FS_Desc, DEVICE_FS);

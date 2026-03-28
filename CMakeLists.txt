@@ -13,11 +13,12 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 add_compile_options(
+	$<$<CONFIG:Debug>:-O2>
+	$<$<CONFIG:Release>:-O3>
 	$<$<CONFIG:Release>:-flto>
 	$<$<CONFIG:Release>:-fno-fat-lto-objects>
 	--specs=nano.specs
 	--specs=nosys.specs
-	-O3
 	-Wall
 	-Werror
 	-Wextra

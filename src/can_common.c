@@ -70,6 +70,15 @@ void can_set_bittiming(struct can_channel *channel, const struct gs_device_bitti
 	channel->bittiming = *bt;
 }
 
+bool can_check_feature_ok(const can_data_t *channel,
+						  const uint32_t feature)
+{
+	if (!IS_ENABLED(CONFIG_CANFD))
+		return true;
+
+	return true;
+}
+
 #ifdef CONFIG_CANFD
 void can_set_data_bittiming(struct can_channel *channel, const struct gs_device_bittiming *bt)
 {

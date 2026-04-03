@@ -615,6 +615,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			if (mode->mode == GS_CAN_MODE_RESET) {
 				can_disable(hcan, channel);
 			} else if (mode->mode == GS_CAN_MODE_START) {
+				if (!can_check_feature_ok(channel, mode->feature))
+					goto out_fail;
+
 				can_enable(channel, mode->feature);
 			}
 			break;

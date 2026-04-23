@@ -27,15 +27,9 @@
 #include <stdint.h>
 #include <string.h>
 
-typedef struct _copy_table_t
-{
-	uint32_t const* src;
-	uint32_t* dest;
-	uint32_t wlen;
-} copy_table_t;
-
-extern const copy_table_t __copy_table_start__;
-extern const copy_table_t __copy_table_end__;
+extern char __data_source[];
+extern char __data_start[];
+extern char __data_size[];
 
 void __initialize_hardware_early(void);
 void _start(void) __attribute__((noreturn));
@@ -44,9 +38,7 @@ void Reset_Handler(void)
 {
 	__initialize_hardware_early();
 
-	for (copy_table_t const* table = &__copy_table_start__; table < &__copy_table_end__; ++table) {
-		memcpy(table->dest, table->src, table->wlen);
-	}
+	memcpy(__data_start, __data_source, (uintptr_t)__data_size);
 
 	_start();
 }

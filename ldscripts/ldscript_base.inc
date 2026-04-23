@@ -69,16 +69,6 @@ SECTIONS
 		KEEP(*(.eh_frame*))
 	} > FLASH
 
-	.copy.table @LDV_READONLY@ :
-	{
-		. = ALIGN(4);
-		__copy_table_start__ = .;
-		LONG (__data_source)
-		LONG (__data_start)
-		LONG (__data_size)
-		__copy_table_end__ = .;
-	} > FLASH
-
 	.preinit_array @LDV_READONLY@ :
 	{
 		. = ALIGN(4);

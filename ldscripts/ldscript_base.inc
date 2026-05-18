@@ -45,8 +45,8 @@ __RAM_SIZE = @LDV_RAM_SIZE@;
 
 MEMORY
 {
-	FLASH (rx)  : ORIGIN = @LDV_FLASH_START@, LENGTH = __FLASH_SIZE
-	RAM   (rw) : ORIGIN = @LDV_RAM_START@, LENGTH = __RAM_SIZE
+	FLASH (rx) : ORIGIN = @LDV_FLASH_START@, LENGTH = __FLASH_SIZE
+	RAM (rw) : ORIGIN = @LDV_RAM_START@, LENGTH = __RAM_SIZE
 }
 
 ENTRY(Reset_Handler)
@@ -102,8 +102,7 @@ SECTIONS
 		__copy_table_end__ = .;
 	} > FLASH
 
-
-	.preinit_array     :
+	.preinit_array :
 	{
 		. = ALIGN(4);
 		/* preinit data */
@@ -143,11 +142,9 @@ SECTIONS
 		*(.data)
 		*(.data.*)
 
-
 		. = ALIGN(4);
 		/* All data end */
 		__data_end__ = .;
-
 	} > RAM
 
 	.bss :

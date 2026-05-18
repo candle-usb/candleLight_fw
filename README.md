@@ -68,7 +68,7 @@ Now you're ready to build the firmware:
 ```shell
 mkdir build
 cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/arm-none-eabi-gcc.cmake
 
 # or,
 # cmake-gui ..

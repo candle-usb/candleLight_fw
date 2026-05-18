@@ -171,6 +171,9 @@ function(populate_ldscript)
 	# Produce a new file in the current builddir
 
 	configure_file("${TEMPLATE_SCRIPT}" "${OUTPUT_SCRIPT}" @ONLY)
+
+	add_custom_target(${${prefix}_CPU_FAMILY}_linker_script DEPENDS "${OUTPUT_SCRIPT}")
+	set(${${prefix}_CPU_FAMILY}_LINKER_SCRIPT "${OUTPUT_SCRIPT}" PARENT_SCOPE)
 endfunction()
 
 ##################
@@ -221,7 +224,11 @@ function(add_target_common TGTNAME CPU_FAMILY)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld LINKER:-Map=${TGTNAME}_fw.map)
+	add_dependencies(${TGTNAME}_fw ${CPU_FAMILY}_linker_script)
+	set_target_properties(${TGTNAME}_fw PROPERTIES
+		LINK_DEPENDS ${${CPU_FAMILY}_LINKER_SCRIPT}
+	)
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${${CPU_FAMILY}_LINKER_SCRIPT} LINKER:-Map=${TGTNAME}_fw.map)
 	set_target_properties(${TGTNAME}_fw PROPERTIES
 		ADDITIONAL_CLEAN_FILES "${TGTNAME}_fw.map"
 	)

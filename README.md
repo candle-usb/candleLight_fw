@@ -85,7 +85,6 @@ make cantact_fw
 #
 # to list possible targets :
 make help
-
 ```
 
 ## Download Binaries
@@ -122,7 +121,7 @@ This can be useful when multiple devices are connected at the same time.
 
 An example configuration :
 
-```
+```shell
  $ cat /etc/systemd/network/60-persistent-candev.link
 [Match]
 Property=ID_MODEL=cannette_gs_usb ID_SERIAL_SHORT="003800254250431420363230"
@@ -137,12 +136,12 @@ Name=cannette99
 
 ( The serial number can be found with the `lsusb` utility). After reloading systemd units and resetting this board :
 
-```
+```shell
  $ ip a
-....
+...
 59: cannette99: <NOARP,ECHO> mtu 16 qdisc noop state DOWN group default qlen 10
     link/can
- $
+...
 ```
 
 
@@ -155,14 +154,19 @@ Name=cannette99
 - We include both a `.editorconfig` and `uncrustify.cfg` which should help with whitespace.
 
 Typical command to run uncrustify on all source files (ignoring HAL and third-party libs):
-`uncrustify -c ./uncrustify.cfg --replace --no-backup $(find include src -name "*.[ch]")`
+
+```shell
+make uncrustify
+```
 
 ### Profiling
 Not great on cortex-M0 cores (F042, F072 targets etc) since they lack hardware support (ITM and SWO). However, it's possible to randomly sample the program counter and get some coarse profiling info.
 
 For example, openocd has the `profile` command (see https://openocd.org/doc/html/General-Commands.html#Misc-Commands), e.g.
 
-```profile 5 test.out 0x8000000 0x8100000```
+```
+profile 5 test.out 0x8000000 0x8100000
+```
 
 (from inside gdb, the command needs to be prefixed with `monitor` to forward it to openocd, i.e. `monitor profile 5 .....`.
 

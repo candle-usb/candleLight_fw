@@ -25,11 +25,9 @@
  *
  */
 
-void __libc_fini_array(void)
-{
-}
+#include <compiler.h>
 
-void __register_exitproc(void)
+void __libc_fini_array(void)
 {
 }
 
@@ -54,4 +52,9 @@ void _read(void)
 
 void _write(void)
 {
+}
+
+int atexit(void __maybe_unused (*fn)(void))
+{
+	return 0;
 }

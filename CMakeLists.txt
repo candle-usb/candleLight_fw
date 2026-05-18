@@ -5,11 +5,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(default_build_type "Release")
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+	set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
 
-    # Set the possible values for cmake-gui drop-down
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+	# Set the possible values for cmake-gui drop-down
+	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
 add_compile_options(
@@ -33,7 +33,7 @@ add_compile_options(
 	-std=gnu11
 )
 
-#need these later, per-platform
+# need these later, per-platform
 set(CPUFLAGS_F0 -mcpu=cortex-m0)
 set(CPUFLAGS_F4 -mcpu=cortex-m4)
 set(CPUFLAGS_G0 -mcpu=cortex-m0)
@@ -54,11 +54,9 @@ add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
-
 # Add a custom target that produces version.h, plus
 # a dummy output that's not actually produced, in order
 # to force version.hmake to always be re-run before the build
-
 
 add_custom_target(version_h
 	BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/version.h"
@@ -92,7 +90,6 @@ set(
 
 	${CMAKE_CURRENT_BINARY_DIR}/version.h
 )
-
 
 ####### some helpers to generate targets
 
@@ -142,8 +139,6 @@ function(dfu_flash target)
 	endif()
 endfunction()
 
-
-
 ######### ldscripts are mostly identical.
 # There's many ways of handling this :
 # - external script (e.g. python), see e.g. libopencm3
@@ -173,7 +168,6 @@ function(populate_ldscript)
 
 	configure_file(ldscripts/ldscript_base.inc ${${prefix}_CPU_FAMILY}_processed.ld)
 endfunction()
-
 
 ##################
 # generate ldscripts for all supported targets.
@@ -276,6 +270,7 @@ endfunction()
 
 ########## generate list of targets.
 # the "_fw" part is appended automatically
+
 set(TGTF042_LIST
 	"canable"
 	"canalyze"

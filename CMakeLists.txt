@@ -170,7 +170,7 @@ function(populate_ldscript)
 
 	# Produce a new file in the current builddir
 
-	configure_file("${TEMPLATE_SCRIPT}" "${OUTPUT_SCRIPT}")
+	configure_file("${TEMPLATE_SCRIPT}" "${OUTPUT_SCRIPT}" @ONLY)
 endfunction()
 
 ##################

@@ -1,4 +1,4 @@
-/**
+/* -*-ld-script-*-
  * The following is a template linker script since most of this is identical accross targets.
  *
  * the cmake build sys will process this with 'configure_file()' into a cpu-specific header.

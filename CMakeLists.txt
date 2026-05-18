@@ -5,11 +5,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(default_build_type "Release")
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-    set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+	set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
 
-    # Set the possible values for cmake-gui drop-down
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+	# Set the possible values for cmake-gui drop-down
+	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
 add_compile_options(
@@ -33,7 +33,7 @@ add_compile_options(
 	-std=gnu11
 )
 
-#need these later, per-platform
+# need these later, per-platform
 set(CPUFLAGS_F0 -mcpu=cortex-m0)
 set(CPUFLAGS_F4 -mcpu=cortex-m4)
 set(CPUFLAGS_G0 -mcpu=cortex-m0)
@@ -54,11 +54,9 @@ add_subdirectory(libs/STM32_HAL)
 add_subdirectory(libs/STM32_USB_Device_Library)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
-
 # Add a custom target that produces version.h, plus
 # a dummy output that's not actually produced, in order
 # to force version.hmake to always be re-run before the build
-
 
 add_custom_target(version_h
 	BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/version.h"
@@ -92,7 +90,6 @@ set(
 
 	${CMAKE_CURRENT_BINARY_DIR}/version.h
 )
-
 
 ####### some helpers to generate targets
 
@@ -142,8 +139,6 @@ function(dfu_flash target)
 	endif()
 endfunction()
 
-
-
 ######### ldscripts are mostly identical.
 # There's many ways of handling this :
 # - external script (e.g. python), see e.g. libopencm3
@@ -169,11 +164,17 @@ function(populate_ldscript)
 	cmake_parse_arguments("${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	# now we should have function-scope vars like LDV_FLASH_SIZE etc.
+
+	set(TEMPLATE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/ldscripts/ldscript_base.inc")
+	set(OUTPUT_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${${prefix}_CPU_FAMILY}_processed.ld")
+
 	# Produce a new file in the current builddir
 
-	configure_file(ldscripts/ldscript_base.inc ${${prefix}_CPU_FAMILY}_processed.ld)
-endfunction()
+	configure_file("${TEMPLATE_SCRIPT}" "${OUTPUT_SCRIPT}" @ONLY)
 
+	add_custom_target(${${prefix}_CPU_FAMILY}_linker_script DEPENDS "${OUTPUT_SCRIPT}")
+	set(${${prefix}_CPU_FAMILY}_LINKER_SCRIPT "${OUTPUT_SCRIPT}" PARENT_SCOPE)
+endfunction()
 
 ##################
 # generate ldscripts for all supported targets.
@@ -223,7 +224,11 @@ function(add_target_common TGTNAME CPU_FAMILY)
 	add_executable(${TGTNAME}_fw ${SOURCE_FILES})
 	add_dependencies(${TGTNAME}_fw version_h)
 	target_include_directories(${TGTNAME}_fw PRIVATE include/ ${CMAKE_CURRENT_BINARY_DIR})
-	target_link_options(${TGTNAME}_fw PRIVATE -T ${CPU_FAMILY}_processed.ld LINKER:-Map=${TGTNAME}_fw.map)
+	add_dependencies(${TGTNAME}_fw ${CPU_FAMILY}_linker_script)
+	set_target_properties(${TGTNAME}_fw PROPERTIES
+		LINK_DEPENDS ${${CPU_FAMILY}_LINKER_SCRIPT}
+	)
+	target_link_options(${TGTNAME}_fw PRIVATE -T ${${CPU_FAMILY}_LINKER_SCRIPT} LINKER:-Map=${TGTNAME}_fw.map)
 	set_target_properties(${TGTNAME}_fw PROPERTIES
 		ADDITIONAL_CLEAN_FILES "${TGTNAME}_fw.map"
 	)
@@ -276,6 +281,7 @@ endfunction()
 
 ########## generate list of targets.
 # the "_fw" part is appended automatically
+
 set(TGTF042_LIST
 	"canable"
 	"canalyze"

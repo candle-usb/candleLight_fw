@@ -56,7 +56,6 @@ SECTIONS
 		*(.text*)
 
 		KEEP(*(.init))
-		KEEP(*(.fini))
 
 		/* .ctors */
 		*crtbegin.o(.ctors)
@@ -64,13 +63,6 @@ SECTIONS
 		*(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
 		*(SORT(.ctors.*))
 		*(.ctors)
-
-		/* .dtors */
-		*crtbegin.o(.dtors)
-		*crtbegin?.o(.dtors)
-		*(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
-		*(SORT(.dtors.*))
-		*(.dtors)
 
 		*(.rodata*)
 
@@ -105,16 +97,6 @@ SECTIONS
 		KEEP(*(SORT(.init_array.*)))
 		KEEP(*(.init_array))
 		PROVIDE_HIDDEN (__init_array_end = .);
-		. = ALIGN(4);
-	} >FLASH
-
-	.fini_array :
-	{
-		. = ALIGN(4);
-		PROVIDE_HIDDEN (__fini_array_start = .);
-		KEEP (*(SORT(.fini_array.*)))
-		KEEP (*(.fini_array*))
-		PROVIDE_HIDDEN (__fini_array_end = .);
 		. = ALIGN(4);
 	} >FLASH
 
@@ -167,6 +149,10 @@ SECTIONS
 		*(.ARM.exidx*)
 		*(.ARM.extab* .gnu.linkonce.armextab.*)
 		*(.note .note.*)
+		/* Throw away dtors and fini_array handling */
+		*(.dtors .dtors.*)
+		*(.fini .fini.*)
+		*(.fini_array .fini_array.*)
 	}
 
 	ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")

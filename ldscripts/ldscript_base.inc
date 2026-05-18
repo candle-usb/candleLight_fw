@@ -77,18 +77,6 @@ SECTIONS
 		KEEP(*(.eh_frame*))
 	} > FLASH
 
-	.ARM.extab :
-	{
-		*(.ARM.extab* .gnu.linkonce.armextab.*)
-	} > FLASH
-
-	__exidx_start = .;
-	.ARM.exidx :
-	{
-		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
-	} > FLASH
-	__exidx_end = .;
-
 	.copy.table :
 	{
 		. = ALIGN(4);
@@ -173,6 +161,13 @@ SECTIONS
 		__StackTop = .;
 	} > RAM
 	PROVIDE(__stack = __StackTop);
+
+	/DISCARD/ : {
+		/* Throw away C++ exception handling information */
+		*(.ARM.exidx*)
+		*(.ARM.extab* .gnu.linkonce.armextab.*)
+		*(.note .note.*)
+	}
 
 	ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
 }

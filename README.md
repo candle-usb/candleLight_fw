@@ -46,11 +46,26 @@ The Firmware also implements WCID USB descriptors and thus can be used on recent
 
 ## Building
 
-Building requires arm-none-eabi-gcc toolchain.
+Building requires a `newlib` based `arm-none-eabi-gcc` toolchain.
+Debian forky's `arm-none-eabi-gcc` toolchain switched to `picolibc`, but the candlelight firmware still requires `newlib`.
+
+On Debian trixie and older, install the standard `gcc-arm-none-eabi` toolchain:
 
 ```shell
 sudo apt-get install gcc-arm-none-eabi
+```
 
+For Debian forky and newer there is a script that downloads and install the latest `newlib` based toolchain and extract it to the current directory.
+Move it to `/opt` and `cmake` will automatically use it:
+
+```shell
+./cmake/install-debian-gcc-arm-none-eabi
+sudo mv arm-none-eabi_14.2.rel1-1 /opt
+```
+
+Now you're ready to build the firmware:
+
+```shell
 mkdir build
 cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake

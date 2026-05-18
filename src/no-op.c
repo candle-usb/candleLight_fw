@@ -35,13 +35,6 @@ void _close(void)
 {
 }
 
-void _exit(int code)
-{
-	(void) code;
-	__asm__ ("BKPT");
-	while (1);
-}
-
 void _lseek(void)
 {
 }
@@ -57,4 +50,10 @@ void _write(void)
 int atexit(void __maybe_unused (*fn)(void))
 {
 	return 0;
+}
+
+void exit(int __maybe_unused code)
+{
+	__asm__ ("BKPT");
+	while (1);
 }

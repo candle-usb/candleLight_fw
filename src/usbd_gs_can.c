@@ -220,7 +220,7 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
  * reentered, but that code is not interrupt-safe and the error values are
  * silently ignored within the library in several cases. We'll just disable
  * interrupts at all entry points to be safe. Note that the callbacks are all
- * called from within the libary itself, either within the interrupt handler or
+ * called from within the library itself, either within the interrupt handler or
  * within other calls, which means the USB interrupt is already disabled and we
  * don't have any other interrupts to worry about. */
 

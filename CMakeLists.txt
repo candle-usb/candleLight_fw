@@ -55,15 +55,31 @@ add_subdirectory(libs/STM32_USB_Device_Library)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 # uncrustify - ignore HAL and third-party libs
-file(GLOB_RECURSE UNCRUSTIFY_SOURCE_FILES
+file(GLOB_RECURSE CHECK_SOURCE_FILES
 	"include/*.[ch]"
 	"src/*.[ch]"
 )
 
+file(GLOB_RECURSE CHECK_EXTRA_FILES
+	"70-candle-usb.rules"
+	"LICENSE.md"
+	"README.md"
+	"cmake/*"
+	"gdb_oocd.cmds"
+	"ldscripts/*"
+	"openocd.cfg"
+)
+
 add_custom_target(uncrustify
-	COMMAND uncrustify -c "${CMAKE_CURRENT_SOURCE_DIR}/uncrustify.cfg" --replace --no-backup ${UNCRUSTIFY_SOURCE_FILES}
+	COMMAND uncrustify -c "${CMAKE_CURRENT_SOURCE_DIR}/uncrustify.cfg" --replace --no-backup ${CHECK_SOURCE_FILES}
 	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 	COMMENT "Formatting source code with Uncrustify..."
+)
+
+add_custom_target(codespell
+	COMMAND codespell -w ${CHECK_SOURCE_FILES} ${CHECK_EXTRA_FILES}
+	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+	COMMENT "Spellchecking source code with Codespell..."
 )
 
 # Add a custom target that produces version.h, plus

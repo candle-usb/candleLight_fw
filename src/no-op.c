@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2024 Marc Kleine-Budde <kernel@pengutronix.de>
+ * Copyright (c) 2024, 2026 Marc Kleine-Budde <kernel@pengutronix.de>
  * Copyright (c) fenugrec 2022
  * Copyright (c) 2019 Hubert Denkmair
  *
@@ -24,6 +24,10 @@
  * THE SOFTWARE.
  *
  */
+
+void __libc_fini_array(void)
+{
+}
 
 void __register_exitproc(void)
 {

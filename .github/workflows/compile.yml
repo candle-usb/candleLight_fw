@@ -33,13 +33,20 @@ jobs:
                 cmake \
                 gcc-arm-none-eabi \
                 git \
-                make
+                make \
+                wget
+
+    - name: install newlib based toolchain
+      if:
+        matrix.release == 'debian:testing-slim' || matrix.release == 'debian:unstable-slim'
+      run: |
+        podman exec -i stable ./cmake/install-debian-gcc-arm-none-eabi
 
     - name: Configure & Build with arm-none-eabi-gcc
       env:
         toolchain: arm-none-eabi-gcc
       run: |
-        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/${toolchain}.cmake -B build-${toolchain}
+        podman exec -i -e TOOLCHAIN_BIN_DIR=${PWD}/arm-none-eabi_14.2.rel1-1 stable cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/${toolchain}.cmake -B build-${toolchain}
         podman exec -i stable cmake --build build-${toolchain}
 
     - name: Show logs

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+set -x
+
+wget \
+	https://snapshot.debian.org/archive/debian/20250203T090921Z/pool/main/g/gcc-arm-none-eabi/gcc-arm-none-eabi_14.2.rel1-1_amd64.deb \
+	https://snapshot.debian.org/archive/debian/20251201T030959Z/pool/main/b/binutils-arm-none-eabi/binutils-arm-none-eabi_2.45.50.20251125-1%2B23%2Bb2_amd64.deb \
+	https://snapshot.debian.org/archive/debian/20260211T143034Z/pool/main/n/newlib/libnewlib-arm-none-eabi_4.6.0.20260123-1_all.deb \
+	https://snapshot.debian.org/archive/debian/20260211T143034Z/pool/main/n/newlib/libnewlib-dev_4.6.0.20260123-1_all.deb
+
+for i in \
+    binutils-arm-none-eabi_2.45.50.20251125-1+23+b2_amd64.deb \
+    gcc-arm-none-eabi_14.2.rel1-1_amd64.deb \
+    libnewlib-arm-none-eabi_4.6.0.20260123-1_all.deb \
+    libnewlib-dev_4.6.0.20260123-1_all.deb \
+    ; do
+    dpkg -x $i .
+done
+
+mkdir usr/lib/bfd-plugins
+ln -sf ../gcc/arm-none-eabi/14.2.1/liblto_plugin.so usr/lib/bfd-plugins
+ln -sf newlib usr/lib/arm-none-eabi/lib
+ln -sf ../../include/newlib usr/lib/arm-none-eabi/include
+mv usr arm-none-eabi_14.2.rel1-1

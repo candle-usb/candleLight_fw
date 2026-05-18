@@ -164,9 +164,13 @@ function(populate_ldscript)
 	cmake_parse_arguments("${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	# now we should have function-scope vars like LDV_FLASH_SIZE etc.
+
+	set(TEMPLATE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/ldscripts/ldscript_base.inc")
+	set(OUTPUT_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${${prefix}_CPU_FAMILY}_processed.ld")
+
 	# Produce a new file in the current builddir
 
-	configure_file(ldscripts/ldscript_base.inc ${${prefix}_CPU_FAMILY}_processed.ld)
+	configure_file("${TEMPLATE_SCRIPT}" "${OUTPUT_SCRIPT}")
 endfunction()
 
 ##################

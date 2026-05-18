@@ -368,7 +368,7 @@ function(add_target_common TGTNAME CPU_FAMILY)
 	)
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${${CPU_FAMILY}_LINKER_SCRIPT} LINKER:-Map=${TGTNAME}_fw.map)
 	set_target_properties(${TGTNAME}_fw PROPERTIES
-		ADDITIONAL_CLEAN_FILES "${TGTNAME}_fw.map"
+		ADDITIONAL_CLEAN_FILES "${${CPU_FAMILY}_LINKER_SCRIPT};${TGTNAME}_fw.map"
 	)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)

@@ -55,13 +55,13 @@ add_subdirectory(libs/STM32_USB_Device_Library)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 # uncrustify - ignore HAL and third-party libs
-file(GLOB_RECURSE UNCRUSTIFY_SOURCE_FILES
+file(GLOB_RECURSE CHECK_SOURCE_FILES
 	"include/*.[ch]"
 	"src/*.[ch]"
 )
 
 add_custom_target(uncrustify
-	COMMAND uncrustify -c "${CMAKE_CURRENT_SOURCE_DIR}/uncrustify.cfg" --replace --no-backup ${UNCRUSTIFY_SOURCE_FILES}
+	COMMAND uncrustify -c "${CMAKE_CURRENT_SOURCE_DIR}/uncrustify.cfg" --replace --no-backup ${CHECK_SOURCE_FILES}
 	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 	COMMENT "Formatting source code with Uncrustify..."
 )

@@ -121,13 +121,19 @@ SECTIONS
 	.bss :
 	{
 		. = ALIGN(4);
-		__bss_start__ = .;
 		*(.bss)
 		*(.bss.*)
 		*(COMMON)
 		. = ALIGN(4);
-		__bss_end__ = .;
+		__bss_end = .;
 	} > RAM AT > RAM
+
+	PROVIDE( __bss_start = ADDR(.bss) );
+	PROVIDE( __bss_size = __bss_end - __bss_start );
+
+	/* newlib */
+	PROVIDE( __bss_start__ = __bss_start );
+	PROVIDE( __bss_end__ = __bss_end );
 
 	.heap (COPY) :
 	{

@@ -260,12 +260,12 @@ function(dfu_flash target)
 		)
 
 		add_custom_target(flash-${target}
-			dfu-util -a 0 -s 0x08000000:leave -D ${target}.dfu
+			${DFU_UTIL_EXECUTABLE} -a 0 -s 0x08000000:leave -D ${target}.dfu
 			DEPENDS ${target}.dfu
 		)
 	else()
 		add_custom_target(flash-${target}
-			dfu-util -d 1d50:606f -a 0 -s 0x08000000:leave -D ${target}.bin
+			${DFU_UTIL_EXECUTABLE} -d 1d50:606f -a 0 -s 0x08000000:leave -D ${target}.bin
 			DEPENDS ${target}.bin
 		)
 	endif()

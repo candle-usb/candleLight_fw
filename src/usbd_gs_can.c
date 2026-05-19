@@ -46,6 +46,20 @@ THE SOFTWARE.
 #include "util.h"
 
 static volatile bool is_usb_suspend_cb = false;
+static volatile bool sof_seen;
+
+/* Drop a stuck IN transfer buffer (replaces legacy TxState reset on resume). */
+static void USBD_GS_CAN_ReleaseToHostBuf(USBD_GS_CAN_HandleTypeDef *hcan)
+{
+	bool was_irq_enabled = disable_irq();
+
+	if (hcan->to_host_buf) {
+		list_add_tail(&hcan->to_host_buf->list, &hcan->list_frame_pool);
+		hcan->to_host_buf = NULL;
+	}
+
+	restore_irq(was_irq_enabled);
+}
 
 /* Configuration Descriptor */
 static const uint8_t USBD_GS_CAN_CfgDesc[USB_CAN_CONFIG_DESC_SIZ] =
@@ -254,7 +268,15 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 
 static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
+	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
+
 	UNUSED(cfgidx);
+
+	if (hcan)
+		USBD_GS_CAN_ReleaseToHostBuf(hcan);
+
+	sof_seen = false;
+	is_usb_suspend_cb = false;
 
 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_IN);
 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_OUT);
@@ -729,6 +751,8 @@ out_prepare_receive:
 static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
+
+	sof_seen = true;
 	hcan->sof_timestamp_us = timer_get();
 	return USBD_OK;
 }
@@ -940,11 +964,45 @@ void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev)
 		led_set_mode(&channel->leds, LED_MODE_OFF);
 	}
 
+	USBD_GS_CAN_ReleaseToHostBuf(hcan);
 	is_usb_suspend_cb = true;
 }
 
 void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev)
 {
-	(void)pdev;
+	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
+
+	USBD_GS_CAN_ReleaseToHostBuf(hcan);
 	is_usb_suspend_cb = false;
+}
+
+#define USB_SOF_WATCHDOG_TIMEOUT_US 200000U
+
+void USBD_GS_CAN_CheckHostPresence(USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
+	uint32_t now;
+	uint32_t elapsed;
+
+	if (is_usb_suspend_cb || pdev->dev_state != USBD_STATE_CONFIGURED || !sof_seen)
+		return;
+
+	now = timer_get();
+	elapsed = now - hcan->sof_timestamp_us;
+	if (elapsed < USB_SOF_WATCHDOG_TIMEOUT_US)
+		return;
+
+	sof_seen = false;
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(hcan->channels); i++) {
+		can_data_t *channel = &hcan->channels[i];
+
+		if (!can_is_enabled(channel))
+			continue;
+
+		can_disable(channel);
+		led_set_mode(&channel->leds, LED_MODE_OFF);
+	}
+
+	USBD_GS_CAN_ReleaseToHostBuf(hcan);
 }

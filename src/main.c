@@ -109,6 +109,7 @@ int main(void)
 			CAN_SendFrame(&hGS_CAN, channel);
 		}
 
+		USBD_GS_CAN_CheckHostPresence(&hUSB);
 		USBD_GS_CAN_ReceiveFromHost(&hUSB);
 		USBD_GS_CAN_SendToHost(&hUSB);
 

@@ -1,4 +1,5 @@
-name: compile
+name: |
+  Linux: Build with CMake and gcc
 
 on: [push, pull_request]
 
@@ -20,7 +21,7 @@ jobs:
         - "debian:unstable-slim"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Prepare ${{ matrix.release }} container
       run: |

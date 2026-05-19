@@ -162,6 +162,7 @@ file(GLOB_RECURSE CHECK_SOURCE_FILES
 )
 
 file(GLOB_RECURSE CHECK_EXTRA_FILES
+	".github/*"
 	"70-candle-usb.rules"
 	"LICENSE.md"
 	"README.md"

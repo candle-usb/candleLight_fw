@@ -1,4 +1,5 @@
-name: compile
+name: |
+  Linux: Build with CMake and gcc
 
 on: [push, pull_request]
 

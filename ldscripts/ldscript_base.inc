@@ -135,7 +135,6 @@ SECTIONS
 	.data : AT (__etext)
 	{
 		__data_start__ = .;
-		*(vtable)
 		*(.data)
 		*(.data.*)
 

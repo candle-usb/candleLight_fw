@@ -1,0 +1,42 @@
+name: Build with CMake Ninja and Arm GNU Toolchain
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        gcc:
+          - 'latest'
+      fail-fast: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Install CMake and Ninja
+      uses: lukka/get-cmake@latest
+
+    - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+      uses: carlosperate/arm-none-eabi-gcc-action@v1
+      with:
+        release: ${{ matrix.gcc }}
+
+    - name: Verify Toolchain Installation
+      run: |
+        cmake --version
+        ninja --version
+        arm-none-eabi-ld --version
+        arm-none-eabi-gcc --version
+
+    - name: Configure & Build with arm-none-eabi-gcc
+      env:
+        toolchain: arm-none-eabi-gcc
+        version: ${{ matrix.arm-release }}
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "build-${{ env.toolchain }}-${{ env.version }}" -G Ninja
+        cmake --build "build-${{ env.toolchain }}-${{ env.version }}"

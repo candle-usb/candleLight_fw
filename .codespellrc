@@ -1,4 +1,4 @@
 # -*-conf-*-
 
-[Codespellini]
+[codespell]
 ignore-words-list=cantact

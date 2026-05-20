@@ -131,6 +131,7 @@ set(
 
 	src/interrupts.c
 	src/main.c
+	src/no-op.c
 	src/startup.c
 
 	${CMAKE_CURRENT_BINARY_DIR}/version.h

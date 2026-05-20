@@ -12,13 +12,31 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
+include(CheckSymbolExists)
+
+check_symbol_exists(__PICOLIBC__ "sys/features.h" HAVE_PICOLIBC)
+check_symbol_exists(__NEWLIB__ "sys/features.h" HAVE_NEWLIB)
+
+if(HAVE_PICOLIBC)
+	message(FATAL_ERROR
+		"Picolibc is not yet supported. Please install a newlib based toolchain, see: "
+		"https://github.com/candle-usb/candleLight_fw/#building")
+elseif(HAVE_NEWLIB)
+	message(STATUS "Using newlib")
+	set(LIBC_OPTIONS
+		"-specs=nano.specs"
+		"-specs=nosys.specs"
+	)
+else()
+	message(FATAL_ERROR "Neither Picolibc nor Newlib detected.")
+endif()
+
 add_compile_options(
 	$<$<CONFIG:Debug>:-O2>
 	$<$<CONFIG:Release>:-O3>
 	$<$<CONFIG:Release>:-flto>
 	$<$<CONFIG:Release>:-fno-fat-lto-objects>
-	--specs=nano.specs
-	--specs=nosys.specs
+	${LIBC_OPTIONS}
 	-Wall
 	-Werror
 	-Wextra
@@ -40,8 +58,7 @@ set(CPUFLAGS_G0 -mcpu=cortex-m0)
 
 add_link_options(
 	$<$<CONFIG:Release>:-flto>
-	--specs=nano.specs
-	--specs=nosys.specs
+	${LIBC_OPTIONS}
 	-Wall
 	-Wextra
 	-g3

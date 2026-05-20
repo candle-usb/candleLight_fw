@@ -129,9 +129,10 @@ set(
 	include/timer.h src/timer.c
 	include/util.h src/util.c
 
-	src/startup.c
-	src/main.c
 	src/interrupts.c
+	src/main.c
+	src/no-op.c
+	src/startup.c
 
 	${CMAKE_CURRENT_BINARY_DIR}/version.h
 )

@@ -1,6 +1,8 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2024, 2026 Marc Kleine-Budde <kernel@pengutronix.de>
+ * Copyright (c) fenugrec 2022
  * Copyright (c) 2019 Hubert Denkmair
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,30 +25,35 @@
  *
  */
 
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
+#include <compiler.h>
 
-typedef struct _copy_table_t
+void __libc_fini_array(void)
 {
-	uint32_t const* src;
-	uint32_t* dest;
-	uint32_t wlen;
-} copy_table_t;
+}
 
-extern const copy_table_t __copy_table_start__;
-extern const copy_table_t __copy_table_end__;
-
-void __initialize_hardware_early(void);
-void _start(void) __attribute__((noreturn));
-
-void Reset_Handler(void)
+void _close(void)
 {
-	__initialize_hardware_early();
+}
 
-	for (copy_table_t const* table = &__copy_table_start__; table < &__copy_table_end__; ++table) {
-		memcpy(table->dest, table->src, table->wlen);
-	}
+void _lseek(void)
+{
+}
 
-	_start();
+void _read(void)
+{
+}
+
+void _write(void)
+{
+}
+
+int atexit(void __maybe_unused (*fn)(void))
+{
+	return 0;
+}
+
+void exit(int __maybe_unused code)
+{
+	__asm__ ("BKPT");
+	while (1);
 }

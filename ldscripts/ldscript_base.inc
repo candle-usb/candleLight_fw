@@ -73,9 +73,9 @@ SECTIONS
 	{
 		. = ALIGN(4);
 		__copy_table_start__ = .;
-		LONG (__etext)
-		LONG (__data_start__)
-		LONG (__data_end__ - __data_start__)
+		LONG (__data_source)
+		LONG (__data_start)
+		LONG (__data_size)
 		__copy_table_end__ = .;
 	} > FLASH
 
@@ -104,14 +104,19 @@ SECTIONS
 
 	.data : AT (__etext)
 	{
-		__data_start__ = .;
 		*(.data)
 		*(.data.*)
 
 		. = ALIGN(4);
 		/* All data end */
-		__data_end__ = .;
+		PROVIDE( __data_end = . );
 	} > RAM
+
+	PROVIDE( __data_start = ADDR(.data));
+	PROVIDE( __data_size = __data_end - __data_start );
+	PROVIDE( __data_source = LOADADDR(.data));
+	PROVIDE( __data_source_end = LOADADDR(.data) + SIZEOF(.data) );
+	PROVIDE( __data_source_size = __data_source_end - __data_source );
 
 	.bss :
 	{

@@ -1,4 +1,31 @@
 /* -*-ld-script-*-
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) fenugrec 2022
+ * Copyright (c) 2019 Hubert Denkmair
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+/*
  * The following is a template linker script since most of this is identical across targets.
  *
  * the cmake build sys will process this with 'configure_file()' into a cpu-specific header.
@@ -13,146 +40,120 @@
 __STACK_SIZE = @LDV_STACK_SIZE@;
 __HEAP_SIZE  = @LDV_HEAP_SIZE@;
 
-__FLASH_SIZE = @LDV_FLASH_SIZE@;
-__RAM_SIZE = @LDV_RAM_SIZE@;
-
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = @LDV_FLASH_START@, LENGTH = __FLASH_SIZE
-  RAM   (rw) : ORIGIN = @LDV_RAM_START@, LENGTH = __RAM_SIZE
+	FLASH (rx) : ORIGIN = @LDV_FLASH_START@, LENGTH = @LDV_FLASH_SIZE@
+	RAM (rw) : ORIGIN = @LDV_RAM_START@, LENGTH = @LDV_RAM_SIZE@
 }
 
 ENTRY(Reset_Handler)
 
 SECTIONS
 {
-  .text :
-  {
-    KEEP(*(.vectors))
-    *(.text*)
+	.text :
+	{
+		KEEP(*(.vectors))
+		*(.text*)
 
-    KEEP(*(.init))
-    KEEP(*(.fini))
+		KEEP(*(.init))
 
-    /* .ctors */
-    *crtbegin.o(.ctors)
-    *crtbegin?.o(.ctors)
-    *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
-    *(SORT(.ctors.*))
-    *(.ctors)
+		/* .ctors */
+		*crtbegin.o(.ctors)
+		*crtbegin?.o(.ctors)
+		*(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+		*(SORT(.ctors.*))
+		*(.ctors)
 
-    /* .dtors */
-    *crtbegin.o(.dtors)
-    *crtbegin?.o(.dtors)
-    *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
-    *(SORT(.dtors.*))
-    *(.dtors)
+		*(.rodata*)
 
-    *(.rodata*)
+		KEEP(*(.eh_frame*))
+	} > FLASH
 
-    KEEP(*(.eh_frame*))
-  } > FLASH
+	.copy.table :
+	{
+		. = ALIGN(4);
+		__copy_table_start__ = .;
+		LONG (__etext)
+		LONG (__data_start__)
+		LONG (__data_end__ - __data_start__)
+		__copy_table_end__ = .;
+	} > FLASH
 
-  .ARM.extab :
-  {
-    *(.ARM.extab* .gnu.linkonce.armextab.*)
-  } > FLASH
+	.preinit_array :
+	{
+		. = ALIGN(4);
+		/* preinit data */
+		PROVIDE_HIDDEN (__preinit_array_start = .);
+		KEEP(*(.preinit_array))
+		PROVIDE_HIDDEN (__preinit_array_end = .);
+		. = ALIGN(4);
+	} >FLASH
 
-  __exidx_start = .;
-  .ARM.exidx :
-  {
-    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-  } > FLASH
-  __exidx_end = .;
+	.init_array :
+	{
+		. = ALIGN(4);
+		/* init data */
+		PROVIDE_HIDDEN (__init_array_start = .);
+		KEEP(*(SORT(.init_array.*)))
+		KEEP(*(.init_array))
+		PROVIDE_HIDDEN (__init_array_end = .);
+		. = ALIGN(4);
+	} >FLASH
 
-  .copy.table :
-  {
-    . = ALIGN(4);
-    __copy_table_start__ = .;
-    LONG (__etext)
-    LONG (__data_start__)
-    LONG (__data_end__ - __data_start__)
-    __copy_table_end__ = .;
-  } > FLASH
+	__etext = ALIGN (4);
 
+	.data : AT (__etext)
+	{
+		__data_start__ = .;
+		*(.data)
+		*(.data.*)
 
-  .preinit_array     :
-  {
-    . = ALIGN(4);
-    /* preinit data */
-    PROVIDE_HIDDEN (__preinit_array_start = .);
-    KEEP(*(.preinit_array))
-    PROVIDE_HIDDEN (__preinit_array_end = .);
-    . = ALIGN(4);
-  } >FLASH
+		. = ALIGN(4);
+		/* All data end */
+		__data_end__ = .;
+	} > RAM
 
-  .init_array :
-  {
-    . = ALIGN(4);
-    /* init data */
-    PROVIDE_HIDDEN (__init_array_start = .);
-    KEEP(*(SORT(.init_array.*)))
-    KEEP(*(.init_array))
-    PROVIDE_HIDDEN (__init_array_end = .);
-    . = ALIGN(4);
-  } >FLASH
+	.bss :
+	{
+		. = ALIGN(4);
+		__bss_start__ = .;
+		*(.bss)
+		*(.bss.*)
+		*(COMMON)
+		. = ALIGN(4);
+		__bss_end__ = .;
+	} > RAM AT > RAM
 
-  .fini_array :
-  {
-    . = ALIGN(4);
-    PROVIDE_HIDDEN (__fini_array_start = .);
-    KEEP (*(SORT(.fini_array.*)))
-    KEEP (*(.fini_array*))
-    PROVIDE_HIDDEN (__fini_array_end = .);
-    . = ALIGN(4);
-  } >FLASH
+	.heap (COPY) :
+	{
+		. = ALIGN(8);
+		__end__ = .;
+		PROVIDE(end = .);
+		. = . + __HEAP_SIZE;
+		. = ALIGN(8);
+		__HeapLimit = .;
+	} > RAM
 
-  __etext = ALIGN (4);
+	.stack (ORIGIN(RAM) + LENGTH(RAM) - __STACK_SIZE) (COPY) :
+	{
+		. = ALIGN(8);
+		__StackLimit = .;
+		. = . + __STACK_SIZE;
+		. = ALIGN(8);
+		__StackTop = .;
+	} > RAM
+	PROVIDE(__stack = __StackTop);
 
-  .data : AT (__etext)
-  {
-    __data_start__ = .;
-    *(vtable)
-    *(.data)
-    *(.data.*)
+	/DISCARD/ : {
+		/* Throw away C++ exception handling information */
+		*(.ARM.exidx*)
+		*(.ARM.extab* .gnu.linkonce.armextab.*)
+		*(.note .note.*)
+		/* Throw away dtors and fini_array handling */
+		*(.dtors .dtors.*)
+		*(.fini .fini.*)
+		*(.fini_array .fini_array.*)
+	}
 
-
-    . = ALIGN(4);
-    /* All data end */
-    __data_end__ = .;
-
-  } > RAM
-
-  .bss :
-  {
-    . = ALIGN(4);
-    __bss_start__ = .;
-    *(.bss)
-    *(.bss.*)
-    *(COMMON)
-    . = ALIGN(4);
-    __bss_end__ = .;
-  } > RAM AT > RAM
-
-  .heap (COPY) :
-  {
-    . = ALIGN(8);
-    __end__ = .;
-    PROVIDE(end = .);
-    . = . + __HEAP_SIZE;
-    . = ALIGN(8);
-    __HeapLimit = .;
-  } > RAM
-
-  .stack (ORIGIN(RAM) + LENGTH(RAM) - __STACK_SIZE) (COPY) :
-  {
-    . = ALIGN(8);
-    __StackLimit = .;
-    . = . + __STACK_SIZE;
-    . = ALIGN(8);
-    __StackTop = .;
-  } > RAM
-  PROVIDE(__stack = __StackTop);
-
-  ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
+	ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
 }

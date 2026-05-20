@@ -54,10 +54,3 @@ void Reset_Handler(void)
 void __register_exitproc(void) {
 	return;
 }
-
-void _exit(int code)
-{
-	(void) code;
-	__asm__ ("BKPT");
-	while (1);
-}

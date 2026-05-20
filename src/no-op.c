@@ -2,6 +2,7 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2024 Marc Kleine-Budde <kernel@pengutronix.de>
+ * Copyright (c) fenugrec 2022
  * Copyright (c) 2019 Hubert Denkmair
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,6 +24,10 @@
  * THE SOFTWARE.
  *
  */
+
+void __register_exitproc(void)
+{
+}
 
 void _close(void)
 {

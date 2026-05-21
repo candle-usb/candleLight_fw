@@ -12,6 +12,16 @@ jobs:
           - ubuntu-latest
         gcc:
           - 'latest'
+          - '15.2.Rel1'
+          - '14.3.Rel1'
+          - '13.3.Rel1'
+          - '12.3.Rel1'
+          - '11.3.Rel1'
+          - '10.3-2021.10'
+          - '9-2020-q2'
+          - '8-2019-q3'
+          - '7-2018-q2'
+          - '6-2017-q2'
       fail-fast: false
 
     steps:

@@ -12,6 +12,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
+####### check for newlib and picolibc
+
 include(CheckSymbolExists)
 
 check_symbol_exists(__PICOLIBC__ "sys/features.h" HAVE_PICOLIBC)
@@ -29,6 +31,16 @@ elseif(HAVE_NEWLIB)
 	)
 else()
 	message(FATAL_ERROR "Neither Picolibc nor Newlib detected.")
+endif()
+
+####### check linker not supporting "(READONLY)"
+
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS "11.0")
+    set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
+    message(STATUS "Disabling Linker (READONLY) flag")
+else()
+    set(HAVE_READONLY TRUE CACHE INTERNAL "Linker supports (READONLY) keyword")
+    message(STATUS "Enabling linker (READONLY) flag")
 endif()
 
 add_compile_options(
@@ -208,6 +220,12 @@ function(populate_ldscript)
 		HEAP_SIZE)
 	set(multiValueArgs)
 	cmake_parse_arguments("${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	if(HAVE_READONLY)
+		set(LDV_READONLY "(READONLY)")
+	else()
+		set(LDV_READONLY "")
+	endif()
 
 	# now we should have function-scope vars like LDV_FLASH_SIZE etc.
 

@@ -69,7 +69,7 @@ SECTIONS
 		KEEP(*(.eh_frame*))
 	} > FLASH
 
-	.copy.table :
+	.copy.table @READONLY@ :
 	{
 		. = ALIGN(4);
 		__copy_table_start__ = .;
@@ -79,7 +79,7 @@ SECTIONS
 		__copy_table_end__ = .;
 	} > FLASH
 
-	.preinit_array :
+	.preinit_array @READONLY@ :
 	{
 		. = ALIGN(4);
 		/* preinit data */
@@ -89,7 +89,7 @@ SECTIONS
 		. = ALIGN(4);
 	} >FLASH
 
-	.init_array :
+	.init_array @READONLY@ :
 	{
 		. = ALIGN(4);
 		/* init data */

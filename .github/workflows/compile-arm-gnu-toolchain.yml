@@ -51,8 +51,6 @@ jobs:
         arm-none-eabi-gcc --version
 
     - name: Configure & Build with arm-none-eabi-gcc
-      env:
-        toolchain: arm-none-eabi-gcc
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "build-${{ env.toolchain }}" -G Ninja
-        cmake --build "build-${{ env.toolchain }}"
+        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE="cmake/arm-none-eabi-gcc.cmake" -B "build" -G Ninja
+        cmake --build "build"

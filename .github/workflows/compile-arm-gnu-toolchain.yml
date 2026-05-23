@@ -31,6 +31,7 @@ jobs:
           - '6-2017-q2'
         build_type:
           - 'Debug'
+          - 'Release'
       fail-fast: false
 
     steps:

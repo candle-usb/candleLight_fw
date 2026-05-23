@@ -32,6 +32,13 @@ jobs:
         build_type:
           - 'Debug'
           - 'Release'
+        include:
+          - os: windows-latest
+            gcc: 'latest'
+            build_type: 'Debug'
+          - os: windows-latest
+            gcc: 'latest'
+            build_type: 'Release'
       fail-fast: false
 
     steps:

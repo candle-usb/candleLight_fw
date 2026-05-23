@@ -1,7 +1,11 @@
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_C_COMPILER_TARGET arm-none-eabi)
+
 set(TOOLCHAIN arm-none-eabi_14.2.rel1-1)
 
 find_program(CMAKE_C_COMPILER
-	NAMES arm-none-eabi-gcc
+	NAMES ${CMAKE_C_COMPILER_TARGET}-gcc
 	HINTS
 		ENV TOOLCHAIN_BIN_DIR
 		"$ENV{HOME}/${TOOLCHAIN}/bin"
@@ -10,10 +14,5 @@ find_program(CMAKE_C_COMPILER
 		"/usr/local/${TOOLCHAIN}/bin"
 	DOC "Path to the ARM toolchain binaries"
 )
-
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_PROCESSOR arm)
-
-set(CMAKE_C_COMPILER_TARGET arm-none-eabi)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

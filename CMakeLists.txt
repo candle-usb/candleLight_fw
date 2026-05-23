@@ -43,9 +43,10 @@ else()
     message(STATUS "Enabling linker (READONLY) flag")
 endif()
 
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+set(CMAKE_C_FLAGS_DEBUG "-O2")
+
 add_compile_options(
-	$<$<CONFIG:Debug>:-O2>
-	$<$<CONFIG:Release>:-O3>
 	$<$<CONFIG:Release>:-flto>
 	$<$<CONFIG:Release>:-fno-fat-lto-objects>
 	${LIBC_OPTIONS}

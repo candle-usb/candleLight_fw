@@ -9,6 +9,7 @@ file(GLOB TOOLCHAIN_CANDIDATES
 	 CONFIGURE_DEPENDS
 	 "/opt/arm-gnu-toolchain-*-${CMAKE_C_COMPILER_TARGET}/bin"
 	 "/Applications/ArmGNUToolchain/*/${CMAKE_C_COMPILER_TARGET}/bin"
+	 "C:/Program Files*/Arm GNU Toolchain ${CMAKE_C_COMPILER_TARGET}/*/bin"
 )
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.18")

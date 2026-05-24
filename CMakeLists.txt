@@ -35,12 +35,12 @@ endif()
 
 ####### check linker not supporting "(READONLY)"
 
-if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS "11.0")
-    set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
-    message(STATUS "Disabling Linker (READONLY) flag")
-else()
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
     set(HAVE_READONLY TRUE CACHE INTERNAL "Linker supports (READONLY) keyword")
     message(STATUS "Enabling linker (READONLY) flag")
+else()
+    set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
+    message(STATUS "Disabling Linker (READONLY) flag")
 endif()
 
 set(CMAKE_C_FLAGS_RELEASE "-O3")

@@ -4,6 +4,21 @@ set(CMAKE_C_COMPILER_TARGET arm-none-eabi)
 
 set(TOOLCHAIN arm-none-eabi_14.2.rel1-1)
 
+file(GLOB TOOLCHAIN_CANDIDATES
+	 LIST_DIRECTORIES true
+	 CONFIGURE_DEPENDS
+	 "/opt/arm-gnu-toolchain-*-${CMAKE_C_COMPILER_TARGET}/bin"
+	 "/Applications/ArmGNUToolchain/*/${CMAKE_C_COMPILER_TARGET}/bin"
+)
+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.18")
+    set(TOOLCHAIN_ORDER NATURAL)
+else()
+    set(TOOLCHAIN_ORDER STRING)
+endif()
+
+list(SORT TOOLCHAIN_CANDIDATES COMPARE ${TOOLCHAIN_ORDER} ORDER DESCENDING)
+
 find_program(CMAKE_C_COMPILER
 	NAMES ${CMAKE_C_COMPILER_TARGET}-gcc
 	HINTS
@@ -12,6 +27,7 @@ find_program(CMAKE_C_COMPILER
 		"/opt/${TOOLCHAIN}/bin"
 		"/srv/${TOOLCHAIN}/bin"
 		"/usr/local/${TOOLCHAIN}/bin"
+		"${TOOLCHAIN_CANDIDATES}"
 	DOC "Path to the ARM toolchain binaries"
 )
 

@@ -3,6 +3,9 @@ name: |
 
 on: [push, pull_request]
 
+env:
+  toolchain: arm-none-eabi-gcc
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -50,12 +53,21 @@ jobs:
         podman exec -i stable arm-none-eabi-ld --version
         podman exec -i stable arm-none-eabi-gcc --version
 
-    - name: Configure & Build with arm-none-eabi-gcc
+    - name: Configure & Build Debug
       env:
-        toolchain: arm-none-eabi-gcc
+        build_type: Debug
       run: |
-        podman exec -i -e TOOLCHAIN_BIN_DIR=${PWD}/arm-none-eabi_14.2.rel1-1 stable cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/${toolchain}.cmake -B build-${toolchain}
-        podman exec -i stable cmake --build build-${toolchain}
+        build="build-${{ env.toolchain }}-${{ env.build_type }}"
+        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=${{ env.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "${build}"
+        podman exec -i stable cmake --build "${build}"
+
+    - name: Configure & Build Release
+      env:
+        build_type: Release
+      run: |
+        build="build-${{ env.toolchain }}-${{ env.build_type }}"
+        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=${{ env.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "${build}"
+        podman exec -i stable cmake --build "${build}"
 
     - name: Show logs
       if: ${{ failure() }}

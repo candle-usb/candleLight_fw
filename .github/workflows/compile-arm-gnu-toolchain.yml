@@ -35,9 +35,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - name: Install CMake and Ninja
-      uses: lukka/get-cmake@latest
-
     - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
       uses: carlosperate/arm-none-eabi-gcc-action@v1
       with:

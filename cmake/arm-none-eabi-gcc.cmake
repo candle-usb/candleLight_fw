@@ -1,6 +1,6 @@
 set(TOOLCHAIN arm-none-eabi_14.2.rel1-1)
 
-find_path(TOOLCHAIN_BIN_DIR
+find_program(CMAKE_C_COMPILER
 	NAMES arm-none-eabi-gcc
 	HINTS
 		ENV TOOLCHAIN_BIN_DIR
@@ -14,7 +14,6 @@ find_path(TOOLCHAIN_BIN_DIR
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-set(CMAKE_C_COMPILER "${TOOLCHAIN_BIN_DIR}/arm-none-eabi-gcc")
 set(CMAKE_C_COMPILER_TARGET arm-none-eabi)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

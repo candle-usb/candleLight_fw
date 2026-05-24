@@ -15,4 +15,8 @@ find_program(CMAKE_C_COMPILER
 	DOC "Path to the ARM toolchain binaries"
 )
 
+if(NOT CMAKE_C_COMPILER)
+	message(FATAL_ERROR "Could not find '${CMAKE_C_COMPILER_TARGET}' toolchain binaries. Please set TOOLCHAIN_BIN_DIR or add it to your system PATH.")
+endif()
+
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

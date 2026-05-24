@@ -18,8 +18,7 @@ for i in \
 	dpkg -x $i .
 done
 
-mkdir usr/lib/bfd-plugins
-ln -sf ../gcc/arm-none-eabi/14.2.1/liblto_plugin.so usr/lib/bfd-plugins
 ln -sf newlib usr/lib/arm-none-eabi/lib
 ln -sf ../../include/newlib usr/lib/arm-none-eabi/include
+
 mv usr arm-none-eabi_14.2.rel1-1

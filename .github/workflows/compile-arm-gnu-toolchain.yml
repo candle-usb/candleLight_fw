@@ -50,7 +50,10 @@ jobs:
         arm-none-eabi-ld --version
         arm-none-eabi-gcc --version
 
-    - name: Configure & Build with arm-none-eabi-gcc
+    - name: Configure
       run: |
         cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/arm-none-eabi-gcc.cmake" -B "build" -G Ninja
+
+    - name: Build
+      run: |
         cmake --build "build"

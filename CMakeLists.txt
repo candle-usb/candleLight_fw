@@ -43,11 +43,13 @@ else()
     message(STATUS "Enabling linker (READONLY) flag")
 endif()
 
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+set(CMAKE_C_FLAGS_DEBUG "-O2")
+
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE)
+
 add_compile_options(
-	$<$<CONFIG:Debug>:-O2>
-	$<$<CONFIG:Release>:-O3>
-	$<$<CONFIG:Release>:-flto>
-	$<$<CONFIG:Release>:-fno-fat-lto-objects>
 	${LIBC_OPTIONS}
 	-Wall
 	-Werror
@@ -69,7 +71,6 @@ set(CPUFLAGS_F4 -mcpu=cortex-m4)
 set(CPUFLAGS_G0 -mcpu=cortex-m0)
 
 add_link_options(
-	$<$<CONFIG:Release>:-flto>
 	${LIBC_OPTIONS}
 	-Wall
 	-Wextra

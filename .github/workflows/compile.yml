@@ -61,6 +61,14 @@ jobs:
         podman exec -i stable cmake -DCMAKE_BUILD_TYPE=${{ env.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "${build}"
         podman exec -i stable cmake --build "${build}"
 
+    - name: Configure & Build Release
+      env:
+        build_type: Release
+      run: |
+        build="build-${{ env.toolchain }}-${{ env.build_type }}"
+        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=${{ env.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "${build}"
+        podman exec -i stable cmake --build "${build}"
+
     - name: Show logs
       if: ${{ failure() }}
       run: |

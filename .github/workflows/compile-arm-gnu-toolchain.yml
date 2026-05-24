@@ -1,4 +1,4 @@
-name: Build with CMake Ninja and Arm GNU Toolchain
+name: Build with CMake, Ninja and Arm GNU Toolchain
 
 on: [push, pull_request]
 
@@ -38,7 +38,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+    - name: Install Arm GNU Toolchain
       uses: carlosperate/arm-none-eabi-gcc-action@v1
       with:
         release: ${{ matrix.gcc }}

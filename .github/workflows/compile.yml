@@ -53,11 +53,13 @@ jobs:
         podman exec -i stable arm-none-eabi-ld --version
         podman exec -i stable arm-none-eabi-gcc --version
 
-    - name: Configure & Build with arm-none-eabi-gcc
+    - name: Configure & Build Debug
       env:
+        build_type: Debug
       run: |
-        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/${toolchain}.cmake -B build-${toolchain}
-        podman exec -i stable cmake --build build-${toolchain}
+        build="build-${{ env.toolchain }}-${{ env.build_type }}"
+        podman exec -i stable cmake -DCMAKE_BUILD_TYPE=${{ env.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "${build}"
+        podman exec -i stable cmake --build "${build}"
 
     - name: Show logs
       if: ${{ failure() }}

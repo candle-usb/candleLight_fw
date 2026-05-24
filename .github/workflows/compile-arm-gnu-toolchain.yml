@@ -1,6 +1,13 @@
-name: Build with CMake Ninja and Arm GNU Toolchain
+name: Build with CMake, Ninja and Arm GNU Toolchain
 
 on: [push, pull_request]
+
+# When a PR is updated, cancel the jobs from the previous version.
+# Merges do not define head_ref, so use run_id to never cancel those
+# jobs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -22,16 +29,29 @@ jobs:
           - '8-2019-q3'
           - '7-2018-q2'
           - '6-2017-q2'
+        build_type:
+          - 'Debug'
+          - 'Release'
+        include:
+          - os: macos-latest
+            gcc: 'latest'
+            build_type: 'Debug'
+          - os: macos-latest
+            gcc: 'latest'
+            build_type: 'Release'
+          - os: windows-latest
+            gcc: 'latest'
+            build_type: 'Debug'
+          - os: windows-latest
+            gcc: 'latest'
+            build_type: 'Release'
       fail-fast: false
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - name: Install CMake and Ninja
-      uses: lukka/get-cmake@latest
-
-    - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+    - name: Install Arm GNU Toolchain
       uses: carlosperate/arm-none-eabi-gcc-action@v1
       with:
         release: ${{ matrix.gcc }}
@@ -43,10 +63,10 @@ jobs:
         arm-none-eabi-ld --version
         arm-none-eabi-gcc --version
 
-    - name: Configure & Build with arm-none-eabi-gcc
-      env:
-        toolchain: arm-none-eabi-gcc
-        version: ${{ matrix.arm-release }}
+    - name: Configure
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE="cmake/${{ env.toolchain }}.cmake" -B "build-${{ env.toolchain }}-${{ env.version }}" -G Ninja
-        cmake --build "build-${{ env.toolchain }}-${{ env.version }}"
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/arm-none-eabi-gcc.cmake" -B "build" -G Ninja
+
+    - name: Build
+      run: |
+        cmake --build "build"

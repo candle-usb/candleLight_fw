@@ -69,16 +69,6 @@ SECTIONS
 		KEEP(*(.eh_frame*))
 	} > FLASH
 
-	.copy.table @LDV_READONLY@ :
-	{
-		. = ALIGN(4);
-		__copy_table_start__ = .;
-		LONG (__etext)
-		LONG (__data_start__)
-		LONG (__data_end__ - __data_start__)
-		__copy_table_end__ = .;
-	} > FLASH
-
 	.preinit_array @LDV_READONLY@ :
 	{
 		. = ALIGN(4);
@@ -104,25 +94,36 @@ SECTIONS
 
 	.data : AT (__etext)
 	{
-		__data_start__ = .;
 		*(.data)
 		*(.data.*)
 
 		. = ALIGN(4);
 		/* All data end */
-		__data_end__ = .;
+		PROVIDE( __data_end = . );
 	} > RAM
+
+	PROVIDE( __data_start = ADDR(.data));
+	PROVIDE( __data_size = __data_end - __data_start );
+	PROVIDE( __data_source = LOADADDR(.data));
+	PROVIDE( __data_source_end = LOADADDR(.data) + SIZEOF(.data) );
+	PROVIDE( __data_source_size = __data_source_end - __data_source );
 
 	.bss :
 	{
 		. = ALIGN(4);
-		__bss_start__ = .;
 		*(.bss)
 		*(.bss.*)
 		*(COMMON)
 		. = ALIGN(4);
-		__bss_end__ = .;
+		__bss_end = .;
 	} > RAM AT > RAM
+
+	PROVIDE( __bss_start = ADDR(.bss) );
+	PROVIDE( __bss_size = __bss_end - __bss_start );
+
+	/* newlib */
+	PROVIDE( __bss_start__ = __bss_start );
+	PROVIDE( __bss_end__ = __bss_end );
 
 	.heap (COPY) :
 	{

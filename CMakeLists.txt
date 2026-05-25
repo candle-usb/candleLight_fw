@@ -25,7 +25,7 @@ if(HAVE_PICOLIBC)
 		"https://github.com/candle-usb/candleLight_fw/#building")
 elseif(HAVE_NEWLIB)
 	message(STATUS "Using newlib")
-	set(LIBC_OPTIONS
+	add_link_options(
 		"-specs=nano.specs"
 		"-specs=nosys.specs"
 	)
@@ -35,12 +35,12 @@ endif()
 
 ####### check linker not supporting "(READONLY)"
 
-if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS "11.0")
-    set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
-    message(STATUS "Disabling Linker (READONLY) flag")
-else()
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
     set(HAVE_READONLY TRUE CACHE INTERNAL "Linker supports (READONLY) keyword")
     message(STATUS "Enabling linker (READONLY) flag")
+else()
+    set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
+    message(STATUS "Disabling Linker (READONLY) flag")
 endif()
 
 set(CMAKE_C_FLAGS_RELEASE "-O3")
@@ -50,7 +50,6 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE)
 
 add_compile_options(
-	${LIBC_OPTIONS}
 	-Wall
 	-Werror
 	-Wextra
@@ -71,7 +70,6 @@ set(CPUFLAGS_F4 -mcpu=cortex-m4)
 set(CPUFLAGS_G0 -mcpu=cortex-m0)
 
 add_link_options(
-	${LIBC_OPTIONS}
 	-Wall
 	-Wextra
 	-g3

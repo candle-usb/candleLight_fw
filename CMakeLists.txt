@@ -36,7 +36,16 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-####### check for newlib and picolibc
+######## libc selection
+
+set(LIBC "auto" CACHE STRING "Embedded libc implementation")
+set_property(CACHE LIBC PROPERTY STRINGS "auto" "newlib")
+
+if(NOT LIBC MATCHES "^(auto|newlib)$")
+	message(FATAL_ERROR "Invalid LIBC '${LIBC}'. Choose: 'auto' 'newlib'.")
+endif()
+
+####### Verify selected libc matches the actual headers/toolchain
 
 include(CheckSymbolExists)
 
@@ -48,13 +57,28 @@ if(HAVE_PICOLIBC)
 		"Picolibc is not yet supported. Please install a newlib based toolchain, see: "
 		"https://github.com/candle-usb/candleLight_fw/#building")
 elseif(HAVE_NEWLIB)
-	message(STATUS "Using newlib")
-	add_link_options(
-		"-specs=nano.specs"
-		"-specs=nosys.specs"
-	)
+	set(HAVE_LIBC "newlib")
 else()
 	message(FATAL_ERROR "Neither Picolibc nor Newlib detected.")
+endif()
+
+if(LIBC STREQUAL "auto")
+	message(STATUS "Autodetecting libc")
+	set(LIBC "${HAVE_LIBC}")
+	message(STATUS "Autodetecting libc - ${LIBC}")
+elseif(NOT LIBC STREQUAL HAVE_LIBC)
+	message(FATAL_ERROR "LIBC='${LIBC}' was selected, but not detected.")
+else()
+	message(STATUS "Using libc: ${LIBC}")
+endif()
+
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	if(LIBC STREQUAL "newlib")
+		add_link_options(
+			-specs=nano.specs
+			-specs=nosys.specs
+		)
+	endif()
 endif()
 
 ####### check linker not supporting "(READONLY)"

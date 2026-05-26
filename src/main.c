@@ -50,7 +50,7 @@ static USBD_HandleTypeDef hUSB;
 int main(void)
 {
 	if (IS_ENABLED(CONFIG_SEMIHOSTING))
-		 initialise_monitor_handles();
+		initialise_monitor_handles();
 
 	HAL_Init();
 	device_sysclock_config();

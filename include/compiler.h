@@ -53,7 +53,7 @@
 #endif
 
 #ifndef __weak
-#define __weak  __attribute__((weak))
+#define __weak __attribute__((weak))
 #endif
 
 #define barrier()	   __asm__ __volatile__ ("" : : : "memory")

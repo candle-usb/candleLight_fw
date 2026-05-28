@@ -150,9 +150,7 @@ void can_enable(can_data_t *channel, uint32_t feature)
 {
 	CAN_TypeDef *can = channel->instance;
 
-	uint32_t mcr = CAN_MCR_INRQ
-				   | CAN_MCR_ABOM
-				   | CAN_MCR_TXFP;
+	uint32_t mcr = CAN_MCR_INRQ | CAN_MCR_ABOM | CAN_MCR_TXFP;
 
 	if (feature & GS_CAN_FEATURE_ONE_SHOT) {
 		mcr |= CAN_MCR_NART;
@@ -170,8 +168,8 @@ void can_enable(can_data_t *channel, uint32_t feature)
 
 	// Reset CAN peripheral
 	can->MCR |= CAN_MCR_RESET;
-	while ((can->MCR & CAN_MCR_RESET) != 0);                                                 // reset bit is set to zero after reset
-	while ((can->MSR & CAN_MSR_SLAK) == 0);                                                // should be in sleep mode after reset
+	while ((can->MCR & CAN_MCR_RESET) != 0);        // reset bit is set to zero after reset
+	while ((can->MSR & CAN_MSR_SLAK) == 0);         // should be in sleep mode after reset
 
 	// Completely reset while being of the bus
 	rcc_reset(can);
@@ -201,12 +199,14 @@ void can_disable(can_data_t *channel)
 bool can_is_enabled(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
+
 	return (can->MCR & CAN_MCR_INRQ) == 0;
 }
 
 bool can_is_rx_pending(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
+
 	return ((can->RF0R & CAN_RF0R_FMP0) != 0);
 }
 
@@ -253,13 +253,13 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame)
 static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
-
 	uint32_t tsr = can->TSR;
-	if ( tsr & CAN_TSR_TME0 ) {
+
+	if (tsr & CAN_TSR_TME0) {
 		return &can->sTxMailBox[0];
-	} else if ( tsr & CAN_TSR_TME1 ) {
+	} else if (tsr & CAN_TSR_TME1) {
 		return &can->sTxMailBox[1];
-	} else if ( tsr & CAN_TSR_TME2 ) {
+	} else if (tsr & CAN_TSR_TME2) {
 		return &can->sTxMailBox[2];
 	} else {
 		return 0;
@@ -269,8 +269,8 @@ static CAN_TxMailBox_TypeDef *can_find_free_mailbox(can_data_t *channel)
 bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 {
 	CAN_TxMailBox_TypeDef *mb = can_find_free_mailbox(channel);
-	if (mb != 0) {
 
+	if (mb != 0) {
 		/* first, clear transmission request */
 		mb->TIR &= CAN_TI0R_TXRQ;
 
@@ -287,17 +287,11 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 		mb->TDTR &= 0xFFFFFFF0;
 		mb->TDTR |= frame->can_dlc & 0x0F;
 
-		mb->TDLR =
-			( frame->classic_can->data[3] << 24 )
-			| ( frame->classic_can->data[2] << 16 )
-			| ( frame->classic_can->data[1] <<  8 )
-			| ( frame->classic_can->data[0] <<  0 );
+		mb->TDLR = (frame->classic_can->data[3] << 24) | (frame->classic_can->data[2] << 16) |
+				   (frame->classic_can->data[1] << 8) | (frame->classic_can->data[0] << 0);
 
-		mb->TDHR =
-			( frame->classic_can->data[7] << 24 )
-			| ( frame->classic_can->data[6] << 16 )
-			| ( frame->classic_can->data[5] <<  8 )
-			| ( frame->classic_can->data[4] <<  0 );
+		mb->TDHR = (frame->classic_can->data[7] << 24) | (frame->classic_can->data[6] << 16) |
+				   (frame->classic_can->data[5] << 8) | (frame->classic_can->data[4] << 0);
 
 		/* request transmission */
 		mb->TIR |= CAN_TI0R_TXRQ;
@@ -317,11 +311,10 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 uint32_t can_get_error_status(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
-
 	uint32_t err = can->ESR;
 
 	/* Write 7 to LEC so we know if it gets set to the same thing again */
-	can->ESR = 7<<4;
+	can->ESR = 7 << 4;
 
 	return err;
 }
@@ -334,9 +327,11 @@ static bool status_is_active(uint32_t err)
 bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err)
 {
 	uint32_t last_err = channel->reg_esr_old;
-	/* We build up the detailed error information at the same time as we decide
+	/*
+	 * We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final
-	 * result. */
+	 * result.
+	 */
 	bool should_send = false;
 
 	channel->reg_esr_old = err;
@@ -375,10 +370,12 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 		should_send = true;
 	}
 
-	uint8_t tx_error_cnt = (err>>16) & 0xFF;
-	uint8_t rx_error_cnt = (err>>24) & 0xFF;
-	/* The Linux sja1000 driver puts these counters here. Seems like as good a
-	 * place as any. */
+	uint8_t tx_error_cnt = (err >> 16) & 0xFF;
+	uint8_t rx_error_cnt = (err >> 24) & 0xFF;
+	/*
+	 * The Linux sja1000 driver puts these counters here. Seems like as good a
+	 * place as any.
+	 */
 	frame->classic_can->data[6] = tx_error_cnt;
 	frame->classic_can->data[7] = rx_error_cnt;
 

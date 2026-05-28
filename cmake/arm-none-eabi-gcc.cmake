@@ -28,6 +28,7 @@ find_program(CMAKE_C_COMPILER
 		"/opt/${TOOLCHAIN}/bin"
 		"/srv/${TOOLCHAIN}/bin"
 		"/usr/local/${TOOLCHAIN}/bin"
+		"/opt/homebrew/bin"
 		"${TOOLCHAIN_CANDIDATES}"
 	DOC "Path to the ARM toolchain binaries"
 )

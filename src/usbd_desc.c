@@ -33,7 +33,7 @@
 #include "util.h"
 #include "version.h"
 
-__ALIGN_BEGIN uint8_t USBD_DescBuf[USBD_DESC_BUF_SIZE] __ALIGN_END;
+uint8_t __aligned(4) USBD_DescBuf[USBD_DESC_BUF_SIZE];
 
 /* USB_DeviceDescriptor */
 static const uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] = {
@@ -100,9 +100,9 @@ static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef __maybe_unused spe
 {
 	char buf[25];
 
-	hex32(buf,		*(uint32_t*)(UID_BASE    ));
-	hex32(buf +  8, *(uint32_t*)(UID_BASE + 4));
-	hex32(buf + 16, *(uint32_t*)(UID_BASE + 8));
+	hex32(buf,		*(uint32_t *)(UID_BASE));
+	hex32(buf + 8,	*(uint32_t *)(UID_BASE + 4));
+	hex32(buf + 16, *(uint32_t *)(UID_BASE + 8));
 
 	USBD_GetString((uint8_t*)buf, USBD_DescBuf, length);
 

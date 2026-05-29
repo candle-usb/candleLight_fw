@@ -25,6 +25,7 @@
 
 #include "can_common.h"
 #include "can_drv.h"
+#include "host_frame.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_gs_can.h"
@@ -119,17 +120,10 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
-											struct gs_host_frame_object,
-											list);
+	frame_object = gs_host_frame_object_get_locked(hcan);
 	if (!frame_object) {
-		restore_irq(was_irq_enabled);
 		return;
 	}
-
-	list_del(&frame_object->list);
-	restore_irq(was_irq_enabled);
 
 	struct gs_host_frame *frame = &frame_object->frame;
 

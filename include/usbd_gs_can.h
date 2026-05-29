@@ -33,7 +33,6 @@
 #include "config.h"
 #include "dfu.h"
 #include "gs_usb.h"
-#include "led.h"
 #include "list.h"
 #include "usbd_def.h"
 

@@ -1,27 +1,28 @@
 /*
- * The MIT License (MIT)
- *
- * Copyright (c) 2016 Hubert Denkmair
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
+
+The MIT License (MIT)
+
+Copyright (c) 2016 Hubert Denkmair
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +34,6 @@
 #include "dfu.h"
 #include "gpio.h"
 #include "gs_usb.h"
-#include "host_frame.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_core.h"
@@ -561,9 +561,9 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				can_disable(channel);
 				led_set_mode(&channel->leds, LED_MODE_OFF);
 			} else if (mode->mode == GS_CAN_MODE_START) {
-				channel->feature = mode->feature;
+				hcan->feature = mode->feature;
 
-				can_enable(channel);
+				can_enable(channel, mode->feature);
 
 				led_set_mode(&channel->leds, LED_MODE_NORMAL);
 			}
@@ -843,25 +843,22 @@ static uint8_t USBD_GS_CAN_Transmit(USBD_HandleTypeDef *pdev, uint8_t *buf, uint
 	}
 }
 
-static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev,
-									 struct gs_host_frame_object *frame_object)
+static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev, struct gs_host_frame *frame)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
-	const can_data_t *channel = gs_host_frame_object_get_channel(hcan, frame_object);
-	const struct gs_host_frame *frame = &frame_object->frame;
 	uint8_t buf[CAN_DATA_MAX_PACKET_SIZE];
 	uint8_t *send_addr;
 	size_t len;
 
 	if (IS_ENABLED(CONFIG_CANFD) &&
 		frame->flags & GS_CAN_FLAG_FD) {
-		if (channel->feature & GS_CAN_FEATURE_HW_TIMESTAMP) {
+		if (hcan->feature & GS_CAN_FEATURE_HW_TIMESTAMP) {
 			len = struct_size(frame, canfd_ts, 1);
 		} else {
 			len = struct_size(frame, canfd, 1);
 		}
 	} else {
-		if (channel->feature & GS_CAN_FEATURE_HW_TIMESTAMP) {
+		if (hcan->feature & GS_CAN_FEATURE_HW_TIMESTAMP) {
 			len = struct_size(frame, classic_can_ts, 1);
 		} else {
 			len = struct_size(frame, classic_can, 1);
@@ -880,7 +877,7 @@ static uint8_t USBD_GS_CAN_SendFrame(USBD_HandleTypeDef *pdev,
 	 * packet of 64 byte), so don't do any padding for CAN-FD frames
 	 * for now.
 	 */
-	if (channel->feature & GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE &&
+	if (hcan->feature & GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE &&
 		!((IS_ENABLED(CONFIG_CANFD) && frame->flags & GS_CAN_FLAG_FD))) {
 		memcpy(buf, frame, len);
 
@@ -914,7 +911,7 @@ void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)
 	list_del(&hcan->to_host_buf->list);
 	restore_irq(was_irq_enabled);
 
-	uint8_t result = USBD_GS_CAN_SendFrame(pdev, hcan->to_host_buf);
+	uint8_t result = USBD_GS_CAN_SendFrame(pdev, &hcan->to_host_buf->frame);
 	if (result == USBD_OK)
 		return;
 

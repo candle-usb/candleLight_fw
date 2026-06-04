@@ -34,8 +34,6 @@
 #include "device.h"
 #include "dfu.h"
 #include "gpio.h"
-#include "gs_usb.h"
-#include "hal_include.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_conf.h"
@@ -43,7 +41,6 @@
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_gs_can.h"
-#include "util.h"
 
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB = {0};

@@ -31,19 +31,19 @@ void __libc_fini_array(void)
 {
 }
 
-void _close(void)
+void __weak _close(void)
 {
 }
 
-void _lseek(void)
+void __weak _lseek(void)
 {
 }
 
-void _read(void)
+void __weak _read(void)
 {
 }
 
-void _write(void)
+void __weak _write(void)
 {
 }
 

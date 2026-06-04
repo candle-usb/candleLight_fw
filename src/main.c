@@ -1,28 +1,27 @@
 /*
-
-The MIT License (MIT)
-
-Copyright (c) 2016 Hubert Denkmair
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-*/
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 Hubert Denkmair
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -35,8 +34,6 @@ THE SOFTWARE.
 #include "device.h"
 #include "dfu.h"
 #include "gpio.h"
-#include "gs_usb.h"
-#include "hal_include.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_conf.h"
@@ -44,13 +41,17 @@ THE SOFTWARE.
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_gs_can.h"
-#include "util.h"
+
+void initialise_monitor_handles(void);
 
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
-static USBD_HandleTypeDef hUSB = {0};
+static USBD_HandleTypeDef hUSB;
 
 int main(void)
 {
+	if (IS_ENABLED(CONFIG_SEMIHOSTING))
+		initialise_monitor_handles();
+
 	HAL_Init();
 	device_sysclock_config();
 
@@ -76,12 +77,11 @@ int main(void)
 				 LEDRX_GPIO_Port, LEDRX_Pin, LEDRX_Active_High,
 				 LEDTX_GPIO_Port, LEDTX_Pin, LEDTX_Active_High);
 
-
 		can_init(channel, channel_config);
 		can_disable(channel);
 	}
 
-	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
+	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef *)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hGS_CAN, &hUSB);
 	USBD_Start(&hUSB);

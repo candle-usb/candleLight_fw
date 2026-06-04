@@ -1,6 +1,7 @@
 #
 # The MIT License (MIT)
 #
+# Copyright (c) 2026 Marc Kleine-Budde <kernel@pengutronix.de>
 # Copyright (c) 2019 Hubert Denkmair
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,6 +36,10 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	# Set the possible values for cmake-gui drop-down
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
+
+######## options
+
+option(ENABLE_SEMIHOSTING "Enable semihosting support for debugging" OFF)
 
 ######## libc selection
 
@@ -76,9 +81,27 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	if(LIBC STREQUAL "newlib")
 		add_link_options(
 			-specs=nano.specs
-			-specs=nosys.specs
 		)
+		if(ENABLE_SEMIHOSTING)
+			add_link_options(
+				-specs=rdimon.specs
+				-lrdimon
+			)
+		else()
+			add_link_options(
+				-specs=nosys.specs
+			)
+		endif()
 	endif()
+endif()
+
+######## semihosting
+
+if(ENABLE_SEMIHOSTING)
+	message(STATUS "Semihosting: enabled")
+	add_compile_definitions(CONFIG_SEMIHOSTING=1)
+else()
+	message(STATUS "Semihosting: disabled")
 endif()
 
 ####### check linker not supporting "(READONLY)"

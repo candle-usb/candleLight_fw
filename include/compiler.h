@@ -52,6 +52,10 @@
 #define fallthrough do {} while (0) /* fallthrough */
 #endif
 
+#ifndef __weak
+#define __weak  __attribute__((weak))
+#endif
+
 #define barrier()	   __asm__ __volatile__ ("" : : : "memory")
 
 #define ACCESS_ONCE(x) (*(volatile __typeof(x) *)&(x))

@@ -42,11 +42,16 @@
 #include "usbd_desc.h"
 #include "usbd_gs_can.h"
 
+void initialise_monitor_handles(void);
+
 static USBD_GS_CAN_HandleTypeDef hGS_CAN;
 static USBD_HandleTypeDef hUSB;
 
 int main(void)
 {
+	if (IS_ENABLED(CONFIG_SEMIHOSTING))
+		 initialise_monitor_handles();
+
 	HAL_Init();
 	device_sysclock_config();
 

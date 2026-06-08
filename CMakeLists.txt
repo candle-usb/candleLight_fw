@@ -159,6 +159,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 file(GLOB_RECURSE CHECK_SOURCE_FILES
 	"include/*.[ch]"
 	"src/*.[ch]"
+
+	"libs/STM32_HAL/config/hal_include.h"
+	"libs/STM32_USB_Device_Library/config/usbd_conf.h"
 )
 
 file(GLOB_RECURSE CHECK_EXTRA_FILES

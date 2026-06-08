@@ -146,7 +146,7 @@ static bool can_apply_filter(const can_data_t *channel)
 	return true;
 }
 
-void can_enable(can_data_t *channel)
+bool can_enable(can_data_t *channel)
 {
 	const uint32_t feature = channel->feature;
 	CAN_TypeDef *can = channel->instance;
@@ -187,6 +187,8 @@ void can_enable(can_data_t *channel)
 	while ((can->MSR & CAN_MSR_INAK) != 0);
 
 	board_phy_power_set(channel, true);
+
+	return true;
 }
 
 void can_disable(can_data_t *channel)

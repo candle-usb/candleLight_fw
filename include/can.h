@@ -37,6 +37,8 @@
 typedef struct {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
+#elif defined(CONFIG_FDCAN)
+	FDCAN_HandleTypeDef hfdcan;
 #endif
 	struct list_head list_from_host;
 	led_data_t leds;
@@ -83,7 +85,7 @@ static inline void can_set_filter(can_data_t *channel, const struct gs_device_fi
 }
 #endif
 
-void can_enable(can_data_t *channel);
+bool can_enable(can_data_t *channel);
 void can_disable(can_data_t *channel);
 bool can_is_enabled(can_data_t *channel);
 

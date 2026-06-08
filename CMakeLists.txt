@@ -1,3 +1,28 @@
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2026 Marc Kleine-Budde <kernel@pengutronix.de>
+# Copyright (c) 2019 Hubert Denkmair
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
 cmake_minimum_required(VERSION 3.13)
 project(candleLightFirmware C ASM)
 
@@ -12,7 +37,20 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif()
 
-####### check for newlib and picolibc
+######## options
+
+option(ENABLE_SEMIHOSTING "Enable semihosting support for debugging" OFF)
+
+######## libc selection
+
+set(LIBC "auto" CACHE STRING "Embedded libc implementation")
+set_property(CACHE LIBC PROPERTY STRINGS "auto" "newlib")
+
+if(NOT LIBC MATCHES "^(auto|newlib)$")
+	message(FATAL_ERROR "Invalid LIBC '${LIBC}'. Choose: 'auto' 'newlib'.")
+endif()
+
+####### Verify selected libc matches the actual headers/toolchain
 
 include(CheckSymbolExists)
 
@@ -24,23 +62,56 @@ if(HAVE_PICOLIBC)
 		"Picolibc is not yet supported. Please install a newlib based toolchain, see: "
 		"https://github.com/candle-usb/candleLight_fw/#building")
 elseif(HAVE_NEWLIB)
-	message(STATUS "Using newlib")
-	add_link_options(
-		"-specs=nano.specs"
-		"-specs=nosys.specs"
-	)
+	set(HAVE_LIBC "newlib")
 else()
 	message(FATAL_ERROR "Neither Picolibc nor Newlib detected.")
+endif()
+
+if(LIBC STREQUAL "auto")
+	message(STATUS "Autodetecting libc")
+	set(LIBC "${HAVE_LIBC}")
+	message(STATUS "Autodetecting libc - ${LIBC}")
+elseif(NOT LIBC STREQUAL HAVE_LIBC)
+	message(FATAL_ERROR "LIBC='${LIBC}' was selected, but not detected.")
+else()
+	message(STATUS "Using libc: ${LIBC}")
+endif()
+
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	if(LIBC STREQUAL "newlib")
+		add_link_options(
+			-specs=nano.specs
+		)
+		if(ENABLE_SEMIHOSTING)
+			add_link_options(
+				-specs=rdimon.specs
+				-lrdimon
+			)
+		else()
+			add_link_options(
+				-specs=nosys.specs
+			)
+		endif()
+	endif()
+endif()
+
+######## semihosting
+
+if(ENABLE_SEMIHOSTING)
+	message(STATUS "Semihosting: enabled")
+	add_compile_definitions(CONFIG_SEMIHOSTING=1)
+else()
+	message(STATUS "Semihosting: disabled")
 endif()
 
 ####### check linker not supporting "(READONLY)"
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
-    set(HAVE_READONLY TRUE CACHE INTERNAL "Linker supports (READONLY) keyword")
-    message(STATUS "Enabling linker (READONLY) flag")
+	set(HAVE_READONLY TRUE CACHE INTERNAL "Linker supports (READONLY) keyword")
+	message(STATUS "Enabling linker (READONLY) flag")
 else()
-    set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
-    message(STATUS "Disabling Linker (READONLY) flag")
+	set(HAVE_READONLY FALSE CACHE INTERNAL "Linker does not support (READONLY) keyword")
+	message(STATUS "Disabling Linker (READONLY) flag")
 endif()
 
 set(CMAKE_C_FLAGS_RELEASE "-O3")

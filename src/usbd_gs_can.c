@@ -733,6 +733,11 @@ static uint8_t USBD_GS_CAN_SOF(struct _USBD_HandleTypeDef *pdev)
 	return USBD_OK;
 }
 
+_Static_assert(sizeof(USBD_GS_CAN_CfgDesc) <= USBD_DESC_BUF_SIZE, "USBD_GS_CAN_CfgDesc exceeds USBD_DescBuf");
+_Static_assert(sizeof(USBD_GS_CAN_WINUSB_STR) <= USBD_DESC_BUF_SIZE, "USBD_GS_CAN_WINUSB_STR exceeds USBD_DescBuf");
+_Static_assert(sizeof(USBD_MS_COMP_ID_FEATURE_DESC) <= USBD_DESC_BUF_SIZE, "USBD_MS_COMP_ID_FEATURE_DESC exceeds USBD_DescBuf");
+_Static_assert(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC) <= USBD_DESC_BUF_SIZE, "USBD_MS_EXT_PROP_FEATURE_DESC exceeds USBD_DescBuf");
+
 static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 {
 	/*

@@ -177,3 +177,4 @@ The .out file can then be processed with `gprof <firmware_name> -l test.out`
 ## Links to related projects
 * [Cangaroo](https://github.com/HubertD/cangaroo) open source can bus analyzer software
 * [Candle.NET](https://github.com/elliotwoods/Candle.NET) .NET wrapper for the candle API
+* [EcuBus-Pro](https://github.com/ecubus/EcuBus-Pro) a powerful automotive ECU development tool

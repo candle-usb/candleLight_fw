@@ -122,6 +122,28 @@
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #define max(x, y) ((x) > (y) ? (x) : (y))
 
+/*
+ * BUILD_BUG_ON() can happen inside functions where _Static_assert() does not
+ * seem to work.  Use old-schoold-ish CTASSERT from before commit
+ * a3085588a88fa58eb5b1eaae471999e1995a29cf but also make sure we do not
+ * end up with an unused typedef or variable. The compiler should optimise
+ * it away entirely.
+ */
+#define _O_CTASSERT(x)				   _O__CTASSERT(x, __LINE__)
+#define _O__CTASSERT(x, y)			   _O___CTASSERT(x, y)
+#define _O___CTASSERT(x, y)			   while (0) { \
+			typedef char __assert_line_ ## y[(x) ? 1 : -1]; \
+			__assert_line_ ## y _x __unused; \
+			_x[0] = '\0'; \
+}
+
+#define BUILD_BUG()					   do { CTASSERT(0); } while (0)
+#define BUILD_BUG_ON(x)				   do { _O_CTASSERT(!(x)) } while (0)
+#define BUILD_BUG_ON_MSG(x, msg)	   BUILD_BUG_ON(x)
+#define BUILD_BUG_ON_NOT_POWER_OF_2(x) BUILD_BUG_ON(!powerof2(x))
+#define BUILD_BUG_ON_INVALID(expr)	   while (0) { (void)(expr); }
+#define BUILD_BUG_ON_ZERO(x)		   ((int)sizeof(struct { int: -((x) != 0); }))
+
 #undef static_assert
 #define static_assert(x, ...)		 __static_assert(x, ## __VA_ARGS__, #x)
 #define __static_assert(x, msg, ...) _Static_assert(x, msg)

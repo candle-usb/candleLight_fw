@@ -741,6 +741,7 @@ static uint8_t *USBD_GS_CAN_GetCfgDesc(uint16_t *len)
 	 */
 	*len = sizeof(USBD_GS_CAN_CfgDesc);
 	memcpy(USBD_DescBuf, USBD_GS_CAN_CfgDesc, sizeof(USBD_GS_CAN_CfgDesc));
+	BUILD_BUG_ON(sizeof(USBD_GS_CAN_CfgDesc) >= sizeof(USBD_DescBuf));
 
 	return USBD_DescBuf;
 }
@@ -756,6 +757,7 @@ uint8_t *USBD_GS_CAN_GetStrDesc(USBD_HandleTypeDef *pdev, uint8_t index, uint16_
 		case 0xEE:
 			*length = sizeof(USBD_GS_CAN_WINUSB_STR);
 			memcpy(USBD_DescBuf, USBD_GS_CAN_WINUSB_STR, sizeof(USBD_GS_CAN_WINUSB_STR));
+			BUILD_BUG_ON(sizeof(USBD_GS_CAN_WINUSB_STR) >= sizeof(USBD_DescBuf));
 			return USBD_DescBuf;
 		default:
 			*length = 0;
@@ -794,12 +796,14 @@ bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqType
 
 			case 0x0004:
 				memcpy(USBD_DescBuf, USBD_MS_COMP_ID_FEATURE_DESC, sizeof(USBD_MS_COMP_ID_FEATURE_DESC));
+				BUILD_BUG_ON(sizeof(USBD_MS_COMP_ID_FEATURE_DESC) >= sizeof(USBD_DescBuf));
 				USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_COMP_ID_FEATURE_DESC), req->wLength));
 				return true;
 
 			case 0x0005:
 				if (req->wValue==0) { // only return our GUID for interface #0
 					memcpy(USBD_DescBuf, USBD_MS_EXT_PROP_FEATURE_DESC, sizeof(USBD_MS_EXT_PROP_FEATURE_DESC));
+					BUILD_BUG_ON(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC) >= sizeof(USBD_DescBuf));
 					USBD_CtlSendData(pdev, USBD_DescBuf, MIN(sizeof(USBD_MS_EXT_PROP_FEATURE_DESC), req->wLength));
 					return true;
 				}

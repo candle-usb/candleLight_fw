@@ -29,9 +29,9 @@
 #include "config.h"
 #include "usbd_gs_can.h"
 
-static inline can_data_t
-*gs_host_frame_object_get_channel(USBD_GS_CAN_HandleTypeDef *hcan,
-								  struct gs_host_frame_object *frame_object)
+static inline can_data_t *
+gs_host_frame_object_get_channel(USBD_GS_CAN_HandleTypeDef *hcan,
+								 const struct gs_host_frame_object *frame_object)
 {
 	u8 channel_nr = 0;
 

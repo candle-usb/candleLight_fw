@@ -135,6 +135,8 @@ add_compile_options(
 	-std=gnu11
 )
 
+add_compile_definitions(_FORTIFY_SOURCE=2)
+
 # need these later, per-platform
 set(CPUFLAGS_F0 -mcpu=cortex-m0)
 set(CPUFLAGS_F4 -mcpu=cortex-m4)

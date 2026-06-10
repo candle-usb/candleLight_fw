@@ -109,6 +109,9 @@ typedef struct {
 	bool dfu_detach_requested;
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
+void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
+											   const struct can_channel *channel);
+
 #if defined(STM32F0)
 # define USB_INTERFACE USB
 # define USB_INTERRUPT USB_IRQn

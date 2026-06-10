@@ -1,6 +1,7 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2026 Marc Kleine-Budde <kernel@pengutronix.de>
  * Copyright (c) 2016 Hubert Denkmair
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -214,6 +215,35 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 	.sw_version = 2,
 	.hw_version = 1,
 };
+
+void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
+											   const struct can_channel *channel)
+{
+	/*
+	 * If we only have one channel, all object of hcan->list_to_host belong to this one channel.
+	 * Move the complete list to the frame pool.
+	 */
+	if (NUM_CAN_CHANNEL == 1) {
+		list_splice_tail_init_locked(&hcan->list_to_host, &hcan->list_frame_pool);
+
+		return;
+	}
+
+	/*
+	 * For more than one channel, iterate over each object in hcan->list_to_host.
+	 */
+	struct gs_host_frame_object *iter, *next;
+	const u8 channel_nr = can_channel_get_nr(channel);
+	const bool was_irq_enabled = disable_irq();
+
+	list_for_each_entry_safe(iter, next, &hcan->list_to_host, list) {
+		if (gs_host_frame_object_get_channel_nr(iter) == channel_nr) {
+			list_move_tail(&iter->list, &hcan->list_frame_pool);
+		}
+	}
+
+	restore_irq(was_irq_enabled);
+}
 
 static void usbd_gs_can_purge_to_host_buf(USBD_GS_CAN_HandleTypeDef *hcan)
 {

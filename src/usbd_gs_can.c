@@ -563,7 +563,8 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			} else if (mode->mode == GS_CAN_MODE_START) {
 				channel->feature = mode->feature;
 
-				can_enable(channel);
+				if (!can_enable(channel))
+					goto out_fail;
 
 				led_set_mode(&channel->leds, LED_MODE_NORMAL);
 			}

@@ -24,11 +24,64 @@
  *
  */
 
+#include "board.h"
 #include "can.h"
+#include "config.h"
 #include "device.h"
 #include "hal_include.h"
 
-void device_sysclock_config(void) {
+static void gpio_clk_enable(GPIO_TypeDef *port)
+{
+	if (port == GPIOA) {
+		__HAL_RCC_GPIOA_CLK_ENABLE();
+	} else if (port == GPIOB) {
+		__HAL_RCC_GPIOB_CLK_ENABLE();
+	} else if (port == GPIOC) {
+		__HAL_RCC_GPIOC_CLK_ENABLE();
+#if defined(GPIOD)
+	} else if (port == GPIOD) {
+		__HAL_RCC_GPIOD_CLK_ENABLE();
+#endif
+	}
+}
+
+void device_can_init(can_data_t *channel, const struct board_channel_config *channel_config)
+{
+	GPIO_TypeDef *port = CAN_GPIO_Port;
+	uint16_t pins = CAN_RX_Pin | CAN_TX_Pin;
+	uint32_t alternate = CAN_GPIO_AF;
+
+#if (NUM_CAN_CHANNEL > 1)
+	if (channel_config->interface == CAN_INTERFACE2) {
+		port = CAN2_GPIO_Port;
+		pins = CAN2_RX_Pin | CAN2_TX_Pin;
+		alternate = CAN2_GPIO_AF;
+	}
+#endif
+
+	RCC_PeriphCLKInitTypeDef PeriphClkInit = {
+		.PeriphClockSelection = RCC_PERIPHCLK_FDCAN,
+		.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL,
+	};
+	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
+
+	__HAL_RCC_FDCAN_CLK_ENABLE();
+	gpio_clk_enable(port);
+
+	GPIO_InitTypeDef itd = {
+		.Pin = pins,
+		.Mode = GPIO_MODE_AF_PP,
+		.Pull = GPIO_NOPULL,
+		.Speed = GPIO_SPEED_FREQ_VERY_HIGH,
+		.Alternate = alternate,
+	};
+	HAL_GPIO_Init(port, &itd);
+
+	channel->hfdcan.Instance = channel_config->interface;
+}
+
+void device_sysclock_config(void)
+{
 	__HAL_RCC_SYSCFG_CLK_ENABLE();
 	__HAL_RCC_PWR_CLK_ENABLE();
 

@@ -389,6 +389,10 @@ THE SOFTWARE.
 	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CANFD			 1
+	#define CAN_GPIO_Port			 GPIOB
+	#define CAN_RX_Pin				 GPIO_PIN_9
+	#define CAN_TX_Pin				 GPIO_PIN_8
+	#define CAN_GPIO_AF				 GPIO_AF3_FDCAN1
 
 	#define LEDRX_GPIO_Port			 GPIOA
 	#define LEDRX_Pin				 GPIO_PIN_0
@@ -408,7 +412,15 @@ THE SOFTWARE.
 	#define TIM2_CLOCK_SPEED		 64000000
 
 	#define CAN_INTERFACE			 FDCAN1
+	#define CAN_GPIO_Port			 GPIOB
+	#define CAN_RX_Pin				 GPIO_PIN_9
+	#define CAN_TX_Pin				 GPIO_PIN_8
+	#define CAN_GPIO_AF				 GPIO_AF3_FDCAN1
 	#define CAN_INTERFACE2			 FDCAN2
+	#define CAN2_GPIO_Port			 GPIOB
+	#define CAN2_RX_Pin				 GPIO_PIN_0
+	#define CAN2_TX_Pin				 GPIO_PIN_1
+	#define CAN2_GPIO_AF			 GPIO_AF3_FDCAN2
 	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
@@ -434,6 +446,38 @@ THE SOFTWARE.
 	#define TERM_Pin				 GPIO_PIN_1
 	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
 	#define TERM_Active_High		 1
+
+#elif defined(BOARD_candleLightFD)
+	#define USBD_PRODUCT_STRING_FS	 "candleLightFD gs_usb"
+	#define USBD_MANUFACTURER_STRING "candleLightFD"
+	#define DFU_INTERFACE_STRING_FS	 "candleLightFD firmware upgrade interface"
+
+	#define CONFIG_HSE_OSC_SPEED	 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_INTERFACE			 FDCAN1
+	#define CAN_GPIO_Port			 GPIOD
+	#define CAN_RX_Pin				 GPIO_PIN_0
+	#define CAN_TX_Pin				 GPIO_PIN_1
+	#define CAN_GPIO_AF				 GPIO_AF3_FDCAN1
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
+
+	#define CONFIG_PHY				 1
+	#define CONFIG_PHY_SILENT		 1
+	#define CAN_S_GPIO_Port			 GPIOA
+	#define CAN_S_Pin				 GPIO_PIN_15
+
+	#define LEDRX_GPIO_Port			 GPIOA
+	#define LEDRX_Pin				 GPIO_PIN_3
+	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDRX_Active_High		 1
+
+	#define LEDTX_GPIO_Port			 GPIOA
+	#define LEDTX_Pin				 GPIO_PIN_4
+	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
+	#define LEDTX_Active_High		 1
 
 #else
 	#error please define BOARD

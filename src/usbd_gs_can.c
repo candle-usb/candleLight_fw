@@ -215,6 +215,18 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 	.hw_version = 1,
 };
 
+static void usbd_gs_can_purge_to_host_buf(USBD_GS_CAN_HandleTypeDef *hcan)
+{
+	bool was_irq_enabled = disable_irq();
+
+	if (hcan->to_host_buf) {
+		list_add_tail(&hcan->to_host_buf->list, &hcan->list_frame_pool);
+		hcan->to_host_buf = NULL;
+	}
+
+	restore_irq(was_irq_enabled);
+}
+
 /*
  * It's unclear from the documentation, but it appears that the USB library is
  * not safely reentrant. It attempts to signal errors via return values if it is

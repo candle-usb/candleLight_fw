@@ -1,28 +1,27 @@
 /*
-
-The MIT License (MIT)
-
-Copyright (c) 2016 Hubert Denkmair
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-*/
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 Hubert Denkmair
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
 
 #include <stdint.h>
 #include <string.h>
@@ -34,7 +33,7 @@ THE SOFTWARE.
 #include "util.h"
 #include "version.h"
 
-__ALIGN_BEGIN uint8_t USBD_DescBuf[USBD_DESC_BUF_SIZE] __ALIGN_END;
+uint8_t __aligned(4) USBD_DescBuf[USBD_DESC_BUF_SIZE];
 
 /* USB_DeviceDescriptor */
 static const uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] = {
@@ -62,6 +61,7 @@ static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef __maybe_unused speed,
 {
 	*length = sizeof(USBD_FS_DeviceDesc);
 	memcpy(USBD_DescBuf, USBD_FS_DeviceDesc, sizeof(USBD_FS_DeviceDesc));
+	BUILD_BUG_ON(sizeof(USBD_FS_DeviceDesc) >= sizeof(USBD_DescBuf));
 
 	return USBD_DescBuf;
 }
@@ -79,6 +79,7 @@ static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef __maybe_unused spe
 {
 	*length = sizeof(USBD_LangIDDesc);
 	memcpy(USBD_DescBuf, USBD_LangIDDesc, sizeof(USBD_LangIDDesc));
+	BUILD_BUG_ON(sizeof(USBD_LangIDDesc) >= sizeof(USBD_DescBuf));
 
 	return USBD_DescBuf;
 }
@@ -101,9 +102,9 @@ static uint8_t *USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef __maybe_unused spe
 {
 	char buf[25];
 
-	hex32(buf,		*(uint32_t*)(UID_BASE    ));
-	hex32(buf +  8, *(uint32_t*)(UID_BASE + 4));
-	hex32(buf + 16, *(uint32_t*)(UID_BASE + 8));
+	hex32(buf,		*(uint32_t *)(UID_BASE));
+	hex32(buf + 8,	*(uint32_t *)(UID_BASE + 4));
+	hex32(buf + 16, *(uint32_t *)(UID_BASE + 8));
 
 	USBD_GetString((uint8_t*)buf, USBD_DescBuf, length);
 

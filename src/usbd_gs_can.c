@@ -264,6 +264,9 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t __maybe_unuse
 
 static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t __maybe_unused cfgidx)
 {
+	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
+
+	usbd_gs_can_purge_to_host_buf(hcan);
 	is_usb_suspend_cb = false;
 
 	USBD_LL_CloseEP(pdev, GSUSB_ENDPOINT_IN);

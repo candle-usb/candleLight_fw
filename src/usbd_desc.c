@@ -61,6 +61,7 @@ static uint8_t *USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef __maybe_unused speed,
 {
 	*length = sizeof(USBD_FS_DeviceDesc);
 	memcpy(USBD_DescBuf, USBD_FS_DeviceDesc, sizeof(USBD_FS_DeviceDesc));
+	BUILD_BUG_ON(sizeof(USBD_FS_DeviceDesc) >= sizeof(USBD_DescBuf));
 
 	return USBD_DescBuf;
 }
@@ -78,6 +79,7 @@ static uint8_t *USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef __maybe_unused spe
 {
 	*length = sizeof(USBD_LangIDDesc);
 	memcpy(USBD_DescBuf, USBD_LangIDDesc, sizeof(USBD_LangIDDesc));
+	BUILD_BUG_ON(sizeof(USBD_LangIDDesc) >= sizeof(USBD_DescBuf));
 
 	return USBD_DescBuf;
 }

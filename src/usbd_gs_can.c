@@ -905,9 +905,18 @@ void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev)
 	if (result == USBD_OK)
 		return;
 
+	/*
+	 * If USBD_GS_CAN_SendFrame() fails, it will be due to a USB suspend event
+	 * (is_usb_suspend_cb == true).
+	 * For now the firmware shuts down the CAN interface during suspend and
+	 * hcan->to_host_buf is pruged by usbd_gs_can_purge_to_host_buf() during
+	 * USBD_GS_CAN_DeInit().
+	 */
 	was_irq_enabled = disable_irq();
-	list_add(&hcan->to_host_buf->list, &hcan->list_to_host);
-	hcan->to_host_buf = NULL;
+	if (hcan->to_host_buf) {
+		list_add_tail(&hcan->to_host_buf->list, &hcan->list_frame_pool);
+		hcan->to_host_buf = NULL;
+	}
 	restore_irq(was_irq_enabled);
 }
 

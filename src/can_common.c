@@ -69,9 +69,10 @@ void can_enable(struct can_channel *channel, const uint32_t feature)
 	can_drv_enable(channel);
 }
 
-void can_disable(USBD_GS_CAN_HandleTypeDef __maybe_unused *hcan, struct can_channel *channel)
+void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	can_drv_disable(channel);
+	usbd_gs_can_purge_to_host_list_by_channel(hcan, channel);
 	led_set_mode(&channel->leds, LED_MODE_OFF);
 }
 

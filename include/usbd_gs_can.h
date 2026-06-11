@@ -109,6 +109,9 @@ typedef struct {
 	bool dfu_detach_requested;
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
+void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
+											   const struct can_channel *channel);
+
 #if defined(STM32F0)
 # define USB_INTERFACE USB
 # define USB_INTERRUPT USB_IRQn
@@ -126,8 +129,8 @@ typedef struct {
 #endif
 
 uint8_t USBD_GS_CAN_Init(USBD_GS_CAN_HandleTypeDef *hcan, USBD_HandleTypeDef *pdev);
-void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef  *pdev);
-void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef  *pdev);
+void USBD_GS_CAN_SuspendCallback(USBD_HandleTypeDef *pdev);
+void USBD_GS_CAN_ResumeCallback(USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_ReceiveFromHost(USBD_HandleTypeDef *pdev);
 void USBD_GS_CAN_SendToHost(USBD_HandleTypeDef *pdev);
 bool USBD_GS_CAN_CustomDeviceRequest(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);

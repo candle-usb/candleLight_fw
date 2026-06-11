@@ -26,6 +26,7 @@
 #include "board.h"
 #include "can.h"
 #include "can_common.h"
+#include "can_drv.h"
 #include "config.h"
 #include "device.h"
 #include "gs_usb.h"
@@ -146,7 +147,7 @@ static bool can_apply_filter(const can_data_t *channel)
 	return true;
 }
 
-void can_enable(can_data_t *channel)
+void can_drv_enable(struct can_channel *channel)
 {
 	const uint32_t feature = channel->feature;
 	CAN_TypeDef *can = channel->instance;
@@ -189,7 +190,7 @@ void can_enable(can_data_t *channel)
 	board_phy_power_set(channel, true);
 }
 
-void can_disable(can_data_t *channel)
+void can_drv_disable(struct can_channel *channel)
 {
 	CAN_TypeDef *can = channel->instance;
 

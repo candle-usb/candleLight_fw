@@ -34,7 +34,7 @@
 #include "led.h"
 #include "list.h"
 
-typedef struct {
+typedef struct can_channel {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
 #endif
@@ -83,8 +83,6 @@ static inline void can_set_filter(can_data_t *channel, const struct gs_device_fi
 }
 #endif
 
-void can_enable(can_data_t *channel);
-void can_disable(can_data_t *channel);
 bool can_is_enabled(can_data_t *channel);
 
 bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame);

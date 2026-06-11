@@ -25,24 +25,9 @@
 
 #pragma once
 
-#include "can.h"
-#include "config.h"
-#include "usbd_gs_can.h"
+#include <stdint.h>
 
-static inline u8
-gs_host_frame_object_get_channel_nr(const struct gs_host_frame_object *frame_object)
-{
-	if (NUM_CAN_CHANNEL > 1)
-		return frame_object->frame.channel;
+struct can_channel;
 
-	return 0;
-}
-
-static inline can_data_t *
-gs_host_frame_object_get_channel(USBD_GS_CAN_HandleTypeDef *hcan,
-								 const struct gs_host_frame_object *frame_object)
-{
-	const u8 channel_nr = gs_host_frame_object_get_channel_nr(frame_object);
-
-	return &hcan->channels[channel_nr];
-}
+void can_drv_enable(struct can_channel *channel);
+void can_drv_disable(struct can_channel *channel);

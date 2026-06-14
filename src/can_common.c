@@ -24,6 +24,8 @@
  *
  */
 
+#include <string.h>
+
 #include "can_common.h"
 #include "can_drv.h"
 #include "host_frame.h"
@@ -143,6 +145,21 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 
 	led_indicate_trx(&channel->leds, LED_RX);
+}
+
+static void can_prepare_error_frame(const struct can_channel *channel,
+									struct gs_host_frame *frame)
+
+{
+	frame->echo_id = GS_HOST_FRAME_ECHO_ID_RX;
+	frame->can_id = CAN_ERR_FLAG;
+	frame->can_dlc = CAN_ERR_DLC;
+	frame->channel = can_channel_get_nr(channel);
+	frame->flags = 0;
+	frame->reserved = 0;
+	memset(frame->classic_can->data, 0x0, sizeof(frame->classic_can->data));
+
+	frame->classic_can_ts->timestamp_us = timer_get();
 }
 
 enum gs_can_state can_err_to_state(const uint16_t err)

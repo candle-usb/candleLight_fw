@@ -33,6 +33,15 @@
 #include "gs_usb.h"
 #include "timer.h"
 
+#define BXCAN_LEC_NO_ERROR	  0
+#define BXCAN_LEC_STUFF_ERROR 1
+#define BXCAN_LEC_FORM_ERROR  2
+#define BXCAN_LEC_ACK_ERROR	  3
+#define BXCAN_LEC_REC_ERROR	  4
+#define BXCAN_LEC_DOM_ERROR	  5
+#define BXCAN_LEC_CRC_ERROR	  6
+#define BXCAN_LEC_SOFTWARE	  7
+
 const struct gs_device_bt_const CAN_btconst = {
 	.feature =
 		GS_CAN_FEATURE_LISTEN_ONLY |
@@ -394,36 +403,36 @@ bool can_parse_error_status(can_data_t __maybe_unused *channel, struct gs_host_f
 
 	uint8_t lec = (err>>4) & 0x07;
 	switch (lec) {
-		case 0x01: /* stuff error */
+		case BXCAN_LEC_STUFF_ERROR:
 			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
 			should_send = true;
 			break;
-		case 0x02: /* form error */
+		case BXCAN_LEC_FORM_ERROR:
 			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
 			should_send = true;
 			break;
-		case 0x03: /* ack error */
+		case BXCAN_LEC_ACK_ERROR:
 			frame->can_id |= CAN_ERR_ACK;
 			should_send = true;
 			break;
-		case 0x04: /* bit recessive error */
+		case BXCAN_LEC_REC_ERROR:
 			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
 			should_send = true;
 			break;
-		case 0x05: /* bit dominant error */
+		case BXCAN_LEC_DOM_ERROR:
 			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
 			should_send = true;
 			break;
-		case 0x06: /* CRC error */
+		case BXCAN_LEC_CRC_ERROR:
 			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
 			should_send = true;
 			break;
-		default: /* 0=no error, 7=no change */
+		default:
 			break;
 	}
 

@@ -78,6 +78,7 @@ typedef struct {
 		struct_group_tagged(ep0_data, data, union {
 			// Device -> Host
 			struct dfu_status dfu_status;
+			struct gs_device_state state;
 
 			// Host -> Device
 			const struct gs_host_config config;

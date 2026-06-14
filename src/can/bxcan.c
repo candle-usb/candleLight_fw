@@ -53,6 +53,7 @@ const struct gs_device_bt_const CAN_btconst = {
 		(IS_ENABLED(CONFIG_TERMINATION) ?
 		 GS_CAN_FEATURE_TERMINATION : 0) |
 		GS_CAN_FEATURE_BERR_REPORTING |
+		GS_CAN_FEATURE_GET_STATE |
 		(IS_ENABLED(CONFIG_CAN_FILTER) ?
 		 GS_CAN_FEATURE_FILTER : 0) |
 		0,
@@ -358,6 +359,15 @@ void can_drv_handle_state_change(const struct can_channel *channel, struct gs_ho
 
 	frame->classic_can->data[6] = tx_err;
 	frame->classic_can->data[7] = rx_err;
+}
+
+void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state)
+{
+	const uint32_t reg_esr = channel->instance->ESR;
+
+	state->state = can_drv_get_state(channel);
+	state->rxerr = FIELD_GET(CAN_ESR_REC, reg_esr);
+	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
 }
 
 bool can_drv_bus_error_pending(const struct can_channel *channel)

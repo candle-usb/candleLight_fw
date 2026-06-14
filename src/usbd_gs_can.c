@@ -29,6 +29,7 @@
 
 #include "can.h"
 #include "can_common.h"
+#include "can_drv.h"
 #include "compiler.h"
 #include "config.h"
 #include "dfu.h"
@@ -435,6 +436,11 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			src = &ep0->term_state;
 			len = sizeof(ep0->term_state);
 			break;
+		case GS_USB_BREQ_GET_STATE:
+			can_drv_get_device_state(channel, &ep0->state);
+			src = &ep0->state;
+			len = sizeof(ep0->state);
+			break;
 		case GS_USB_BREQ_SET_FILTER:
 			len = sizeof(ep0->filter);
 			break;
@@ -472,6 +478,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_TIMESTAMP:
 		case GS_USB_BREQ_BT_CONST_EXT:
 		case GS_USB_BREQ_GET_TERMINATION:
+		case GS_USB_BREQ_GET_STATE:
 		case GS_USB_BREQ_GET_FILTER:
 			USBD_CtlSendData(pdev, (uint8_t *)src, len);
 			break;

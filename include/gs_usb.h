@@ -328,6 +328,8 @@ struct canfd_ts {
 	u32 timestamp_us;
 } __packed __aligned(4);
 
+#define GS_HOST_FRAME_ECHO_ID_RX 0xffffffff
+
 struct gs_host_frame {
 	u32 echo_id;
 	u32 can_id;

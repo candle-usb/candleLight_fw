@@ -138,7 +138,7 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	frame->echo_id = 0xFFFFFFFF; // not an echo frame
+	frame->echo_id = GS_HOST_FRAME_ECHO_ID_RX; // not an echo frame
 	frame->reserved = 0;
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);

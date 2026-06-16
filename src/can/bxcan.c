@@ -52,9 +52,8 @@ const struct gs_device_bt_const CAN_btconst = {
 		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE |
 		(IS_ENABLED(CONFIG_TERMINATION) ?
 		 GS_CAN_FEATURE_TERMINATION : 0) |
-#ifdef CONFIG_CAN_FILTER
-		GS_CAN_FEATURE_FILTER |
-#endif
+		(IS_ENABLED(CONFIG_CAN_FILTER) ?
+		 GS_CAN_FEATURE_FILTER : 0) |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
 	.btc = {

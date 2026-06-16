@@ -52,6 +52,7 @@ const struct gs_device_bt_const CAN_btconst = {
 		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE |
 		(IS_ENABLED(CONFIG_TERMINATION) ?
 		 GS_CAN_FEATURE_TERMINATION : 0) |
+		GS_CAN_FEATURE_BERR_REPORTING |
 		(IS_ENABLED(CONFIG_CAN_FILTER) ?
 		 GS_CAN_FEATURE_FILTER : 0) |
 		0,
@@ -363,6 +364,10 @@ bool can_drv_bus_error_pending(const struct can_channel *channel)
 {
 	const uint32_t reg_esr = channel->instance->ESR;
 	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
+
+	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
+		false;
+	}
 
 	return lec != BXCAN_LEC_NO_ERROR && lec != BXCAN_LEC_SOFTWARE;
 }

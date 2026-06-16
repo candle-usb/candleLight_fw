@@ -41,7 +41,7 @@ typedef struct can_channel {
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t feature;
-	uint32_t reg_esr_old;
+	enum gs_can_state state;
 #if defined (CONFIG_BXCAN)
 	struct gs_device_filter filter;
 	uint32_t btr;

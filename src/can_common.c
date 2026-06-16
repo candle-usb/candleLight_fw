@@ -74,6 +74,7 @@ void can_enable(struct can_channel *channel, const uint32_t feature)
 	channel->feature = feature;
 
 	led_set_mode(&channel->leds, LED_MODE_NORMAL);
+	channel->state = GS_CAN_STATE_ERROR_ACTIVE;
 	can_drv_enable(channel);
 }
 
@@ -81,6 +82,7 @@ void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	can_drv_disable(channel);
 	usbd_gs_can_purge_to_host_list_by_channel(hcan, channel);
+	channel->state = GS_CAN_STATE_STOPPED;
 	led_set_mode(&channel->leds, LED_MODE_OFF);
 }
 
@@ -202,6 +204,34 @@ u8 gs_can_rx_state_to_frame(const enum gs_can_state state)
 	}
 }
 
+void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+{
+	enum gs_can_state new_state;
+
+	new_state = can_drv_get_state(channel);
+
+	if (new_state == channel->state)
+		return;
+
+	channel->state = new_state;
+
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	if (!frame_object)
+		return;
+
+	struct gs_host_frame *frame = &frame_object->frame;
+	can_prepare_error_frame(channel, frame);
+
+	if (channel->state == GS_CAN_STATE_BUS_OFF) {
+		frame->can_id |= CAN_ERR_BUSOFF;
+	} else {
+		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
+		can_drv_handle_state_change(channel, frame);
+	}
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+}
+
 // If there are frames to receive, don't report any error frames. The
 // best we can localize the errors to is "after the last successfully
 // received frame", so wait until we get there. LEC will hold some error
@@ -237,4 +267,6 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	} else {
 		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
 	}
+
+	can_handle_state_change(hcan, channel);
 }

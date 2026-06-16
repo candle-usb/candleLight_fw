@@ -1,6 +1,7 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2026 Marc Kleine-Budde <kernel@pengutronix.de>
  * Copyright (c) 2016 Hubert Denkmair
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -310,6 +311,46 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 	}
 }
 
+enum gs_can_state can_drv_get_state(const struct can_channel *channel)
+{
+	const uint32_t reg_esr = channel->instance->ESR;
+
+	if (!(reg_esr & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF))) {
+		return GS_CAN_STATE_ERROR_ACTIVE;
+	}
+
+	if (reg_esr & CAN_ESR_BOFF) {
+		return GS_CAN_STATE_BUS_OFF;
+	}
+
+	if (reg_esr & CAN_ESR_EPVF) {
+		return GS_CAN_STATE_ERROR_PASSIVE;
+	}
+
+	return GS_CAN_STATE_ERROR_WARNING;
+}
+
+void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame)
+{
+	const uint32_t reg_esr = channel->instance->ESR;
+	enum gs_can_state tx_state, rx_state;
+	u8 tx_err, rx_err;
+
+	tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
+
+	tx_state = can_err_to_state(tx_err);
+	rx_state = can_err_to_state(rx_err);
+
+	if (tx_state >= rx_state)
+		frame->classic_can->data[1] |= gs_can_tx_state_to_frame(tx_state);
+	if (tx_state <= rx_state)
+		frame->classic_can->data[1] |= gs_can_rx_state_to_frame(rx_state);
+
+	frame->classic_can->data[6] = tx_err;
+	frame->classic_can->data[7] = rx_err;
+}
+
 uint32_t can_get_error_status(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;
@@ -321,22 +362,14 @@ uint32_t can_get_error_status(can_data_t *channel)
 	return err;
 }
 
-static bool status_is_active(uint32_t err)
+bool can_parse_error_status(can_data_t __maybe_unused *channel, struct gs_host_frame *frame, uint32_t err)
 {
-	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
-}
-
-bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err)
-{
-	uint32_t last_err = channel->reg_esr_old;
 	/*
 	 * We build up the detailed error information at the same time as we decide
 	 * whether there's anything worth sending. This variable tracks that final
 	 * result.
 	 */
 	bool should_send = false;
-
-	channel->reg_esr_old = err;
 
 	frame->echo_id = 0xFFFFFFFF;
 	frame->can_id  = CAN_ERR_FLAG;
@@ -350,28 +383,6 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	frame->classic_can->data[6] = 0;
 	frame->classic_can->data[7] = 0;
 
-	if (err & CAN_ESR_BOFF) {
-		if (!(last_err & CAN_ESR_BOFF)) {
-			/* We transitioned to bus-off. */
-			frame->can_id |= CAN_ERR_BUSOFF;
-			should_send = true;
-		}
-		// - tec (overflowed) / rec (looping, likely used for recessive counting)
-		//   are not valid in the bus-off state.
-		// - The warning flags remains set, error passive will cleared.
-		// - LEC errors will be reported, while the device isn't even allowed to send.
-		//
-		// Hence only report bus-off, ignore everything else.
-		return should_send;
-	}
-
-	/* We transitioned from passive/bus-off to active, so report the edge. */
-	if (!status_is_active(last_err) && status_is_active(err)) {
-		frame->can_id |= CAN_ERR_CRTL;
-		frame->classic_can->data[1] |= CAN_ERR_CRTL_ACTIVE;
-		should_send = true;
-	}
-
 	uint8_t tx_error_cnt = (err >> 16) & 0xFF;
 	uint8_t rx_error_cnt = (err >> 24) & 0xFF;
 	/*
@@ -380,20 +391,6 @@ bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, ui
 	 */
 	frame->classic_can->data[6] = tx_error_cnt;
 	frame->classic_can->data[7] = rx_error_cnt;
-
-	if (err & CAN_ESR_EPVF) {
-		if (!(last_err & CAN_ESR_EPVF)) {
-			frame->can_id |= CAN_ERR_CRTL;
-			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
-			should_send = true;
-		}
-	} else if (err & CAN_ESR_EWGF) {
-		if (!(last_err & CAN_ESR_EWGF)) {
-			frame->can_id |= CAN_ERR_CRTL;
-			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
-			should_send = true;
-		}
-	}
 
 	uint8_t lec = (err>>4) & 0x07;
 	switch (lec) {

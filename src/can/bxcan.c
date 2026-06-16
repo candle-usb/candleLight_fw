@@ -372,12 +372,12 @@ void can_drv_get_device_state(const struct can_channel *channel, struct gs_devic
 
 bool can_drv_bus_error_pending(const struct can_channel *channel)
 {
+	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
+		return false;
+	}
+
 	const uint32_t reg_esr = channel->instance->ESR;
 	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
-
-	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
-		false;
-	}
 
 	return lec != BXCAN_LEC_NO_ERROR && lec != BXCAN_LEC_SOFTWARE;
 }

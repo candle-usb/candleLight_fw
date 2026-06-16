@@ -232,41 +232,33 @@ void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 }
 
+void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+{
+	if (!can_drv_bus_error_pending(channel))
+		return;
+
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	if (!frame_object)
+		return;
+
+	struct gs_host_frame *frame = &frame_object->frame;
+
+	can_prepare_error_frame(channel, frame);
+	can_drv_handle_bus_error(channel, frame);
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+}
+
 // If there are frames to receive, don't report any error frames. The
 // best we can localize the errors to is "after the last successfully
 // received frame", so wait until we get there. LEC will hold some error
 // to report even if multiple pass by.
 void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
-	struct gs_host_frame_object *frame_object;
-
 	if (can_is_rx_pending(channel)) {
 		return;
 	}
 
-	uint32_t can_err = can_get_error_status(channel);
-
-	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
-											struct gs_host_frame_object,
-											list);
-	if (!frame_object) {
-		restore_irq(was_irq_enabled);
-		return;
-	}
-
-	list_del(&frame_object->list);
-	restore_irq(was_irq_enabled);
-
-	struct gs_host_frame *frame = &frame_object->frame;
-	frame->classic_can_ts->timestamp_us = timer_get();
-	frame->channel = can_channel_get_nr(channel);
-
-	if (can_parse_error_status(channel, frame, can_err)) {
-		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
-	} else {
-		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
-	}
-
+	can_handle_bus_error(hcan, channel);
 	can_handle_state_change(hcan, channel);
 }

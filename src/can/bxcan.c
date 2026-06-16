@@ -360,81 +360,46 @@ void can_drv_handle_state_change(const struct can_channel *channel, struct gs_ho
 	frame->classic_can->data[7] = rx_err;
 }
 
-uint32_t can_get_error_status(can_data_t *channel)
+bool can_drv_bus_error_pending(const struct can_channel *channel)
 {
-	CAN_TypeDef *can = channel->instance;
-	uint32_t err = can->ESR;
+	const uint32_t reg_esr = channel->instance->ESR;
+	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
-	/* Write 7 to LEC so we know if it gets set to the same thing again */
-	can->ESR = 7 << 4;
-
-	return err;
+	return lec != BXCAN_LEC_NO_ERROR && lec != BXCAN_LEC_SOFTWARE;
 }
 
-bool can_parse_error_status(can_data_t __maybe_unused *channel, struct gs_host_frame *frame, uint32_t err)
+void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame)
 {
-	/*
-	 * We build up the detailed error information at the same time as we decide
-	 * whether there's anything worth sending. This variable tracks that final
-	 * result.
-	 */
-	bool should_send = false;
+	const uint32_t reg_esr = channel->instance->ESR;
+	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
-	frame->echo_id = 0xFFFFFFFF;
-	frame->can_id  = CAN_ERR_FLAG;
-	frame->can_dlc = CAN_ERR_DLC;
-	frame->classic_can->data[0] = CAN_ERR_LOSTARB_UNSPEC;
-	frame->classic_can->data[1] = CAN_ERR_CRTL_UNSPEC;
-	frame->classic_can->data[2] = CAN_ERR_PROT_UNSPEC;
-	frame->classic_can->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
-	frame->classic_can->data[4] = CAN_ERR_TRX_UNSPEC;
-	frame->classic_can->data[5] = 0;
-	frame->classic_can->data[6] = 0;
-	frame->classic_can->data[7] = 0;
+	frame->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR | CAN_ERR_CNT;
+	frame->classic_can->data[6] = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	frame->classic_can->data[7] = FIELD_GET(CAN_ESR_REC, reg_esr);
 
-	uint8_t tx_error_cnt = (err >> 16) & 0xFF;
-	uint8_t rx_error_cnt = (err >> 24) & 0xFF;
-	/*
-	 * The Linux sja1000 driver puts these counters here. Seems like as good a
-	 * place as any.
-	 */
-	frame->classic_can->data[6] = tx_error_cnt;
-	frame->classic_can->data[7] = rx_error_cnt;
-
-	uint8_t lec = (err>>4) & 0x07;
 	switch (lec) {
 		case BXCAN_LEC_STUFF_ERROR:
-			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
-			should_send = true;
 			break;
 		case BXCAN_LEC_FORM_ERROR:
-			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
-			should_send = true;
 			break;
 		case BXCAN_LEC_ACK_ERROR:
 			frame->can_id |= CAN_ERR_ACK;
-			should_send = true;
 			break;
 		case BXCAN_LEC_REC_ERROR:
-			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
-			should_send = true;
 			break;
 		case BXCAN_LEC_DOM_ERROR:
-			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
-			should_send = true;
 			break;
 		case BXCAN_LEC_CRC_ERROR:
-			frame->can_id |= CAN_ERR_PROT;
 			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
-			should_send = true;
 			break;
 		default:
 			break;
 	}
 
-	return should_send;
+	/* mark as handled by software */
+	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, BXCAN_LEC_SOFTWARE);
 }

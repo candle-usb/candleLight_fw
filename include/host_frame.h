@@ -46,3 +46,24 @@ gs_host_frame_object_get_channel(USBD_GS_CAN_HandleTypeDef *hcan,
 
 	return &hcan->channels[channel_nr];
 }
+
+static inline
+struct gs_host_frame_object *
+gs_host_frame_object_get_locked(USBD_GS_CAN_HandleTypeDef *hcan)
+{
+	struct gs_host_frame_object *frame_object;
+
+	bool was_irq_enabled = disable_irq();
+	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
+											struct gs_host_frame_object,
+											list);
+	if (!frame_object) {
+		restore_irq(was_irq_enabled);
+		return NULL;
+	}
+
+	list_del(&frame_object->list);
+	restore_irq(was_irq_enabled);
+
+	return frame_object;
+}

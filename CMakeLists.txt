@@ -209,6 +209,7 @@ set(
 	include/device.h
 	include/dfu.h src/dfu.c
 	include/gpio.h src/gpio.c
+	include/host_frame.h
 	include/led.h src/led.c
 	include/timer.h src/timer.c
 	include/util.h src/util.c

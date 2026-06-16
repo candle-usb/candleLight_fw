@@ -1,6 +1,7 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2026 Marc Kleine-Budde <kernel@pengutronix.de>
  * Copyright (c) 2016 Hubert Denkmair
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,6 +33,15 @@
 #include "gs_usb.h"
 #include "timer.h"
 
+#define BXCAN_LEC_NO_ERROR	  0
+#define BXCAN_LEC_STUFF_ERROR 1
+#define BXCAN_LEC_FORM_ERROR  2
+#define BXCAN_LEC_ACK_ERROR	  3
+#define BXCAN_LEC_REC_ERROR	  4
+#define BXCAN_LEC_DOM_ERROR	  5
+#define BXCAN_LEC_CRC_ERROR	  6
+#define BXCAN_LEC_SOFTWARE	  7
+
 const struct gs_device_bt_const CAN_btconst = {
 	.feature =
 		GS_CAN_FEATURE_LISTEN_ONLY |
@@ -42,9 +52,10 @@ const struct gs_device_bt_const CAN_btconst = {
 		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE |
 		(IS_ENABLED(CONFIG_TERMINATION) ?
 		 GS_CAN_FEATURE_TERMINATION : 0) |
-#ifdef CONFIG_CAN_FILTER
-		GS_CAN_FEATURE_FILTER |
-#endif
+		GS_CAN_FEATURE_BERR_REPORTING |
+		GS_CAN_FEATURE_GET_STATE |
+		(IS_ENABLED(CONFIG_CAN_FILTER) ?
+		 GS_CAN_FEATURE_FILTER : 0) |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
 	.btc = {
@@ -310,125 +321,99 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 	}
 }
 
-uint32_t can_get_error_status(can_data_t *channel)
+enum gs_can_state can_drv_get_state(const struct can_channel *channel)
 {
-	CAN_TypeDef *can = channel->instance;
-	uint32_t err = can->ESR;
+	const uint32_t reg_esr = channel->instance->ESR;
 
-	/* Write 7 to LEC so we know if it gets set to the same thing again */
-	can->ESR = 7 << 4;
+	if (!(reg_esr & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF))) {
+		return GS_CAN_STATE_ERROR_ACTIVE;
+	}
 
-	return err;
+	if (reg_esr & CAN_ESR_BOFF) {
+		return GS_CAN_STATE_BUS_OFF;
+	}
+
+	if (reg_esr & CAN_ESR_EPVF) {
+		return GS_CAN_STATE_ERROR_PASSIVE;
+	}
+
+	return GS_CAN_STATE_ERROR_WARNING;
 }
 
-static bool status_is_active(uint32_t err)
+void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame)
 {
-	return !(err & (CAN_ESR_BOFF | CAN_ESR_EPVF));
+	const uint32_t reg_esr = channel->instance->ESR;
+	enum gs_can_state tx_state, rx_state;
+	u8 tx_err, rx_err;
+
+	tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
+
+	tx_state = can_err_to_state(tx_err);
+	rx_state = can_err_to_state(rx_err);
+
+	if (tx_state >= rx_state)
+		frame->classic_can->data[1] |= gs_can_tx_state_to_frame(tx_state);
+	if (tx_state <= rx_state)
+		frame->classic_can->data[1] |= gs_can_rx_state_to_frame(rx_state);
+
+	frame->classic_can->data[6] = tx_err;
+	frame->classic_can->data[7] = rx_err;
 }
 
-bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err)
+void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state)
 {
-	uint32_t last_err = channel->reg_esr_old;
-	/*
-	 * We build up the detailed error information at the same time as we decide
-	 * whether there's anything worth sending. This variable tracks that final
-	 * result.
-	 */
-	bool should_send = false;
+	const uint32_t reg_esr = channel->instance->ESR;
 
-	channel->reg_esr_old = err;
+	state->state = can_drv_get_state(channel);
+	state->rxerr = FIELD_GET(CAN_ESR_REC, reg_esr);
+	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
+}
 
-	frame->echo_id = 0xFFFFFFFF;
-	frame->can_id  = CAN_ERR_FLAG;
-	frame->can_dlc = CAN_ERR_DLC;
-	frame->classic_can->data[0] = CAN_ERR_LOSTARB_UNSPEC;
-	frame->classic_can->data[1] = CAN_ERR_CRTL_UNSPEC;
-	frame->classic_can->data[2] = CAN_ERR_PROT_UNSPEC;
-	frame->classic_can->data[3] = CAN_ERR_PROT_LOC_UNSPEC;
-	frame->classic_can->data[4] = CAN_ERR_TRX_UNSPEC;
-	frame->classic_can->data[5] = 0;
-	frame->classic_can->data[6] = 0;
-	frame->classic_can->data[7] = 0;
+bool can_drv_bus_error_pending(const struct can_channel *channel)
+{
+	const uint32_t reg_esr = channel->instance->ESR;
+	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
-	if (err & CAN_ESR_BOFF) {
-		if (!(last_err & CAN_ESR_BOFF)) {
-			/* We transitioned to bus-off. */
-			frame->can_id |= CAN_ERR_BUSOFF;
-			should_send = true;
-		}
-		// - tec (overflowed) / rec (looping, likely used for recessive counting)
-		//   are not valid in the bus-off state.
-		// - The warning flags remains set, error passive will cleared.
-		// - LEC errors will be reported, while the device isn't even allowed to send.
-		//
-		// Hence only report bus-off, ignore everything else.
-		return should_send;
+	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
+		false;
 	}
 
-	/* We transitioned from passive/bus-off to active, so report the edge. */
-	if (!status_is_active(last_err) && status_is_active(err)) {
-		frame->can_id |= CAN_ERR_CRTL;
-		frame->classic_can->data[1] |= CAN_ERR_CRTL_ACTIVE;
-		should_send = true;
-	}
+	return lec != BXCAN_LEC_NO_ERROR && lec != BXCAN_LEC_SOFTWARE;
+}
 
-	uint8_t tx_error_cnt = (err >> 16) & 0xFF;
-	uint8_t rx_error_cnt = (err >> 24) & 0xFF;
-	/*
-	 * The Linux sja1000 driver puts these counters here. Seems like as good a
-	 * place as any.
-	 */
-	frame->classic_can->data[6] = tx_error_cnt;
-	frame->classic_can->data[7] = rx_error_cnt;
+void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame)
+{
+	const uint32_t reg_esr = channel->instance->ESR;
+	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
-	if (err & CAN_ESR_EPVF) {
-		if (!(last_err & CAN_ESR_EPVF)) {
-			frame->can_id |= CAN_ERR_CRTL;
-			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_PASSIVE | CAN_ERR_CRTL_TX_PASSIVE;
-			should_send = true;
-		}
-	} else if (err & CAN_ESR_EWGF) {
-		if (!(last_err & CAN_ESR_EWGF)) {
-			frame->can_id |= CAN_ERR_CRTL;
-			frame->classic_can->data[1] |= CAN_ERR_CRTL_RX_WARNING | CAN_ERR_CRTL_TX_WARNING;
-			should_send = true;
-		}
-	}
+	frame->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR | CAN_ERR_CNT;
+	frame->classic_can->data[6] = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	frame->classic_can->data[7] = FIELD_GET(CAN_ESR_REC, reg_esr);
 
-	uint8_t lec = (err>>4) & 0x07;
 	switch (lec) {
-		case 0x01: /* stuff error */
-			frame->can_id |= CAN_ERR_PROT;
+		case BXCAN_LEC_STUFF_ERROR:
 			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
-			should_send = true;
 			break;
-		case 0x02: /* form error */
-			frame->can_id |= CAN_ERR_PROT;
+		case BXCAN_LEC_FORM_ERROR:
 			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
-			should_send = true;
 			break;
-		case 0x03: /* ack error */
+		case BXCAN_LEC_ACK_ERROR:
 			frame->can_id |= CAN_ERR_ACK;
-			should_send = true;
 			break;
-		case 0x04: /* bit recessive error */
-			frame->can_id |= CAN_ERR_PROT;
+		case BXCAN_LEC_REC_ERROR:
 			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
-			should_send = true;
 			break;
-		case 0x05: /* bit dominant error */
-			frame->can_id |= CAN_ERR_PROT;
+		case BXCAN_LEC_DOM_ERROR:
 			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
-			should_send = true;
 			break;
-		case 0x06: /* CRC error */
-			frame->can_id |= CAN_ERR_PROT;
+		case BXCAN_LEC_CRC_ERROR:
 			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
-			should_send = true;
 			break;
-		default: /* 0=no error, 7=no change */
+		default:
 			break;
 	}
 
-	return should_send;
+	/* mark as handled by software */
+	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, BXCAN_LEC_SOFTWARE);
 }

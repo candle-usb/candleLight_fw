@@ -1,6 +1,7 @@
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2026 Marc Kleine-Budde <kernel@pengutronix.de>
  * Copyright (c) 2016 Hubert Denkmair
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,11 +24,18 @@
  *
  */
 
+#include <string.h>
+
 #include "can_common.h"
 #include "can_drv.h"
+#include "host_frame.h"
 #include "led.h"
 #include "timer.h"
 #include "usbd_gs_can.h"
+
+#define CAN_ERROR_WARNING_THRESHOLD 96
+#define CAN_ERROR_PASSIVE_THRESHOLD 128
+#define CAN_BUS_OFF_THRESHOLD		256
 
 #ifndef CONFIG_CANFD
 const struct gs_device_bt_const_extended CAN_btconst_ext;
@@ -66,6 +74,7 @@ void can_enable(struct can_channel *channel, const uint32_t feature)
 	channel->feature = feature;
 
 	led_set_mode(&channel->leds, LED_MODE_NORMAL);
+	channel->state = GS_CAN_STATE_ERROR_ACTIVE;
 	can_drv_enable(channel);
 }
 
@@ -73,6 +82,7 @@ void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	can_drv_disable(channel);
 	usbd_gs_can_purge_to_host_list_by_channel(hcan, channel);
+	channel->state = GS_CAN_STATE_STOPPED;
 	led_set_mode(&channel->leds, LED_MODE_OFF);
 }
 
@@ -119,17 +129,10 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
-											struct gs_host_frame_object,
-											list);
+	frame_object = gs_host_frame_object_get_locked(hcan);
 	if (!frame_object) {
-		restore_irq(was_irq_enabled);
 		return;
 	}
-
-	list_del(&frame_object->list);
-	restore_irq(was_irq_enabled);
 
 	struct gs_host_frame *frame = &frame_object->frame;
 
@@ -138,12 +141,112 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	frame->echo_id = 0xFFFFFFFF; // not an echo frame
+	frame->echo_id = GS_HOST_FRAME_ECHO_ID_RX; // not an echo frame
 	frame->reserved = 0;
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 
 	led_indicate_trx(&channel->leds, LED_RX);
+}
+
+static void can_prepare_error_frame(const struct can_channel *channel,
+									struct gs_host_frame *frame)
+
+{
+	frame->echo_id = GS_HOST_FRAME_ECHO_ID_RX;
+	frame->can_id = CAN_ERR_FLAG;
+	frame->can_dlc = CAN_ERR_DLC;
+	frame->channel = can_channel_get_nr(channel);
+	frame->flags = 0;
+	frame->reserved = 0;
+	memset(frame->classic_can->data, 0x0, sizeof(frame->classic_can->data));
+
+	frame->classic_can_ts->timestamp_us = timer_get();
+}
+
+enum gs_can_state can_err_to_state(const uint16_t err)
+{
+	if (err < CAN_ERROR_WARNING_THRESHOLD)
+		return GS_CAN_STATE_ERROR_ACTIVE;
+	if (err < CAN_ERROR_PASSIVE_THRESHOLD)
+		return GS_CAN_STATE_ERROR_WARNING;
+	if (err < CAN_BUS_OFF_THRESHOLD)
+		return GS_CAN_STATE_ERROR_PASSIVE;
+
+	return GS_CAN_STATE_BUS_OFF;
+}
+
+u8 gs_can_tx_state_to_frame(const enum gs_can_state state)
+{
+	switch (state) {
+		case GS_CAN_STATE_ERROR_ACTIVE:
+			return CAN_ERR_CRTL_ACTIVE;
+		case GS_CAN_STATE_ERROR_WARNING:
+			return CAN_ERR_CRTL_TX_WARNING;
+		case GS_CAN_STATE_ERROR_PASSIVE:
+			return CAN_ERR_CRTL_TX_PASSIVE;
+		default:
+			return 0;
+	}
+}
+
+u8 gs_can_rx_state_to_frame(const enum gs_can_state state)
+{
+	switch (state) {
+		case GS_CAN_STATE_ERROR_ACTIVE:
+			return CAN_ERR_CRTL_ACTIVE;
+		case GS_CAN_STATE_ERROR_WARNING:
+			return CAN_ERR_CRTL_RX_WARNING;
+		case GS_CAN_STATE_ERROR_PASSIVE:
+			return CAN_ERR_CRTL_RX_PASSIVE;
+		default:
+			return 0;
+	}
+}
+
+void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+{
+	enum gs_can_state new_state;
+
+	new_state = can_drv_get_state(channel);
+
+	if (new_state == channel->state)
+		return;
+
+	channel->state = new_state;
+
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	if (!frame_object)
+		return;
+
+	struct gs_host_frame *frame = &frame_object->frame;
+	can_prepare_error_frame(channel, frame);
+
+	if (channel->state == GS_CAN_STATE_BUS_OFF) {
+		frame->can_id |= CAN_ERR_BUSOFF;
+	} else {
+		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
+		can_drv_handle_state_change(channel, frame);
+	}
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+}
+
+void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+{
+	if (!can_drv_bus_error_pending(channel))
+		return;
+
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	if (!frame_object)
+		return;
+
+	struct gs_host_frame *frame = &frame_object->frame;
+
+	can_prepare_error_frame(channel, frame);
+	can_drv_handle_bus_error(channel, frame);
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 }
 
 // If there are frames to receive, don't report any error frames. The
@@ -152,33 +255,10 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 // to report even if multiple pass by.
 void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 {
-	struct gs_host_frame_object *frame_object;
-
 	if (can_is_rx_pending(channel)) {
 		return;
 	}
 
-	uint32_t can_err = can_get_error_status(channel);
-
-	bool was_irq_enabled = disable_irq();
-	frame_object = list_first_entry_or_null(&hcan->list_frame_pool,
-											struct gs_host_frame_object,
-											list);
-	if (!frame_object) {
-		restore_irq(was_irq_enabled);
-		return;
-	}
-
-	list_del(&frame_object->list);
-	restore_irq(was_irq_enabled);
-
-	struct gs_host_frame *frame = &frame_object->frame;
-	frame->classic_can_ts->timestamp_us = timer_get();
-	frame->channel = can_channel_get_nr(channel);
-
-	if (can_parse_error_status(channel, frame, can_err)) {
-		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
-	} else {
-		list_add_tail_locked(&frame_object->list, &hcan->list_frame_pool);
-	}
+	can_handle_bus_error(hcan, channel);
+	can_handle_state_change(hcan, channel);
 }

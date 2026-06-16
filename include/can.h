@@ -41,7 +41,7 @@ typedef struct can_channel {
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t feature;
-	uint32_t reg_esr_old;
+	enum gs_can_state state;
 #if defined (CONFIG_BXCAN)
 	struct gs_device_filter filter;
 	uint32_t btr;
@@ -89,15 +89,3 @@ bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame);
 bool can_is_rx_pending(can_data_t *channel);
 
 bool can_send(can_data_t *channel, struct gs_host_frame *frame);
-
-/** return CAN->ESR register which contains tx/rx error counters and
- * LEC (last error code).
- */
-uint32_t can_get_error_status(can_data_t *channel);
-
-/** parse status value returned by can_get_error_status().
- * @param frame : will hold the generated error frame
- * @param err : holds the contents of the ESR register
- * @return 1 when status changes (if any) need a new error frame sent
- */
-bool can_parse_error_status(can_data_t *channel, struct gs_host_frame *frame, uint32_t err);

@@ -30,5 +30,5 @@
 #elif defined(STM32F4)
 #include "stm32f4xx_hal.h"  // IWYU pragma: export
 #elif defined(STM32G0)
-# include "stm32g0xx_hal.h" // IWYU pragma: export
+#include "stm32g0xx_hal.h"  // IWYU pragma: export
 #endif

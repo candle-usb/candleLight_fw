@@ -32,7 +32,8 @@
 #ifndef _LINUXKPI_LINUX_COMPILER_H_
 #define _LINUXKPI_LINUX_COMPILER_H_
 
-#include "util_macro.h"
+#include "zephyr/sys/util.h"
+#include "zephyr/sys/util_macro.h"
 
 #ifndef __aligned
 #define __aligned(x) __attribute__((__aligned__(x)))
@@ -79,9 +80,6 @@
 
 #define lockless_dereference(p) READ_ONCE(p)
 
-#define __same_type(a, b)		__builtin_types_compatible_p(typeof(a), typeof(b))
-#define __must_be_array(a)		__same_type(a, &(a)[0])
-
 #define sizeof_field(_s, _m)	sizeof(((_s *)0)->_m)
 
 #define container_of(ptr, type, member) \
@@ -92,8 +90,6 @@
 
 #define struct_size(ptr, field, num) \
 		(offsetof(__typeof(*(ptr)), field) + sizeof((ptr)->field[0]) * (num))
-
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 #define DECLARE_FLEX_ARRAY(_t, _n) \
 		struct { \

@@ -12,7 +12,16 @@
  * below (APIs like IS_ENABLED(), COND_CODE_1(), etc.) are hidden away
  * in this file.
  */
-#include "util_internal.h"
+#include "zephyr/sys/util_internal.h"
+
+/**
+ * @brief Unsigned integer with bit position @p n set (signed in
+ * assembly language).
+ */
+#define BIT(n) (1UL << (n))
+
+/** @brief 64-bit unsigned integer with bit position @p _n set. */
+#define BIT64(_n) (1ULL << (_n))
 
 /** @brief Extract the Least Significant Bit from @p value. */
 #define LSB_GET(value) ((value) & -(value))

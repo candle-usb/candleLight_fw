@@ -291,7 +291,7 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 
 static bool can_state_change_pending(struct can_channel *channel, const uint32_t reg_status)
 {
-	if (channel->state >= GS_CAN_STATE_STOPPED)
+	if (!can_is_enabled(channel))
 		return false;
 
 	const enum gs_can_state new_state = can_drv_get_state(reg_status);

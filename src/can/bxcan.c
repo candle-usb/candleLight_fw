@@ -200,13 +200,6 @@ void can_drv_disable(struct can_channel *channel)
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 
-bool can_is_enabled(can_data_t *channel)
-{
-	CAN_TypeDef *can = channel->instance;
-
-	return (can->MCR & CAN_MCR_INRQ) == 0;
-}
-
 bool can_is_rx_pending(can_data_t *channel)
 {
 	CAN_TypeDef *can = channel->instance;

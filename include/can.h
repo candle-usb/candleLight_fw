@@ -78,8 +78,6 @@ static inline void can_set_filter(can_data_t __maybe_unused *channel, const stru
 }
 #endif
 
-bool can_is_enabled(can_data_t *channel);
-
 bool can_receive(can_data_t *channel, struct gs_host_frame *rx_frame);
 bool can_is_rx_pending(can_data_t *channel);
 

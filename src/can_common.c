@@ -67,6 +67,11 @@ bool can_check_filter_ok(const struct gs_device_filter *filter)
 }
 #endif
 
+bool can_is_enabled(const struct can_channel *channel)
+{
+	return channel->state < GS_CAN_STATE_STOPPED;
+}
+
 void can_enable(struct can_channel *channel, const uint32_t feature)
 {
 	channel->feature = feature;

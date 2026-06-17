@@ -80,6 +80,7 @@ static inline bool can_is_lec_error(const uint8_t lec)
 	return true;
 }
 
+bool can_is_enabled(const struct can_channel *channel);
 void can_enable(struct can_channel *channel, uint32_t mode);
 void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel);
 void can_get_device_state(const struct can_channel *channel, struct gs_device_state *state);

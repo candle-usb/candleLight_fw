@@ -36,6 +36,8 @@
 struct board_channel_config {
 #if defined(CONFIG_BXCAN)
 	CAN_TypeDef *interface;
+#elif defined(CONFIG_M_CAN)
+	FDCAN_GlobalTypeDef *interface;
 #endif
 };
 

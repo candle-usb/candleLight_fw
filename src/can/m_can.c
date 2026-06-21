@@ -49,6 +49,8 @@ const struct gs_device_bt_const CAN_btconst = {
 		 GS_CAN_FEATURE_TERMINATION : 0) |
 		GS_CAN_FEATURE_BERR_REPORTING |
 		GS_CAN_FEATURE_GET_STATE |
+		(IS_ENABLED(CONFIG_CANFD) ?
+		 GS_CAN_FEATURE_TDC : 0) |
 		GS_CAN_FEATURE_BUS_OFF_RECOVERY |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
@@ -77,6 +79,8 @@ const struct gs_device_bt_const_extended CAN_btconst_ext = {
 		 GS_CAN_FEATURE_TERMINATION : 0) |
 		GS_CAN_FEATURE_BERR_REPORTING |
 		GS_CAN_FEATURE_GET_STATE |
+		(IS_ENABLED(CONFIG_CANFD) ?
+		 GS_CAN_FEATURE_TDC : 0) |
 		GS_CAN_FEATURE_BUS_OFF_RECOVERY |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
@@ -100,6 +104,14 @@ const struct gs_device_bt_const_extended CAN_btconst_ext = {
 		.brp_max = 32,
 		.brp_inc = 1,
 	},
+};
+
+const struct gs_device_tdc_const CAN_tdc_const = {
+	.tdco_min = 0,
+	.tdco_max = 127,
+	.tdcf_min = 0,
+	.tdcf_max = 127,
+	.mode = GS_CAN_TDC_MODE_OFF | GS_CAN_TDC_MODE_AUTO,
 };
 
 void can_init(struct can_channel *channel, const struct board_channel_config *config)
@@ -196,6 +208,13 @@ void can_drv_enable(struct can_channel *channel)
 	HAL_FDCAN_ConfigGlobalFilter(&channel->channel,
 								 FDCAN_ACCEPT_IN_RX_FIFO0, FDCAN_ACCEPT_IN_RX_FIFO0,
 								 FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE);
+
+	if (channel->tdc.mode & GS_CAN_TDC_MODE_AUTO) {
+		HAL_FDCAN_ConfigTxDelayCompensation(&channel->channel, channel->tdc.tdco, channel->tdc.tdcf);
+		HAL_FDCAN_EnableTxDelayCompensation(&channel->channel);
+	} else {
+		HAL_FDCAN_DisableTxDelayCompensation(&channel->channel);
+	}
 
 	HAL_FDCAN_Start(&channel->channel);
 }
@@ -296,6 +315,17 @@ bool can_send(struct can_channel *channel, struct gs_host_frame *frame)
 	}
 
 	return true;
+}
+
+void can_drv_get_device_tdc(const struct can_channel *channel, struct gs_device_tdc *tdc)
+{
+	const uint32_t tdcv = FIELD_GET(FDCAN_PSR_TDCV, channel->reg_status.psr);
+
+	/* tdco is 0, if no CAN-FD frame has been send, yet */
+	if (channel->tdc.tdco >= tdcv)
+		return;
+
+	tdc->tdcv = tdcv - channel->tdc.tdco;
 }
 
 bool can_drv_bus_error_pending(const struct can_channel *channel)

@@ -204,7 +204,7 @@ uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state)
 	}
 }
 
-void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	if (!can_drv_bus_error_pending(channel))
 		return;
@@ -221,7 +221,7 @@ void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *c
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 }
 
-void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	enum gs_can_state new_state;
 

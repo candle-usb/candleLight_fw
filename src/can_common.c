@@ -176,7 +176,7 @@ enum gs_can_state can_err_to_state(const uint16_t err)
 	return GS_CAN_STATE_BUS_OFF;
 }
 
-u8 gs_can_tx_state_to_frame(const enum gs_can_state state)
+uint8_t gs_can_tx_state_to_frame(const enum gs_can_state state)
 {
 	switch (state) {
 		case GS_CAN_STATE_ERROR_ACTIVE:
@@ -190,7 +190,7 @@ u8 gs_can_tx_state_to_frame(const enum gs_can_state state)
 	}
 }
 
-u8 gs_can_rx_state_to_frame(const enum gs_can_state state)
+uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state)
 {
 	switch (state) {
 		case GS_CAN_STATE_ERROR_ACTIVE:

@@ -68,8 +68,8 @@ static inline u8 can_channel_get_nr(const can_data_t __maybe_unused *channel)
 void can_enable(struct can_channel *channel, uint32_t mode);
 void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel);
 enum gs_can_state can_err_to_state(const uint16_t err);
-u8 gs_can_tx_state_to_frame(const enum gs_can_state state);
-u8 gs_can_rx_state_to_frame(const enum gs_can_state state);
+uint8_t gs_can_tx_state_to_frame(const enum gs_can_state state);
+uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state);
 
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);

@@ -373,7 +373,7 @@ bool can_drv_bus_error_pending(const struct can_channel *channel)
 	const uint32_t reg_esr = channel->instance->ESR;
 	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
-	return lec != CAN_LEC_NO_ERROR && lec != CAN_LEC_SOFTWARE;
+	return can_is_lec_error(lec);
 }
 
 void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame)

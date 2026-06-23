@@ -388,34 +388,13 @@ bool can_drv_bus_error_pending(const struct can_channel *channel)
 void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame)
 {
 	const uint32_t reg_esr = channel->instance->ESR;
-	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
 	frame->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR | CAN_ERR_CNT;
+
+	can_lec_error_to_frame(frame, FIELD_GET(CAN_ESR_LEC, reg_esr));
+
 	frame->classic_can->data[6] = FIELD_GET(CAN_ESR_TEC, reg_esr);
 	frame->classic_can->data[7] = FIELD_GET(CAN_ESR_REC, reg_esr);
-
-	switch (lec) {
-		case BXCAN_LEC_STUFF_ERROR:
-			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
-			break;
-		case BXCAN_LEC_FORM_ERROR:
-			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
-			break;
-		case BXCAN_LEC_ACK_ERROR:
-			frame->can_id |= CAN_ERR_ACK;
-			break;
-		case BXCAN_LEC_REC_ERROR:
-			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
-			break;
-		case BXCAN_LEC_DOM_ERROR:
-			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
-			break;
-		case BXCAN_LEC_CRC_ERROR:
-			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
-			break;
-		default:
-			break;
-	}
 
 	/* mark as handled by software */
 	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, BXCAN_LEC_SOFTWARE);

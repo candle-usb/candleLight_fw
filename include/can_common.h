@@ -31,6 +31,15 @@
 #include "can.h"
 #include "usbd_gs_can.h"
 
+#define CAN_LEC_NO_ERROR	0
+#define CAN_LEC_STUFF_ERROR 1
+#define CAN_LEC_FORM_ERROR	2
+#define CAN_LEC_ACK_ERROR	3
+#define CAN_LEC_REC_ERROR	4
+#define CAN_LEC_DOM_ERROR	5
+#define CAN_LEC_CRC_ERROR	6
+#define CAN_LEC_SOFTWARE	7
+
 bool can_check_bittiming_ok(const struct can_bittiming_const *btc, const struct gs_device_bittiming *timing);
 
 #ifdef CONFIG_CAN_FILTER
@@ -70,6 +79,7 @@ void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel);
 enum gs_can_state can_err_to_state(const uint16_t err);
 uint8_t gs_can_tx_state_to_frame(const enum gs_can_state state);
 uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state);
+void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec);
 
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);

@@ -204,6 +204,32 @@ uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state)
 	}
 }
 
+void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec)
+{
+	switch (lec) {
+		case CAN_LEC_STUFF_ERROR:
+			frame->classic_can->data[2] |= CAN_ERR_PROT_STUFF;
+			break;
+		case CAN_LEC_FORM_ERROR:
+			frame->classic_can->data[2] |= CAN_ERR_PROT_FORM;
+			break;
+		case CAN_LEC_ACK_ERROR:
+			frame->can_id |= CAN_ERR_ACK;
+			break;
+		case CAN_LEC_REC_ERROR:
+			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT1;
+			break;
+		case CAN_LEC_DOM_ERROR:
+			frame->classic_can->data[2] |= CAN_ERR_PROT_BIT0;
+			break;
+		case CAN_LEC_CRC_ERROR:
+			frame->classic_can->data[3] |= CAN_ERR_PROT_LOC_CRC_SEQ;
+			break;
+		default:
+			break;
+	}
+}
+
 static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	if (!can_drv_bus_error_pending(channel))

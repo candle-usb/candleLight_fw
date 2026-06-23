@@ -33,15 +33,6 @@
 #include "gs_usb.h"
 #include "timer.h"
 
-#define BXCAN_LEC_NO_ERROR	  0
-#define BXCAN_LEC_STUFF_ERROR 1
-#define BXCAN_LEC_FORM_ERROR  2
-#define BXCAN_LEC_ACK_ERROR	  3
-#define BXCAN_LEC_REC_ERROR	  4
-#define BXCAN_LEC_DOM_ERROR	  5
-#define BXCAN_LEC_CRC_ERROR	  6
-#define BXCAN_LEC_SOFTWARE	  7
-
 const struct gs_device_bt_const CAN_btconst = {
 	.feature =
 		GS_CAN_FEATURE_LISTEN_ONLY |
@@ -382,7 +373,7 @@ bool can_drv_bus_error_pending(const struct can_channel *channel)
 	const uint32_t reg_esr = channel->instance->ESR;
 	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
-	return lec != BXCAN_LEC_NO_ERROR && lec != BXCAN_LEC_SOFTWARE;
+	return lec != CAN_LEC_NO_ERROR && lec != CAN_LEC_SOFTWARE;
 }
 
 void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame)
@@ -397,5 +388,5 @@ void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_
 	frame->classic_can->data[7] = FIELD_GET(CAN_ESR_REC, reg_esr);
 
 	/* mark as handled by software */
-	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, BXCAN_LEC_SOFTWARE);
+	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
 }

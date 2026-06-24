@@ -149,6 +149,11 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 	led_indicate_trx(&channel->leds, LED_RX);
 }
 
+void can_get_device_state(const struct can_channel *channel, struct gs_device_state *state)
+{
+	can_drv_get_device_state(channel, state);
+}
+
 static void can_prepare_error_frame(const struct can_channel *channel,
 									struct gs_host_frame *frame)
 

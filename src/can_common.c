@@ -151,7 +151,9 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 void can_get_device_state(const struct can_channel *channel, struct gs_device_state *state)
 {
-	can_drv_get_device_state(channel, state);
+	const uint32_t reg_status = can_drv_read_reg_status(channel);
+
+	can_drv_get_device_state(channel, state, reg_status);
 }
 
 static void can_prepare_error_frame(const struct can_channel *channel,
@@ -235,9 +237,10 @@ void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec)
 	}
 }
 
-static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,
+								 const uint32_t reg_status)
 {
-	if (!can_drv_bus_error_pending(channel))
+	if (!can_drv_bus_error_pending(channel, reg_status))
 		return;
 
 	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
@@ -247,16 +250,17 @@ static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, struct can_cha
 	struct gs_host_frame *frame = &frame_object->frame;
 
 	can_prepare_error_frame(channel, frame);
-	can_drv_handle_bus_error(channel, frame);
+	can_drv_handle_bus_error(channel, frame, reg_status);
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 }
 
-static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
+static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,
+									const uint32_t reg_status)
 {
 	enum gs_can_state new_state;
 
-	new_state = can_drv_get_state(channel);
+	new_state = can_drv_get_state(channel, reg_status);
 
 	if (new_state == channel->state)
 		return;
@@ -274,7 +278,7 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 		frame->can_id |= CAN_ERR_BUSOFF;
 	} else {
 		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
-		can_drv_handle_state_change(channel, frame);
+		can_drv_handle_state_change(channel, frame, reg_status);
 	}
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
@@ -290,6 +294,7 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	can_handle_bus_error(hcan, channel);
-	can_handle_state_change(hcan, channel);
+	const uint32_t reg_status = can_drv_read_reg_status(channel);
+	can_handle_bus_error(hcan, channel, reg_status);
+	can_handle_state_change(hcan, channel, reg_status);
 }

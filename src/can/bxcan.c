@@ -312,6 +312,11 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 	}
 }
 
+uint32_t can_drv_read_reg_status(const struct can_channel *channel)
+{
+	return channel->instance->ESR;
+}
+
 enum gs_can_state can_drv_get_state(const struct can_channel *channel)
 {
 	if (channel->state >= GS_CAN_STATE_STOPPED)

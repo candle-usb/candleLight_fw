@@ -26,6 +26,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 struct can_channel;
 struct gs_device_state;
@@ -34,6 +35,7 @@ struct gs_host_frame;
 void can_drv_enable(struct can_channel *channel);
 void can_drv_disable(struct can_channel *channel);
 
+uint32_t can_drv_read_reg_status(const struct can_channel *channel);
 enum gs_can_state can_drv_get_state(const struct can_channel *channel);
 void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame);
 void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state);

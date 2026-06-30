@@ -255,15 +255,6 @@ static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct c
 static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,
 									const uint32_t reg_status)
 {
-	enum gs_can_state new_state;
-
-	new_state = can_drv_get_state(channel, reg_status);
-
-	if (new_state == channel->state)
-		return;
-
-	channel->state = new_state;
-
 	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
 	if (!frame_object)
 		return;
@@ -290,6 +281,20 @@ static bool can_bus_error_pending(const struct can_channel *channel, const uint3
 	return can_drv_bus_error_pending(reg_status);
 }
 
+static bool can_state_change_pending(struct can_channel *channel, const uint32_t reg_status)
+{
+	if (channel->state >= GS_CAN_STATE_STOPPED)
+		return false;
+
+	const enum gs_can_state new_state = can_drv_get_state(reg_status);
+	if (channel->state == new_state)
+		return false;
+
+	channel->state = new_state;
+
+	return true;
+}
+
 // If there are frames to receive, don't report any error frames. The
 // best we can localize the errors to is "after the last successfully
 // received frame", so wait until we get there. LEC will hold some error
@@ -306,5 +311,7 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		can_handle_bus_error(hcan, channel, reg_status);
 	}
 
-	can_handle_state_change(hcan, channel, reg_status);
+	if (can_state_change_pending(channel, reg_status)) {
+		can_handle_state_change(hcan, channel, reg_status);
+	}
 }

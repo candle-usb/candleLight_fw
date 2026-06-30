@@ -322,11 +322,8 @@ void can_drv_clear_reg_status(const struct can_channel *channel)
 	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
 }
 
-enum gs_can_state can_drv_get_state(const struct can_channel *channel, const uint32_t reg_esr)
+enum gs_can_state can_drv_get_state(const uint32_t reg_esr)
 {
-	if (channel->state >= GS_CAN_STATE_STOPPED)
-		return channel->state;
-
 	if (!(reg_esr & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF))) {
 		return GS_CAN_STATE_ERROR_ACTIVE;
 	}
@@ -363,10 +360,10 @@ void can_drv_handle_state_change(const struct can_channel __maybe_unused *channe
 	frame->classic_can->data[7] = rx_err;
 }
 
-void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state,
+void can_drv_get_device_state(const struct can_channel __maybe_unused *channel, struct gs_device_state *state,
 							  const uint32_t reg_esr)
 {
-	state->state = can_drv_get_state(channel, reg_esr);
+	state->state = can_drv_get_state(reg_esr);
 	state->rxerr = FIELD_GET(CAN_ESR_REC, reg_esr);
 	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
 }

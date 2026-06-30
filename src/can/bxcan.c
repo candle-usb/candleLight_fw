@@ -324,18 +324,26 @@ bool can_drv_bus_error_pending(const uint32_t reg_esr)
 	return can_is_lec_error(lec);
 }
 
-void can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
+bool can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
 							  const uint32_t reg_esr)
 {
+	const uint8_t tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	const uint8_t rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
+
+	/* mark as handled by software */
+	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
+
+	if (tx_err == 0 && rx_err == 0)
+		return false;
+
+	frame->classic_can->data[6] = tx_err;
+	frame->classic_can->data[7] = rx_err;
+
 	frame->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR | CAN_ERR_CNT;
 
 	can_lec_error_to_frame(frame, FIELD_GET(CAN_ESR_LEC, reg_esr));
 
-	frame->classic_can->data[6] = FIELD_GET(CAN_ESR_TEC, reg_esr);
-	frame->classic_can->data[7] = FIELD_GET(CAN_ESR_REC, reg_esr);
-
-	/* mark as handled by software */
-	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
+	return true;
 }
 
 enum gs_can_state can_drv_get_state(const uint32_t reg_esr)

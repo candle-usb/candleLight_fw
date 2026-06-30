@@ -38,7 +38,7 @@ void can_drv_disable(struct can_channel *channel);
 uint32_t can_drv_read_reg_status(const struct can_channel *channel);
 
 bool can_drv_bus_error_pending(const uint32_t reg);
-void can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame, const uint32_t reg);
+bool can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame, const uint32_t reg);
 
 enum gs_can_state can_drv_get_state(const uint32_t reg);
 void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state, const uint32_t reg);

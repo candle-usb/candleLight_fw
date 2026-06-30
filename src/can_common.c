@@ -247,9 +247,12 @@ static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct c
 	struct gs_host_frame *frame = &frame_object->frame;
 
 	can_prepare_error_frame(channel, frame);
-	can_drv_handle_bus_error(channel, frame, reg_status);
-
-	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+	bool handled = can_drv_handle_bus_error(channel, frame, reg_status);
+	if (handled) {
+		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
+	} else {
+		list_add_locked(&frame_object->list, &hcan->list_frame_pool);
+	}
 }
 
 static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,

@@ -371,7 +371,7 @@ void can_drv_get_device_state(const struct can_channel __maybe_unused *channel, 
 	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
 }
 
-void can_drv_handle_state_change(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
+void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame,
 								 const uint32_t reg_esr)
 {
 	enum gs_can_state tx_state, rx_state;
@@ -390,4 +390,6 @@ void can_drv_handle_state_change(const struct can_channel __maybe_unused *channe
 
 	frame->classic_can->data[6] = tx_err;
 	frame->classic_can->data[7] = rx_err;
+
+	can_drv_handle_bus_error(channel, frame, reg_esr);
 }

@@ -317,11 +317,6 @@ uint32_t can_drv_read_reg_status(const struct can_channel *channel)
 	return channel->instance->ESR;
 }
 
-void can_drv_clear_reg_status(const struct can_channel *channel)
-{
-	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
-}
-
 enum gs_can_state can_drv_get_state(const uint32_t reg_esr)
 {
 	if (!(reg_esr & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF))) {

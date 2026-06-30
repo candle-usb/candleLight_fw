@@ -317,9 +317,33 @@ uint32_t can_drv_read_reg_status(const struct can_channel *channel)
 	return channel->instance->ESR;
 }
 
-void can_drv_clear_reg_status(const struct can_channel *channel)
+bool can_drv_bus_error_pending(const uint32_t reg_esr)
 {
+	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
+
+	return can_is_lec_error(lec);
+}
+
+bool can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
+							  const uint32_t reg_esr)
+{
+	const uint8_t tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	const uint8_t rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
+
+	/* mark as handled by software */
 	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
+
+	if (tx_err == 0 && rx_err == 0)
+		return false;
+
+	frame->classic_can->data[6] = tx_err;
+	frame->classic_can->data[7] = rx_err;
+
+	frame->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR | CAN_ERR_CNT;
+
+	can_lec_error_to_frame(frame, FIELD_GET(CAN_ESR_LEC, reg_esr));
+
+	return true;
 }
 
 enum gs_can_state can_drv_get_state(const uint32_t reg_esr)
@@ -339,7 +363,15 @@ enum gs_can_state can_drv_get_state(const uint32_t reg_esr)
 	return GS_CAN_STATE_ERROR_WARNING;
 }
 
-void can_drv_handle_state_change(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
+void can_drv_get_device_state(const struct can_channel __maybe_unused *channel, struct gs_device_state *state,
+							  const uint32_t reg_esr)
+{
+	state->state = can_drv_get_state(reg_esr);
+	state->rxerr = FIELD_GET(CAN_ESR_REC, reg_esr);
+	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
+}
+
+void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame,
 								 const uint32_t reg_esr)
 {
 	enum gs_can_state tx_state, rx_state;
@@ -358,33 +390,6 @@ void can_drv_handle_state_change(const struct can_channel __maybe_unused *channe
 
 	frame->classic_can->data[6] = tx_err;
 	frame->classic_can->data[7] = rx_err;
-}
 
-void can_drv_get_device_state(const struct can_channel __maybe_unused *channel, struct gs_device_state *state,
-							  const uint32_t reg_esr)
-{
-	state->state = can_drv_get_state(reg_esr);
-	state->rxerr = FIELD_GET(CAN_ESR_REC, reg_esr);
-	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
-}
-
-bool can_drv_bus_error_pending(const uint32_t reg_esr)
-{
-	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
-
-	return can_is_lec_error(lec);
-}
-
-void can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
-							  const uint32_t reg_esr)
-{
-	frame->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR | CAN_ERR_CNT;
-
-	can_lec_error_to_frame(frame, FIELD_GET(CAN_ESR_LEC, reg_esr));
-
-	frame->classic_can->data[6] = FIELD_GET(CAN_ESR_TEC, reg_esr);
-	frame->classic_can->data[7] = FIELD_GET(CAN_ESR_REC, reg_esr);
-
-	/* mark as handled by software */
-	channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
+	can_drv_handle_bus_error(channel, frame, reg_esr);
 }

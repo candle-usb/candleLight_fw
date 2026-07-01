@@ -34,6 +34,8 @@
 #include "led.h"
 #include "list.h"
 
+#define CAN_CHANNEL_BUS_OFF_RESTART_DISABLED 0
+
 typedef struct can_channel {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
@@ -42,6 +44,7 @@ typedef struct can_channel {
 	led_data_t leds;
 	uint32_t feature;
 	enum gs_can_state state;
+	uint32_t bus_off_restart;
 #if defined (CONFIG_BXCAN)
 	struct gs_device_filter filter;
 	uint32_t btr;

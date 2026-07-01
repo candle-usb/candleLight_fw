@@ -32,9 +32,11 @@
 #include "timer.h"
 #include "usbd_gs_can.h"
 
-#define CAN_ERROR_WARNING_THRESHOLD 96
-#define CAN_ERROR_PASSIVE_THRESHOLD 128
-#define CAN_BUS_OFF_THRESHOLD		256
+#define CAN_ERROR_WARNING_THRESHOLD	 96
+#define CAN_ERROR_PASSIVE_THRESHOLD	 128
+#define CAN_BUS_OFF_THRESHOLD		 256
+
+#define CAN_BUS_OFF_RESTART_DELAY_MS 100
 
 #ifndef CONFIG_CANFD
 const struct gs_device_bt_const_extended CAN_btconst_ext;
@@ -89,6 +91,8 @@ void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 	board_phy_power_set(channel, false);
 	usbd_gs_can_purge_from_host_list_by_channel(hcan, channel);
 	usbd_gs_can_purge_to_host_list_by_channel(hcan, channel);
+
+	channel->bus_off_restart = CAN_CHANNEL_BUS_OFF_RESTART_DISABLED;
 	channel->state = GS_CAN_STATE_STOPPED;
 	led_set_mode(&channel->leds, LED_MODE_OFF);
 }
@@ -271,6 +275,14 @@ static bool can_bus_error_pending(const struct can_channel *channel, const uint3
 	return can_drv_bus_error_pending(reg_status);
 }
 
+void can_schedule_bus_off_recovery(struct can_channel *channel, const uint32_t delay_ms)
+{
+	channel->bus_off_restart = HAL_GetTick() + delay_ms;
+
+	if (channel->bus_off_restart == CAN_CHANNEL_BUS_OFF_RESTART_DISABLED)
+		channel->bus_off_restart++;
+}
+
 static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,
 									const uint32_t reg_status)
 {
@@ -283,6 +295,7 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 
 	if (channel->state == GS_CAN_STATE_BUS_OFF) {
 		frame->can_id |= CAN_ERR_BUSOFF;
+		can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
 	} else {
 		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
 		can_drv_handle_state_change(channel, frame, reg_status);
@@ -306,6 +319,23 @@ static bool can_state_change_pending(struct can_channel *channel, const uint32_t
 	return true;
 }
 
+static void can_handle_bus_off_recovery(USBD_GS_CAN_HandleTypeDef __maybe_unused *hcan, struct can_channel *channel)
+{
+	can_drv_handle_bus_off_recovery(channel);
+
+	channel->bus_off_restart = CAN_CHANNEL_BUS_OFF_RESTART_DISABLED;
+}
+
+static bool can_bus_off_recovery_pending(const struct can_channel *channel)
+{
+	if (channel->bus_off_restart == CAN_CHANNEL_BUS_OFF_RESTART_DISABLED)
+		return false;
+
+	const uint32_t now = HAL_GetTick();
+
+	return time_after(now, channel->bus_off_restart);
+}
+
 // If there are frames to receive, don't report any error frames. The
 // best we can localize the errors to is "after the last successfully
 // received frame", so wait until we get there. LEC will hold some error
@@ -322,5 +352,7 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		can_handle_state_change(hcan, channel, reg_status);
 	} else if (can_bus_error_pending(channel, reg_status)) {
 		can_handle_bus_error(hcan, channel, reg_status);
+	} else if (can_bus_off_recovery_pending(channel)) {
+		can_handle_bus_off_recovery(hcan, channel);
 	}
 }

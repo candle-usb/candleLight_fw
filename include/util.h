@@ -29,6 +29,8 @@
 #include <stdbool.h>
 #include <cmsis_device.h>
 
+#define time_after(a, b) ((int)((b) - (a)) < 0)
+
 void hex32(char *out, uint32_t val);
 
 // ARM's

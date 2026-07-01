@@ -24,7 +24,6 @@
  *
  */
 
-#include "board.h"
 #include "can.h"
 #include "can_common.h"
 #include "can_drv.h"
@@ -188,15 +187,12 @@ void can_drv_enable(struct can_channel *channel)
 
 	can->MCR &= ~CAN_MCR_INRQ;
 	while ((can->MSR & CAN_MSR_INAK) != 0);
-
-	board_phy_power_set(channel, true);
 }
 
 void can_drv_disable(struct can_channel *channel)
 {
 	CAN_TypeDef *can = channel->instance;
 
-	board_phy_power_set(channel, false);
 	can->MCR |= CAN_MCR_INRQ;     // send can controller into initialization mode
 }
 

@@ -255,6 +255,15 @@ static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct c
 	}
 }
 
+static bool can_bus_error_pending(const struct can_channel *channel, const uint32_t reg_status)
+{
+	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
+		return false;
+	}
+
+	return can_drv_bus_error_pending(reg_status);
+}
+
 static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,
 									const uint32_t reg_status)
 {
@@ -273,15 +282,6 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 	}
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
-}
-
-static bool can_bus_error_pending(const struct can_channel *channel, const uint32_t reg_status)
-{
-	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
-		return false;
-	}
-
-	return can_drv_bus_error_pending(reg_status);
 }
 
 static bool can_state_change_pending(struct can_channel *channel, const uint32_t reg_status)

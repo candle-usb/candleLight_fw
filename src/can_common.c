@@ -319,11 +319,22 @@ static bool can_state_change_pending(struct can_channel *channel, const uint32_t
 	return true;
 }
 
-static void can_handle_bus_off_recovery(USBD_GS_CAN_HandleTypeDef __maybe_unused *hcan, struct can_channel *channel)
+static void can_handle_bus_off_recovery(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	can_drv_handle_bus_off_recovery(channel);
 
 	channel->bus_off_restart = CAN_CHANNEL_BUS_OFF_RESTART_DISABLED;
+
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	if (!frame_object)
+		return;
+
+	struct gs_host_frame *frame = &frame_object->frame;
+	can_prepare_error_frame(channel, frame);
+
+	frame->can_id |= CAN_ERR_RESTARTED;
+
+	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 }
 
 static bool can_bus_off_recovery_pending(const struct can_channel *channel)

@@ -68,17 +68,6 @@ extern const struct gs_device_filter_info CAN_filter_info;
 struct board_channel_config;
 
 void can_init(can_data_t *channel, const struct board_channel_config *config);
-void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
-
-#ifdef CONFIG_CANFD
-void can_set_data_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
-#else
-static inline bool can_set_data_bittiming(can_data_t __maybe_unused *channel,
-										  const struct gs_device_bittiming __maybe_unused *timing)
-{
-	return false;
-}
-#endif
 
 #ifdef CONFIG_CAN_FILTER
 void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter);

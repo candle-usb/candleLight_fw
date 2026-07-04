@@ -375,7 +375,7 @@ void can_drv_handle_state_change(const struct can_channel *channel, struct gs_ho
 								 const uint32_t reg_esr)
 {
 	enum gs_can_state tx_state, rx_state;
-	u8 tx_err, rx_err;
+	uint8_t tx_err, rx_err;
 
 	tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
 	rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);

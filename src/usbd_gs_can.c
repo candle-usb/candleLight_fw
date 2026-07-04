@@ -233,7 +233,7 @@ void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
 	 * For more than one channel, iterate over each object in hcan->list_to_host.
 	 */
 	struct gs_host_frame_object *iter, *next;
-	const u8 channel_nr = can_channel_get_nr(channel);
+	const uint8_t channel_nr = can_channel_get_nr(channel);
 	const bool was_irq_enabled = disable_irq();
 
 	list_for_each_entry_safe(iter, next, &hcan->list_to_host, list) {

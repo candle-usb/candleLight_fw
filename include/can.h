@@ -40,6 +40,11 @@ struct can_drv_reg_status {
 #endif
 };
 
+enum can_channel_flag {
+	CAN_CHANNEL_FLAG_BITTIMING_SET = BIT(0),
+	CAN_CHANNEL_FLAG_DATA_BITTIMING_SET = BIT(1),
+};
+
 #define CAN_CHANNEL_BUS_OFF_RESTART_DISABLED 0
 
 typedef struct can_channel {
@@ -50,6 +55,7 @@ typedef struct can_channel {
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t feature;
+	enum can_channel_flag flags;
 	enum gs_can_state state;
 	uint32_t bus_off_restart;
 	struct gs_device_bittiming bittiming;

@@ -65,12 +65,16 @@ bool can_check_bittiming_ok(const struct can_bittiming_const *btc,
 
 void can_set_bittiming(struct can_channel *channel, const struct gs_device_bittiming *bt)
 {
+	channel->flags |= CAN_CHANNEL_FLAG_BITTIMING_SET;
+
 	channel->bittiming = *bt;
 }
 
 #ifdef CONFIG_CANFD
 void can_set_data_bittiming(struct can_channel *channel, const struct gs_device_bittiming *bt)
 {
+	channel->flags |= CAN_CHANNEL_FLAG_DATA_BITTIMING_SET;
+
 	channel->data_bittiming = *bt;
 }
 #endif
@@ -108,6 +112,7 @@ void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 
 	channel->bus_off_restart = CAN_CHANNEL_BUS_OFF_RESTART_DISABLED;
 	channel->state = GS_CAN_STATE_STOPPED;
+	channel->flags = 0;
 	channel->feature = 0;
 
 	led_set_mode(&channel->leds, LED_MODE_OFF);

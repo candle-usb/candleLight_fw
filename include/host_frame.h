@@ -29,7 +29,7 @@
 #include "config.h"
 #include "usbd_gs_can.h"
 
-static inline u8
+static inline uint8_t
 gs_host_frame_object_get_channel_nr(const struct gs_host_frame_object *frame_object)
 {
 	if (NUM_CAN_CHANNEL > 1)
@@ -42,7 +42,7 @@ static inline can_data_t *
 gs_host_frame_object_get_channel(USBD_GS_CAN_HandleTypeDef *hcan,
 								 const struct gs_host_frame_object *frame_object)
 {
-	const u8 channel_nr = gs_host_frame_object_get_channel_nr(frame_object);
+	const uint8_t channel_nr = gs_host_frame_object_get_channel_nr(frame_object);
 
 	return &hcan->channels[channel_nr];
 }

@@ -52,21 +52,21 @@ static inline bool can_check_filter_ok(const struct gs_device_filter __maybe_unu
 #endif
 
 #if (NUM_CAN_CHANNEL > 1)
-static inline void can_channel_set_nr(can_data_t *channel, const u8 nr)
+static inline void can_channel_set_nr(can_data_t *channel, const uint8_t nr)
 {
 	channel->nr = nr;
 }
 
-static inline u8 can_channel_get_nr(const can_data_t *channel)
+static inline uint8_t can_channel_get_nr(const can_data_t *channel)
 {
 	return channel->nr;
 }
 #else
-static inline void can_channel_set_nr(can_data_t __maybe_unused *channel, const u8 __maybe_unused nr)
+static inline void can_channel_set_nr(can_data_t __maybe_unused *channel, const uint8_t __maybe_unused nr)
 {
 }
 
-static inline u8 can_channel_get_nr(const can_data_t __maybe_unused *channel)
+static inline uint8_t can_channel_get_nr(const can_data_t __maybe_unused *channel)
 {
 	return 0;
 }

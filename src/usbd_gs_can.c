@@ -656,7 +656,8 @@ out_fail:
 	return USBD_FAIL;
 }
 
-static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t __maybe_unused epnum) {
+static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t __maybe_unused epnum)
+{
 	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
 
 	bool was_irq_enabled = disable_irq();

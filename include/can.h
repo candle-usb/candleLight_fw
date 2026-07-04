@@ -53,6 +53,9 @@ typedef struct can_channel {
 	enum gs_can_state state;
 	uint32_t bus_off_restart;
 	struct gs_device_bittiming bittiming;
+#ifdef CONFIG_CANFD
+	struct gs_device_bittiming data_bittiming;
+#endif
 #if defined (CONFIG_BXCAN)
 	struct gs_device_filter filter;
 #endif

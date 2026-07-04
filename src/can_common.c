@@ -68,6 +68,13 @@ void can_set_bittiming(struct can_channel *channel, const struct gs_device_bitti
 	channel->bittiming = *bt;
 }
 
+#ifdef CONFIG_CANFD
+void can_set_data_bittiming(struct can_channel *channel, const struct gs_device_bittiming *bt)
+{
+	channel->data_bittiming = *bt;
+}
+#endif
+
 #ifdef CONFIG_CAN_FILTER
 bool can_check_filter_ok(const struct gs_device_filter *filter)
 {

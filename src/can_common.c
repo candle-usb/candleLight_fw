@@ -162,9 +162,7 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 void can_get_device_state(const struct can_channel *channel, struct gs_device_state *state)
 {
-	const uint32_t reg_status = can_drv_read_reg_status(channel);
-
-	can_drv_get_device_state(channel, state, reg_status);
+	can_drv_get_device_state(channel, state);
 }
 
 static void can_prepare_error_frame(const struct can_channel *channel,
@@ -248,8 +246,7 @@ void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec)
 	}
 }
 
-static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct can_channel *channel,
-								 const uint32_t reg_status)
+static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct can_channel *channel)
 {
 	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
 	if (!frame_object)
@@ -258,7 +255,7 @@ static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct c
 	struct gs_host_frame *frame = &frame_object->frame;
 
 	can_prepare_error_frame(channel, frame);
-	bool handled = can_drv_handle_bus_error(channel, frame, reg_status);
+	bool handled = can_drv_handle_bus_error(channel, frame);
 	if (handled) {
 		list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 	} else {
@@ -266,13 +263,13 @@ static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct c
 	}
 }
 
-static bool can_bus_error_pending(const struct can_channel *channel, const uint32_t reg_status)
+static bool can_bus_error_pending(const struct can_channel *channel)
 {
 	if (!(channel->feature & GS_CAN_FEATURE_BERR_REPORTING)) {
 		return false;
 	}
 
-	return can_drv_bus_error_pending(reg_status);
+	return can_drv_bus_error_pending(channel);
 }
 
 bool can_check_bus_off_recovery_ok(const struct can_channel *channel)
@@ -289,8 +286,7 @@ void can_schedule_bus_off_recovery(struct can_channel *channel, const uint32_t d
 		channel->bus_off_restart++;
 }
 
-static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel,
-									const uint32_t reg_status)
+static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
 	if (!frame_object)
@@ -307,19 +303,19 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 			can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
 	} else {
 		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
-		can_drv_handle_state_change(channel, frame, reg_status);
-		can_drv_handle_bus_error(channel, frame, reg_status);
+		can_drv_handle_state_change(channel, frame);
+		can_drv_handle_bus_error(channel, frame);
 	}
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);
 }
 
-static bool can_state_change_pending(struct can_channel *channel, const uint32_t reg_status)
+static bool can_state_change_pending(struct can_channel *channel)
 {
 	if (!can_is_enabled(channel))
 		return false;
 
-	const enum gs_can_state new_state = can_drv_get_state(reg_status);
+	const enum gs_can_state new_state = can_drv_get_state(channel);
 	if (channel->state == new_state)
 		return false;
 
@@ -366,12 +362,12 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	const uint32_t reg_status = can_drv_read_reg_status(channel);
+	can_drv_read_reg_status(channel);
 
-	if (can_state_change_pending(channel, reg_status)) {
-		can_handle_state_change(hcan, channel, reg_status);
-	} else if (can_bus_error_pending(channel, reg_status)) {
-		can_handle_bus_error(hcan, channel, reg_status);
+	if (can_state_change_pending(channel)) {
+		can_handle_state_change(hcan, channel);
+	} else if (can_bus_error_pending(channel)) {
+		can_handle_bus_error(hcan, channel);
 	} else if (can_bus_off_recovery_pending(channel)) {
 		can_handle_bus_off_recovery(hcan, channel);
 	}

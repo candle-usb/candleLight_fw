@@ -34,12 +34,19 @@
 #include "led.h"
 #include "list.h"
 
+struct can_drv_reg_status {
+#if defined (CONFIG_BXCAN)
+	uint32_t esr;
+#endif
+};
+
 #define CAN_CHANNEL_BUS_OFF_RESTART_DISABLED 0
 
 typedef struct can_channel {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
 #endif
+	struct can_drv_reg_status reg_status;
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t feature;

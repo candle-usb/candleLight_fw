@@ -279,6 +279,7 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 	} else {
 		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
 		can_drv_handle_state_change(channel, frame, reg_status);
+		can_drv_handle_bus_error(channel, frame, reg_status);
 	}
 
 	list_add_tail_locked(&frame_object->list, &hcan->list_to_host);

@@ -233,7 +233,7 @@ void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
 	 * For more than one channel, iterate over each object in hcan->list_to_host.
 	 */
 	struct gs_host_frame_object *iter, *next;
-	const u8 channel_nr = can_channel_get_nr(channel);
+	const uint8_t channel_nr = can_channel_get_nr(channel);
 	const bool was_irq_enabled = disable_irq();
 
 	list_for_each_entry_safe(iter, next, &hcan->list_to_host, list) {
@@ -566,7 +566,6 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	if (!IS_ENABLED(CONFIG_TERMINATION)) {
 		switch (req->bRequest) {
 			case GS_USB_BREQ_SET_TERMINATION:
-			case GS_USB_BREQ_GET_TERMINATION:
 				goto out_fail;
 		}
 	}
@@ -656,7 +655,8 @@ out_fail:
 	return USBD_FAIL;
 }
 
-static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t __maybe_unused epnum) {
+static uint8_t USBD_GS_CAN_DataIn(USBD_HandleTypeDef *pdev, uint8_t __maybe_unused epnum)
+{
 	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
 
 	bool was_irq_enabled = disable_irq();

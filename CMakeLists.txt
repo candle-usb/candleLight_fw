@@ -159,9 +159,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 file(GLOB_RECURSE CHECK_SOURCE_FILES
 	"include/*.[ch]"
 	"src/*.[ch]"
+
+	"libs/STM32_HAL/config/hal_include.h"
+	"libs/STM32_USB_Device_Library/config/usbd_conf.h"
 )
 
 file(GLOB_RECURSE CHECK_EXTRA_FILES
+	".github/*"
 	"70-candle-usb.rules"
 	"LICENSE.md"
 	"README.md"
@@ -259,12 +263,12 @@ function(dfu_flash target)
 		)
 
 		add_custom_target(flash-${target}
-			dfu-util -a 0 -s 0x08000000:leave -D ${target}.dfu
+			${DFU_UTIL_EXECUTABLE} -a 0 -s 0x08000000:leave -D ${target}.dfu
 			DEPENDS ${target}.dfu
 		)
 	else()
 		add_custom_target(flash-${target}
-			dfu-util -d 1d50:606f -a 0 -s 0x08000000:leave -D ${target}.bin
+			${DFU_UTIL_EXECUTABLE} -d 1d50:606f -a 0 -s 0x08000000:leave -D ${target}.bin
 			DEPENDS ${target}.bin
 		)
 	endif()
@@ -367,7 +371,7 @@ function(add_target_common TGTNAME CPU_FAMILY)
 	)
 	target_link_options(${TGTNAME}_fw PRIVATE -T ${${CPU_FAMILY}_LINKER_SCRIPT} LINKER:-Map=${TGTNAME}_fw.map)
 	set_target_properties(${TGTNAME}_fw PROPERTIES
-		ADDITIONAL_CLEAN_FILES "${TGTNAME}_fw.map"
+		ADDITIONAL_CLEAN_FILES "${${CPU_FAMILY}_LINKER_SCRIPT};${TGTNAME}_fw.map"
 	)
 	make_bin_file(${TGTNAME}_fw)
 	dfu_flash(${TGTNAME}_fw)

@@ -5,4 +5,12 @@ find_program(DFU_SUFFIX_EXECUTABLE
 	DOC "dfu-suffix executable"
 )
 
-mark_as_advanced(DFU_SUFFIX_EXECUTABLE)
+find_program(DFU_UTIL_EXECUTABLE
+	NAMES dfu-util
+	DOC "dfu-util executable"
+)
+
+mark_as_advanced(
+	DFU_SUFFIX_EXECUTABLE
+	DFU_UTIL_EXECUTABLE
+)

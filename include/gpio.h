@@ -40,15 +40,12 @@ void set_term(can_data_t *channel, enum gs_can_termination_state state);
 enum gs_can_termination_state get_term(can_data_t *channel);
 
 #else
-static inline void set_term(can_data_t *channel, enum gs_can_termination_state state)
+static inline void set_term(can_data_t __maybe_unused *channel, enum gs_can_termination_state __maybe_unused state)
 {
-	(void)channel;
-	(void)state;
 }
 
-static inline enum gs_can_termination_state get_term(can_data_t * channel)
+static inline enum gs_can_termination_state get_term(can_data_t __maybe_unused *channel)
 {
-	(void)channel;
 	return GS_CAN_TERMINATION_UNSUPPORTED;
 }
 

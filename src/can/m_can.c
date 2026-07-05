@@ -33,6 +33,8 @@
 #define M_CAN_PSR_ACT_RECEIVER	  2
 #define M_CAN_PSR_ACT_TRANSMITTER 3
 
+#define M_CAN_SYNC_BUS_TIMEOUT_MS 100
+
 const struct gs_device_bt_const CAN_btconst = {
 	.feature =
 		GS_CAN_FEATURE_LISTEN_ONLY |
@@ -46,6 +48,7 @@ const struct gs_device_bt_const CAN_btconst = {
 		 GS_CAN_FEATURE_TERMINATION : 0) |
 		GS_CAN_FEATURE_BERR_REPORTING |
 		GS_CAN_FEATURE_GET_STATE |
+		GS_CAN_FEATURE_BUS_OFF_RECOVERY |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
 	.btc = {
@@ -73,6 +76,7 @@ const struct gs_device_bt_const_extended CAN_btconst_ext = {
 		 GS_CAN_FEATURE_TERMINATION : 0) |
 		GS_CAN_FEATURE_BERR_REPORTING |
 		GS_CAN_FEATURE_GET_STATE |
+		GS_CAN_FEATURE_BUS_OFF_RECOVERY |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
 	.btc = {
@@ -363,6 +367,26 @@ void can_drv_handle_state_change(const struct can_channel *channel, struct gs_ho
 	}
 }
 
+static void m_can_synchronize_bus(struct can_channel *channel)
+{
+	const uint32_t timeout = HAL_GetTick() + M_CAN_SYNC_BUS_TIMEOUT_MS;
+	uint32_t now;
+
+	do {
+		can_drv_read_reg_status(channel);
+		if (FIELD_GET(FDCAN_PSR_ACT, channel->reg_status.psr) != M_CAN_PSR_ACT_SYNC) {
+			return;
+		}
+
+		now = HAL_GetTick();
+	} while (!time_after(now, timeout));
+}
+
 void can_drv_handle_bus_off_recovery(struct can_channel *channel)
 {
+	HAL_FDCAN_AbortTxRequest(&channel->channel, FDCAN_TX_BUFFER0 | FDCAN_TX_BUFFER1 | FDCAN_TX_BUFFER2);
+	HAL_FDCAN_Stop(&channel->channel);
+	HAL_FDCAN_Start(&channel->channel);
+
+	m_can_synchronize_bus(channel);
 }

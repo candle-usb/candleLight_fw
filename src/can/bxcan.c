@@ -312,16 +312,16 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 	}
 }
 
-uint32_t can_drv_read_reg_status(const struct can_channel *channel)
-{
-	return channel->instance->ESR;
-}
-
 bool can_drv_bus_error_pending(const uint32_t reg_esr)
 {
 	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
 	return can_is_lec_error(lec);
+}
+
+uint32_t can_drv_read_reg_status(const struct can_channel *channel)
+{
+	return channel->instance->ESR;
 }
 
 bool can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,

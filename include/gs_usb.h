@@ -29,41 +29,41 @@
 
 #include "compiler.h"
 
-#define u32										uint32_t
-#define u8										uint8_t
+#define u32												  uint32_t
+#define u8												  uint8_t
 
-#define GSUSB_ENDPOINT_IN						0x81
-#define GSUSB_ENDPOINT_OUT						0x02
+#define GSUSB_ENDPOINT_IN								  0x81
+#define GSUSB_ENDPOINT_OUT								  0x02
 
-#define GS_CAN_FEATURE_LISTEN_ONLY				(1<<0)
-#define GS_CAN_FEATURE_LOOP_BACK				(1<<1)
-#define GS_CAN_FEATURE_TRIPLE_SAMPLE			(1<<2)
-#define GS_CAN_FEATURE_ONE_SHOT					(1<<3)
-#define GS_CAN_FEATURE_HW_TIMESTAMP				(1<<4)
-#define GS_CAN_FEATURE_IDENTIFY					(1<<5)
-#define GS_CAN_FEATURE_USER_ID					(1<<6)
-#define GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE (1<<7)
-#define GS_CAN_FEATURE_FD						(1<<8) /* device supports CAN-FD */
+#define GS_CAN_FEATURE_LISTEN_ONLY						  (1<<0)
+#define GS_CAN_FEATURE_LOOP_BACK						  (1<<1)
+#define GS_CAN_FEATURE_TRIPLE_SAMPLE					  (1<<2)
+#define GS_CAN_FEATURE_ONE_SHOT							  (1<<3)
+#define GS_CAN_FEATURE_HW_TIMESTAMP						  (1<<4)
+#define GS_CAN_FEATURE_IDENTIFY							  (1<<5)
+#define GS_CAN_FEATURE_USER_ID							  (1<<6)
+#define GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE			  (1<<7)
+#define GS_CAN_FEATURE_FD								  (1<<8) /* device supports CAN-FD */
 /* request workaround for LPC546XX erratum USB.15:
  * let host driver add a padding byte to each USB frame
  */
-#define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX	(1<<9)
+#define GS_CAN_FEATURE_REQ_USB_QUIRK_LPC546XX			  (1<<9)
 /* device supports separate bit timing constants for CAN-FD
  * arbitration and data phase, see:
  * GS_USB_BREQ_BT_CONST_EXT and struct gs_device_bt_const_extended
  */
-#define GS_CAN_FEATURE_BT_CONST_EXT				(1<<10)
+#define GS_CAN_FEATURE_BT_CONST_EXT						  (1<<10)
 /* device supports switchable termination, see:
  * - GS_USB_BREQ_SET_TERMINATION
  * - GS_USB_BREQ_GET_TERMINATION
  * - struct gs_device_termination_state
  */
-#define GS_CAN_FEATURE_TERMINATION				(1<<11)
-#define GS_CAN_FEATURE_BERR_REPORTING			(1<<12)
-#define GS_CAN_FEATURE_GET_STATE				(1<<13)
-#define GS_CAN_FEATURE_ELM_PROTOCOL				(1<<14)
+#define GS_CAN_FEATURE_TERMINATION						  (1<<11)
+#define GS_CAN_FEATURE_BERR_REPORTING					  (1<<12)
+#define GS_CAN_FEATURE_GET_STATE						  (1<<13)
+#define GS_CAN_FEATURE_ELM_PROTOCOL						  (1<<14)
 /* supported by Elmue firmware until 0x260528 (including) */
-#define GS_CAN_FEATURE_ELM_DISABLE_TX_ECHO		(1<<15)
+#define GS_CAN_FEATURE_ELM_DISABLE_TX_ECHO				  (1<<15)
 /* supported by Elmue firmware since 0x260529 */
 #define GS_CAN_FEATURE_ELM_DEV_FLAG_SEND_USB_BLOBS		  (1<<15)
 /* supported by Elmue firmware 0x260528 only */
@@ -74,18 +74,18 @@
  * - struct gs_device_filter_info
  * - struct gs_device_filter
  */
-#define GS_CAN_FEATURE_FILTER					(1<<16)
+#define GS_CAN_FEATURE_FILTER							  (1<<16)
 
-#define GS_CAN_FLAG_OVERFLOW					(1<<0)
-#define GS_CAN_FLAG_FD							(1<<1) /* is a CAN-FD frame */
-#define GS_CAN_FLAG_BRS							(1<<2) /* bit rate switch (for CAN-FD frames) */
-#define GS_CAN_FLAG_ESI							(1<<3) /* error state indicator (for CAN-FD frames) */
+#define GS_CAN_FLAG_OVERFLOW							  (1<<0)
+#define GS_CAN_FLAG_FD									  (1<<1) /* is a CAN-FD frame */
+#define GS_CAN_FLAG_BRS									  (1<<2) /* bit rate switch (for CAN-FD frames) */
+#define GS_CAN_FLAG_ESI									  (1<<3) /* error state indicator (for CAN-FD frames) */
 
-#define CAN_EFF_FLAG							0x80000000U /* EFF/SFF is set in the MSB */
-#define CAN_RTR_FLAG							0x40000000U /* remote transmission request */
-#define CAN_ERR_FLAG							0x20000000U /* error message frame */
+#define CAN_EFF_FLAG									  0x80000000U /* EFF/SFF is set in the MSB */
+#define CAN_RTR_FLAG									  0x40000000U /* remote transmission request */
+#define CAN_ERR_FLAG									  0x20000000U /* error message frame */
 
-#define CAN_ERR_DLC								8 /* dlc for error message frames */
+#define CAN_ERR_DLC										  8 /* dlc for error message frames */
 
 /* error class (mask) in can_id */
 #define CAN_ERR_TX_TIMEOUT 0x00000001U   /* TX timeout (by netdevice driver) */

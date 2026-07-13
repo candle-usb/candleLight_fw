@@ -310,11 +310,9 @@ void CAN_HandleError(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 
 	const uint32_t reg_status = can_drv_read_reg_status(channel);
 
-	if (can_bus_error_pending(channel, reg_status)) {
-		can_handle_bus_error(hcan, channel, reg_status);
-	}
-
 	if (can_state_change_pending(channel, reg_status)) {
 		can_handle_state_change(hcan, channel, reg_status);
+	} else if (can_bus_error_pending(channel, reg_status)) {
+		can_handle_bus_error(hcan, channel, reg_status);
 	}
 }

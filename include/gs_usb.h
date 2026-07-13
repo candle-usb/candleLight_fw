@@ -62,7 +62,12 @@
 #define GS_CAN_FEATURE_BERR_REPORTING			(1<<12)
 #define GS_CAN_FEATURE_GET_STATE				(1<<13)
 #define GS_CAN_FEATURE_ELM_PROTOCOL				(1<<14)
+/* supported by Elmue firmware until 0x260528 (including) */
 #define GS_CAN_FEATURE_ELM_DISABLE_TX_ECHO		(1<<15)
+/* supported by Elmue firmware since 0x260529 */
+#define GS_CAN_FEATURE_ELM_DEV_FLAG_SEND_USB_BLOBS		  (1<<15)
+/* supported by Elmue firmware 0x260528 only */
+#define GS_CAN_FEATURE_ELM_DEV_FLAG_SEND_USB_BLOBS_260528 (1<<16)
 /* device supports HW filter, see:
  * - GS_USB_BREQ_SET_FILTER,
  * - GS_USB_BREQ_GET_FILTER,

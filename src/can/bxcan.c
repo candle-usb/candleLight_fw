@@ -46,6 +46,7 @@ const struct gs_device_bt_const CAN_btconst = {
 		GS_CAN_FEATURE_GET_STATE |
 		(IS_ENABLED(CONFIG_CAN_FILTER) ?
 		 GS_CAN_FEATURE_FILTER : 0) |
+		GS_CAN_FEATURE_BUS_OFF_RECOVERY |
 		0,
 	.fclk_can = CAN_CLOCK_SPEED,
 	.btc = {

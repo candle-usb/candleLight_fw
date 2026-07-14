@@ -275,6 +275,12 @@ static bool can_bus_error_pending(const struct can_channel *channel, const uint3
 	return can_drv_bus_error_pending(reg_status);
 }
 
+bool can_check_bus_off_recovery_ok(const struct can_channel *channel)
+{
+	return channel->feature & GS_CAN_FEATURE_BUS_OFF_RECOVERY &&
+		   channel->state == GS_CAN_STATE_BUS_OFF;
+}
+
 void can_schedule_bus_off_recovery(struct can_channel *channel, const uint32_t delay_ms)
 {
 	channel->bus_off_restart = HAL_GetTick() + delay_ms;
@@ -295,7 +301,10 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 
 	if (channel->state == GS_CAN_STATE_BUS_OFF) {
 		frame->can_id |= CAN_ERR_BUSOFF;
-		can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
+
+		/* host is not taking care of CAN bus of recovery */
+		if (!(channel->feature & GS_CAN_FEATURE_BUS_OFF_RECOVERY))
+			can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
 	} else {
 		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
 		can_drv_handle_state_change(channel, frame, reg_status);

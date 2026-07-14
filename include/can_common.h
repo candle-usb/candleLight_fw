@@ -90,6 +90,7 @@ uint8_t gs_can_tx_state_to_frame(const enum gs_can_state state);
 uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state);
 void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec);
 
+bool can_check_bus_off_recovery_ok(const struct can_channel *channel);
 void can_schedule_bus_off_recovery(struct can_channel *channel, uint32_t delay_ms);
 
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);

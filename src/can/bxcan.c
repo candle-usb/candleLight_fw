@@ -314,7 +314,7 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 
 bool can_drv_bus_error_pending(const uint32_t reg_esr)
 {
-	const uint32_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
+	const uint8_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
 	return can_is_lec_error(lec);
 }

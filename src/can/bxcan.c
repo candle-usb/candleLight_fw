@@ -337,8 +337,9 @@ bool can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, 
 	const uint8_t tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
 	const uint8_t rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
 
-	if (tx_err == 0 && rx_err == 0)
+	if (tx_err == 0 && rx_err == 0) {
 		return false;
+	}
 
 	frame->classic_can->data[6] = tx_err;
 	frame->classic_can->data[7] = rx_err;
@@ -387,8 +388,11 @@ void can_drv_handle_state_change(const struct can_channel __maybe_unused *channe
 	tx_state = can_err_to_state(tx_err);
 	rx_state = can_err_to_state(rx_err);
 
-	if (tx_state >= rx_state)
+	if (tx_state >= rx_state) {
 		frame->classic_can->data[1] |= gs_can_tx_state_to_frame(tx_state);
-	if (tx_state <= rx_state)
+	}
+
+	if (tx_state <= rx_state) {
 		frame->classic_can->data[1] |= gs_can_rx_state_to_frame(rx_state);
+	}
 }

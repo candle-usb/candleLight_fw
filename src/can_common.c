@@ -89,10 +89,11 @@ bool can_is_enabled(const struct can_channel *channel)
 
 void can_enable(struct can_channel *channel, const uint32_t feature)
 {
-	channel->feature = feature;
-
 	led_set_mode(&channel->leds, LED_MODE_NORMAL);
+
+	channel->feature = feature;
 	channel->state = GS_CAN_STATE_ERROR_ACTIVE;
+
 	board_phy_power_set(channel, true);
 	can_drv_enable(channel);
 }
@@ -101,11 +102,14 @@ void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	can_drv_disable(channel);
 	board_phy_power_set(channel, false);
+
 	usbd_gs_can_purge_from_host_list_by_channel(hcan, channel);
 	usbd_gs_can_purge_to_host_list_by_channel(hcan, channel);
 
 	channel->bus_off_restart = CAN_CHANNEL_BUS_OFF_RESTART_DISABLED;
 	channel->state = GS_CAN_STATE_STOPPED;
+	channel->feature = 0;
+
 	led_set_mode(&channel->leds, LED_MODE_OFF);
 }
 

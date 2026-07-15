@@ -81,6 +81,7 @@ void can_enable(struct can_channel *channel, const uint32_t feature)
 void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
 	can_drv_disable(channel);
+	usbd_gs_can_purge_from_host_list_by_channel(hcan, channel);
 	usbd_gs_can_purge_to_host_list_by_channel(hcan, channel);
 	channel->state = GS_CAN_STATE_STOPPED;
 	led_set_mode(&channel->leds, LED_MODE_OFF);

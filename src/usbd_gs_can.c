@@ -216,6 +216,12 @@ static const struct gs_device_config USBD_GS_CAN_dconf = {
 	.hw_version = 1,
 };
 
+void usbd_gs_can_purge_from_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
+												 struct can_channel *channel)
+{
+	list_splice_tail_init_locked(&channel->list_from_host, &hcan->list_frame_pool);
+}
+
 void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
 											   const struct can_channel *channel)
 {

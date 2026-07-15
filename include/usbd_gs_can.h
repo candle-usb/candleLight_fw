@@ -110,6 +110,9 @@ typedef struct {
 	bool dfu_detach_requested;
 } USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
 
+void usbd_gs_can_purge_from_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
+												 struct can_channel *channel);
+
 void usbd_gs_can_purge_to_host_list_by_channel(USBD_GS_CAN_HandleTypeDef *hcan,
 											   const struct can_channel *channel);
 

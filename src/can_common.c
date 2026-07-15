@@ -24,8 +24,6 @@
  *
  */
 
-#include <string.h>
-
 #include "can_common.h"
 #include "can_drv.h"
 #include "host_frame.h"
@@ -167,7 +165,7 @@ static void can_prepare_error_frame(const struct can_channel *channel,
 	frame->channel = can_channel_get_nr(channel);
 	frame->flags = 0;
 	frame->reserved = 0;
-	memset(frame->classic_can->data, 0x0, sizeof(frame->classic_can->data));
+	*frame->classic_can = (struct classic_can){ 0 };
 
 	frame->classic_can_ts->timestamp_us = timer_get();
 }

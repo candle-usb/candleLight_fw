@@ -80,6 +80,7 @@ static inline bool can_is_lec_error(const uint8_t lec)
 	return true;
 }
 
+bool can_is_enabled(const struct can_channel *channel);
 void can_enable(struct can_channel *channel, uint32_t mode);
 void can_disable(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel);
 void can_get_device_state(const struct can_channel *channel, struct gs_device_state *state);
@@ -88,6 +89,8 @@ enum gs_can_state can_err_to_state(const uint16_t err);
 uint8_t gs_can_tx_state_to_frame(const enum gs_can_state state);
 uint8_t gs_can_rx_state_to_frame(const enum gs_can_state state);
 void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec);
+
+void can_schedule_bus_off_recovery(struct can_channel *channel, uint32_t delay_ms);
 
 void CAN_SendFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);
 void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel);

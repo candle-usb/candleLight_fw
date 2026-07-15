@@ -75,6 +75,11 @@
  * - struct gs_device_filter
  */
 #define GS_CAN_FEATURE_FILTER							  (1<<16)
+/* device support CAN bus off recovery
+ * - GS_USB_BREQ_BUS_OFF_RECOVERY
+ * - struct gs_device_bus_off_recovery
+ */
+#define GS_CAN_FEATURE_BUS_OFF_RECOVERY					  (1<<18)
 
 #define GS_CAN_FLAG_OVERFLOW							  (1<<0)
 #define GS_CAN_FLAG_FD									  (1<<1) /* is a CAN-FD frame */
@@ -196,6 +201,7 @@ enum gs_usb_breq {
 	__GS_USB_BREQ_ELM_PLACEHOLDER_29,
 	__GS_USB_BREQ_ELM_PLACEHOLDER_30,
 	__GS_USB_BREQ_ELM_PLACEHOLDER_31,
+	GS_USB_BREQ_BUS_OFF_RECOVERY = 32,
 };
 
 enum gs_can_mode {
@@ -317,6 +323,10 @@ struct gs_device_filter {
 	union {
 		struct gs_device_filter_bxcan bxcan;
 	};
+} __packed __aligned(4);
+
+struct gs_device_bus_off_recovery {
+	u32 unused;
 } __packed __aligned(4);
 
 struct classic_can {

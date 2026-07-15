@@ -453,6 +453,9 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 			src = &CAN_filter_info;
 			len = sizeof(CAN_filter_info);
 			break;
+		case GS_USB_BREQ_BUS_OFF_RECOVERY:
+			len = 0;
+			break;
 		default:
 			goto out_fail;
 	}
@@ -469,6 +472,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_DATA_BITTIMING:
 		case GS_USB_BREQ_SET_TERMINATION:
 		case GS_USB_BREQ_SET_FILTER:
+		case GS_USB_BREQ_BUS_OFF_RECOVERY:
 			if (req->wLength > sizeof(*ep0)) {
 				goto out_fail;
 			}
@@ -650,6 +654,13 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			can_set_filter(channel, filter);
 			break;
 		}
+		case GS_USB_BREQ_BUS_OFF_RECOVERY:
+			if (!can_is_enabled(channel) || !can_check_bus_off_recovery_ok(channel))
+				goto out_fail;
+
+			can_schedule_bus_off_recovery(channel, 0);
+			break;
+
 		default:
 			break;
 	}

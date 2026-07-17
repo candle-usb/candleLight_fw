@@ -40,7 +40,37 @@
 #define CAN_LEC_CRC_ERROR	6
 #define CAN_LEC_SOFTWARE	7
 
+bool can_check_feature_ok(const can_data_t *channel, const uint32_t feature);
 bool can_check_bittiming_ok(const struct can_bittiming_const *btc, const struct gs_device_bittiming *timing);
+void can_set_bittiming(struct can_channel *channel, const struct gs_device_bittiming *bt);
+
+#ifdef CONFIG_CANFD
+void can_set_data_bittiming(struct can_channel *channel, const struct gs_device_bittiming *timing);
+bool can_check_tdc_ok(const struct gs_device_tdc_const *tdc_const, const struct gs_device_tdc *tdc);
+void can_set_tdc(struct can_channel *channel, const struct gs_device_tdc *tdc);
+void can_get_device_tdc(const struct can_channel *channel, struct gs_device_tdc *tdc);
+#else
+static inline void can_set_data_bittiming(struct can_channel __maybe_unused *channel,
+										  const struct gs_device_bittiming __maybe_unused *timing)
+{
+}
+
+static inline bool can_check_tdc_ok(const struct gs_device_tdc_const __maybe_unused *tdc_const,
+									const struct gs_device_tdc __maybe_unused *tdc)
+{
+	return false;
+}
+
+static inline void can_set_tdc(struct can_channel __maybe_unused *channel,
+							   const struct gs_device_tdc __maybe_unused *tdc)
+{
+}
+
+static inline void can_get_device_tdc(const struct can_channel __maybe_unused *channel,
+									  struct gs_device_tdc __maybe_unused *tdc)
+{
+}
+#endif
 
 #ifdef CONFIG_CAN_FILTER
 bool can_check_filter_ok(const struct gs_device_filter *filter);

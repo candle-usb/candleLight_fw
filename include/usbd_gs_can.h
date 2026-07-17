@@ -89,6 +89,7 @@ typedef struct {
 
 			// Device <-> Host
 			struct gs_device_termination_state term_state;
+			struct gs_device_tdc tdc;
 		}; );
 		uint8_t __aligned(4) buf[sizeof(struct ep0_data)];
 	} ep0;

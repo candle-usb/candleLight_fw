@@ -34,20 +34,38 @@
 #include "led.h"
 #include "list.h"
 
+struct can_drv_reg_status {
+#if defined (CONFIG_BXCAN)
+	uint32_t esr;
+#endif
+};
+
+enum can_channel_flag {
+	CAN_CHANNEL_FLAG_BITTIMING_SET = BIT(0),
+	CAN_CHANNEL_FLAG_DATA_BITTIMING_SET = BIT(1),
+	CAN_CHANNEL_FLAG_TDC_SET = BIT(2),
+};
+
 #define CAN_CHANNEL_BUS_OFF_RESTART_DISABLED 0
 
 typedef struct can_channel {
 #if defined (CONFIG_BXCAN)
 	CAN_TypeDef *instance;
 #endif
+	struct can_drv_reg_status reg_status;
 	struct list_head list_from_host;
 	led_data_t leds;
 	uint32_t feature;
+	enum can_channel_flag flags;
 	enum gs_can_state state;
 	uint32_t bus_off_restart;
+	struct gs_device_bittiming bittiming;
+#ifdef CONFIG_CANFD
+	struct gs_device_bittiming data_bittiming;
+	struct gs_device_tdc tdc;
+#endif
 #if defined (CONFIG_BXCAN)
 	struct gs_device_filter filter;
-	uint32_t btr;
 #endif
 #if (NUM_CAN_CHANNEL > 1)
 	uint8_t nr;
@@ -57,21 +75,11 @@ typedef struct can_channel {
 extern const struct gs_device_bt_const CAN_btconst;
 extern const struct gs_device_bt_const_extended CAN_btconst_ext;
 extern const struct gs_device_filter_info CAN_filter_info;
+extern const struct gs_device_tdc_const CAN_tdc_const;
 
 struct board_channel_config;
 
 void can_init(can_data_t *channel, const struct board_channel_config *config);
-void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
-
-#ifdef CONFIG_CANFD
-void can_set_data_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing);
-#else
-static inline bool can_set_data_bittiming(can_data_t __maybe_unused *channel,
-										  const struct gs_device_bittiming __maybe_unused *timing)
-{
-	return false;
-}
-#endif
 
 #ifdef CONFIG_CAN_FILTER
 void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter);

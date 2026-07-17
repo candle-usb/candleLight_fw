@@ -75,6 +75,14 @@
  * - struct gs_device_filter
  */
 #define GS_CAN_FEATURE_FILTER							  (1<<16)
+/* device supports TDC configuration, see:
+ * - GS_USB_BREQ_GET_TDC_CONST
+ * - GS_USB_BREQ_SET_TDC
+ * - GS_USB_BREQ_GET_TDC
+ * - struct gs_device_tdc_const
+ * - struct gs_device_tdc
+ */
+#define GS_CAN_FEATURE_TDC								  (1<<17)
 /* device support CAN bus off recovery
  * - GS_USB_BREQ_BUS_OFF_RECOVERY
  * - struct gs_device_bus_off_recovery
@@ -186,9 +194,9 @@ enum gs_usb_breq {
 	GS_USB_BREQ_GET_STATE,
 	GS_USB_BREQ_SET_FILTER,
 	GS_USB_BREQ_GET_FILTER,
-	__GS_USB_BREQ_PLACEHOLDER_17,
-	__GS_USB_BREQ_PLACEHOLDER_18,
-	__GS_USB_BREQ_PLACEHOLDER_19,
+	GS_USB_BREQ_GET_TDC_CONST,
+	GS_USB_BREQ_SET_TDC,
+	GS_USB_BREQ_GET_TDC,
 	GS_USB_BREQ_ELM_GET_BOARDINFO = 20,
 	GS_USB_BREQ_ELM_SET_FILTER,
 	GS_USB_BREQ_ELM_GET_LASTERROR,
@@ -323,6 +331,29 @@ struct gs_device_filter {
 	union {
 		struct gs_device_filter_bxcan bxcan;
 	};
+} __packed __aligned(4);
+
+enum gs_device_tdc_mode {
+	GS_CAN_TDC_MODE_OFF = BIT(0),
+	GS_CAN_TDC_MODE_AUTO = BIT(1),
+	GS_CAN_TDC_MODE_MANUAL = BIT(2),
+};
+
+struct gs_device_tdc_const {
+	u32 tdcv_min;
+	u32 tdcv_max;
+	u32 tdco_min;
+	u32 tdco_max;
+	u32 tdcf_min;
+	u32 tdcf_max;
+	u32 mode;
+} __packed __aligned(4);
+
+struct gs_device_tdc {
+	u32 tdcv;
+	u32 tdco;
+	u32 tdcf;
+	enum gs_device_tdc_mode mode;
 } __packed __aligned(4);
 
 struct gs_device_bus_off_recovery {

@@ -103,14 +103,6 @@ void can_init(can_data_t *channel, const struct board_channel_config *channel_co
 	filter->fa1r = 0x1;     // Enable filter bank 0
 }
 
-void can_set_bittiming(can_data_t *channel, const struct gs_device_bittiming *timing)
-{
-	channel->btr = FIELD_PREP(CAN_BTR_SJW, timing->sjw - 1) |
-				   FIELD_PREP(CAN_BTR_TS2, timing->phase_seg2 - 1) |
-				   FIELD_PREP(CAN_BTR_TS1, timing->prop_seg + timing->phase_seg1 - 1) |
-				   FIELD_PREP(CAN_BTR_BRP, timing->brp - 1);
-}
-
 #ifdef CONFIG_CAN_FILTER
 void can_set_filter(can_data_t *channel, const struct gs_device_filter *filter)
 {
@@ -160,7 +152,10 @@ void can_drv_enable(struct can_channel *channel)
 		mcr |= CAN_MCR_NART;
 	}
 
-	uint32_t btr = channel->btr;
+	uint32_t btr = FIELD_PREP(CAN_BTR_SJW, channel->bittiming.sjw - 1) |
+				   FIELD_PREP(CAN_BTR_TS2, channel->bittiming.phase_seg2 - 1) |
+				   FIELD_PREP(CAN_BTR_TS1, channel->bittiming.prop_seg + channel->bittiming.phase_seg1 - 1) |
+				   FIELD_PREP(CAN_BTR_BRP, channel->bittiming.brp - 1);
 
 	if (feature & GS_CAN_FEATURE_LISTEN_ONLY) {
 		btr |= CAN_MODE_SILENT;
@@ -302,28 +297,28 @@ bool can_send(can_data_t *channel, struct gs_host_frame *frame)
 	}
 }
 
-bool can_drv_bus_error_pending(const uint32_t reg_esr)
+bool can_drv_bus_error_pending(const struct can_channel *channel)
 {
+	const uint32_t reg_esr = channel->reg_status.esr;
 	const uint8_t lec = FIELD_GET(CAN_ESR_LEC, reg_esr);
 
 	return can_is_lec_error(lec);
 }
 
-uint32_t can_drv_read_reg_status(const struct can_channel *channel)
+void can_drv_read_reg_status(struct can_channel *channel)
 {
-	const uint32_t reg_esr = channel->instance->ESR;
+	channel->reg_status.esr = channel->instance->ESR;
 
-	if (can_drv_bus_error_pending(reg_esr)) {
+	if (can_drv_bus_error_pending(channel)) {
 		/* mark as handled by software */
 		channel->instance->ESR |= FIELD_PREP(CAN_ESR_LEC, CAN_LEC_SOFTWARE);
 	}
-
-	return reg_esr;
 }
 
-bool can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
-							  const uint32_t reg_esr)
+bool can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame)
 {
+	const uint32_t reg_esr = channel->reg_status.esr;
+
 	const uint8_t tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
 	const uint8_t rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
 
@@ -341,8 +336,10 @@ bool can_drv_handle_bus_error(const struct can_channel __maybe_unused *channel, 
 	return true;
 }
 
-enum gs_can_state can_drv_get_state(const uint32_t reg_esr)
+enum gs_can_state can_drv_get_state(const struct can_channel *channel)
 {
+	const uint32_t reg_esr = channel->reg_status.esr;
+
 	if (!(reg_esr & (CAN_ESR_BOFF | CAN_ESR_EPVF | CAN_ESR_EWGF))) {
 		return GS_CAN_STATE_ERROR_ACTIVE;
 	}
@@ -358,25 +355,24 @@ enum gs_can_state can_drv_get_state(const uint32_t reg_esr)
 	return GS_CAN_STATE_ERROR_WARNING;
 }
 
-void can_drv_get_device_state(const struct can_channel __maybe_unused *channel, struct gs_device_state *state,
-							  const uint32_t reg_esr)
+void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state)
 {
-	state->state = can_drv_get_state(reg_esr);
+	const uint32_t reg_esr = channel->reg_status.esr;
+
+	state->state = can_drv_get_state(channel);
 	state->rxerr = FIELD_GET(CAN_ESR_REC, reg_esr);
 	state->txerr = FIELD_GET(CAN_ESR_TEC, reg_esr);
 }
 
-void can_drv_handle_state_change(const struct can_channel __maybe_unused *channel, struct gs_host_frame *frame,
-								 const uint32_t reg_esr)
+void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame)
 {
-	enum gs_can_state tx_state, rx_state;
-	uint8_t tx_err, rx_err;
+	const uint32_t reg_esr = channel->reg_status.esr;
 
-	tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
-	rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
+	const uint8_t tx_err = FIELD_GET(CAN_ESR_TEC, reg_esr);
+	const uint8_t rx_err = FIELD_GET(CAN_ESR_REC, reg_esr);
 
-	tx_state = can_err_to_state(tx_err);
-	rx_state = can_err_to_state(rx_err);
+	const enum gs_can_state tx_state = can_err_to_state(tx_err);
+	const enum gs_can_state rx_state = can_err_to_state(rx_err);
 
 	if (tx_state >= rx_state) {
 		frame->classic_can->data[1] |= gs_can_tx_state_to_frame(tx_state);

@@ -29,19 +29,23 @@
 #include <stdint.h>
 
 struct can_channel;
+struct can_drv_reg_status;
 struct gs_device_state;
+struct gs_device_tdc;
 struct gs_host_frame;
 
 void can_drv_enable(struct can_channel *channel);
 void can_drv_disable(struct can_channel *channel);
 
-uint32_t can_drv_read_reg_status(const struct can_channel *channel);
+void can_drv_get_device_tdc(const struct can_channel *channel, struct gs_device_tdc *tdc);
 
-bool can_drv_bus_error_pending(const uint32_t reg);
-bool can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame, const uint32_t reg);
+void can_drv_read_reg_status(struct can_channel *channel);
 
-enum gs_can_state can_drv_get_state(const uint32_t reg);
-void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state, const uint32_t reg);
-void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame, const uint32_t reg);
+bool can_drv_bus_error_pending(const struct can_channel *channel);
+bool can_drv_handle_bus_error(const struct can_channel *channel, struct gs_host_frame *frame);
+
+enum gs_can_state can_drv_get_state(const struct can_channel *channel);
+void can_drv_get_device_state(const struct can_channel *channel, struct gs_device_state *state);
+void can_drv_handle_state_change(const struct can_channel *channel, struct gs_host_frame *frame);
 
 void can_drv_handle_bus_off_recovery(struct can_channel *channel);

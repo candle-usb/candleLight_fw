@@ -1,40 +1,40 @@
 /*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 Hubert Denkmair
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
 
-The MIT License (MIT)
-
-Copyright (c) 2016 Hubert Denkmair
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-*
-*
-* Some board-specific defines here, such as :
-* - USB strings
-* - LED pin assignments and polarity
-* - other special pins to control CAN transceivers.
-*
-* CAN_S_PIN: Some CAN transceivers (e.g. TJA1050) have a "Silent mode in which the transmitter is disabled";
-* enabled with this 'S' pin. If undefined, the corresponding code will be disabled.
-*
-* TERM_Pin: Add support for an externally controlled terminating resistor
-*
-*/
+/*
+ * Some board-specific defines here, such as :
+ * - USB strings
+ * - LED pin assignments and polarity
+ * - other special pins to control CAN transceivers.
+ *
+ * CAN_S_PIN: Some CAN transceivers (e.g. TJA1050) have a "Silent mode in which the transmitter is
+ * disabled"; enabled with this 'S' pin. If undefined, the corresponding code will be disabled.
+ *
+ * TERM_Pin: Add support for an externally controlled terminating resistor
+ *
+ */
 
 #pragma once
 
@@ -401,27 +401,40 @@ THE SOFTWARE.
 
 /*************** STM32G0B1 ***************/
 
-#elif defined(BOARD_CONVERTDEVICE_xCANFD)
+#elif defined(BOARD_2C2L_USB)
+	#define USBD_PRODUCT_STRING_FS	 "intive 2C2L-USB gs_usb"
+	#define USBD_MANUFACTURER_STRING "intive"
+	#define DFU_INTERFACE_STRING_FS	 "intive 2C2L-USB firmware upgrade interface"
+
+	#define CONFIG_HSE_OSC_SPEED	 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
+
+#elif defined(BOARD_ConvertDevice_xCANFD)
 	#define USBD_PRODUCT_STRING_FS	 "ConvertDevice xCANFD"
 	#define USBD_MANUFACTURER_STRING "ConvertDevice"
 	#define DFU_INTERFACE_STRING_FS	 "ConvertDevice xCANFD firmware upgrade interface"
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define CAN_INTERFACE			 FDCAN1
 	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 1
 	#define CONFIG_CANFD			 1
 
-	#define LEDRX_GPIO_Port			 GPIOA
-	#define LEDRX_Pin				 GPIO_PIN_0
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 0
+#elif defined(BOARD_WeActStudio_USB2CANFDV1)
+	#define USBD_PRODUCT_STRING_FS	 "USB2CANFDV1 gs_usb"
+	#define USBD_MANUFACTURER_STRING "WeActStudio"
+	#define DFU_INTERFACE_STRING_FS	 "USB2CANFDV1 firmware upgrade interface"
 
-	#define LEDTX_GPIO_Port			 GPIOA
-	#define LEDTX_Pin				 GPIO_PIN_1
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 0
+	#define CONFIG_HSE_OSC_SPEED	 16000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
 
 #elif defined(BOARD_budgetcan)
 	#define USBD_PRODUCT_STRING_FS	 "budgetcan gs_usb"
@@ -430,33 +443,34 @@ THE SOFTWARE.
 
 	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define CAN_INTERFACE			 FDCAN1
-	#define CAN_INTERFACE2			 FDCAN2
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 2
+	#define CONFIG_CANFD			 1
+	#define CONFIG_PHY				 1
+	#define CONFIG_TERMINATION		 1
+
+#elif defined(BOARD_candleLightFD)
+	#define USBD_PRODUCT_STRING_FS	 "candleLightFD gs_usb"
+	#define USBD_MANUFACTURER_STRING "candleLightFD"
+	#define DFU_INTERFACE_STRING_FS	 "candleLightFD firmware upgrade interface"
+
+	#define CONFIG_HSE_OSC_SPEED	 8000000
+	#define TIM2_CLOCK_SPEED		 64000000
+
 	#define CAN_CLOCK_SPEED			 40000000
 	#define NUM_CAN_CHANNEL			 2
 	#define CONFIG_CANFD			 1
 
-	#define CONFIG_PHY				 1
-	#define CONFIG_PHY_STANDBY		 1
-	#define nCANSTBY_Port			 GPIOA
-	#define nCANSTBY_Pin			 GPIO_PIN_0 /* control xceiver standby, active low */
-	#define nCANSTBY_Active_High	 0
+#elif defined(BOARD_nucleo_g0b1re)
+	#define USBD_PRODUCT_STRING_FS	 "Nucleo-g0b1re gs_usb"
+	#define USBD_MANUFACTURER_STRING "STMicroelectronics"
+	#define DFU_INTERFACE_STRING_FS	 "Nucleo-g0b1re firmware upgrade interface"
 
-	#define LEDRX_GPIO_Port			 GPIOB
-	#define LEDRX_Pin				 GPIO_PIN_4
-	#define LEDRX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDRX_Active_High		 1
+	#define TIM2_CLOCK_SPEED		 64000000
 
-	#define LEDTX_GPIO_Port			 GPIOB
-	#define LEDTX_Pin				 GPIO_PIN_3
-	#define LEDTX_Mode				 GPIO_MODE_OUTPUT_PP
-	#define LEDTX_Active_High		 1
-
-	#define CONFIG_TERMINATION		 1
-	#define TERM_GPIO_Port			 GPIOA
-	#define TERM_Pin				 GPIO_PIN_1
-	#define TERM_Mode				 GPIO_MODE_OUTPUT_PP
-	#define TERM_Active_High		 1
+	#define CAN_CLOCK_SPEED			 40000000
+	#define NUM_CAN_CHANNEL			 1
+	#define CONFIG_CANFD			 1
 
 #else
 	#error please define BOARD

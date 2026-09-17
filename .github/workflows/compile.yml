@@ -22,7 +22,6 @@ jobs:
           - "ubuntu:24.04"
           - "ubuntu:26.04"
           - "ubuntu:rolling"
-          - "debian:oldoldstable-slim"
           - "debian:oldstable-slim"
           - "debian:stable-slim"
           - "debian:testing-slim"

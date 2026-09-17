@@ -415,6 +415,7 @@ function(add_g0b1_target TGTNAME)
 	add_target_common(${TGTNAME} STM32G0B1xx)
 	target_compile_definitions(${TGTNAME}_fw PRIVATE BOARD_${TGTNAME} STM32G0 CONFIG_M_CAN)
 	target_compile_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
+	target_sources(${TGTNAME}_fw PRIVATE "src/boards/legacy.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/can/m_can.c")
 	target_sources(${TGTNAME}_fw PRIVATE "src/device/device_g0.c")
 	target_link_options(${TGTNAME}_fw BEFORE PRIVATE ${CPUFLAGS_G0})
@@ -447,6 +448,7 @@ set(TGTF407_LIST
 set(TGTG0B1_LIST
 	"CONVERTDEVICE_xCANFD"
 	"budgetcan"
+	"candleLightFD"
 )
 
 foreach (TGTNAME IN LISTS TGTF042_LIST)
@@ -471,7 +473,7 @@ foreach (TGTNAME IN LISTS TGTF407_LIST)
 endforeach()
 
 foreach (TGTNAME IN LISTS TGTG0B1_LIST)
-	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" OFF)
+	option(BUILD_${TGTNAME} "Build firmware for \"${TGTNAME}\" (default=yes)" ON)
 	if (BUILD_${TGTNAME})
 		add_g0b1_target(${TGTNAME})
 	endif()

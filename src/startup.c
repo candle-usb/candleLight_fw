@@ -27,6 +27,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "hal_include.h"
+
 extern char __data_source[];
 extern char __data_start[];
 extern char __data_size[];
@@ -36,6 +38,8 @@ void _start(void) __attribute__((noreturn));
 
 void Reset_Handler(void)
 {
+	__disable_irq();
+
 	__initialize_hardware_early();
 
 	memcpy(__data_start, __data_source, (uintptr_t)__data_size);

@@ -22,7 +22,6 @@ jobs:
           - "ubuntu:24.04"
           - "ubuntu:26.04"
           - "ubuntu:rolling"
-          - "debian:oldoldstable-slim"
           - "debian:oldstable-slim"
           - "debian:stable-slim"
           - "debian:testing-slim"
@@ -35,9 +34,6 @@ jobs:
       image: ${{ matrix.container }}
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6
-
     - name: Install required tools
       run: |
         apt update
@@ -47,6 +43,9 @@ jobs:
           git \
           make \
           wget
+
+    - name: Checkout repository
+      uses: actions/checkout@v6
 
     - name: Install newlib based toolchain (if required)
       if:

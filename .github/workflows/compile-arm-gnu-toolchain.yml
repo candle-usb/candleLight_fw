@@ -19,7 +19,6 @@ jobs:
           - ubuntu-latest
         gcc:
           - 'latest'
-          - '15.2.Rel1'
           - '14.3.Rel1'
           - '13.3.Rel1'
           - '12.3.Rel1'

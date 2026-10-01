@@ -53,6 +53,16 @@ static void dfu_hack_boot_pin_f042(void)
 
 static void dfu_jump_to_bootloader(uint32_t sysmem_base)
 {
+	/*
+	 * Prevent a cyclic jump back to bootloader after a firmware upgrade, in case the STM bootloader
+	 * does not reset this memory address.
+	 */
+	dfu_reset_to_bootloader_magic = 0;
+	__DSB();
+
+	/* Re-enable the interrupts as they are disabled first in Reset_Handler for DFU cleanup reasons. */
+	__enable_irq();
+
 	void (*bootloader)(void) = (void (*)(void))(*((uint32_t *)(sysmem_base + 4)));
 
 	__set_MSP(*(__IO uint32_t*)sysmem_base);
@@ -81,7 +91,24 @@ void __initialize_hardware_early(void)
 		}
 	}
 
+#if defined(__VTOR_PRESENT)
+	/*
+	 * If SCB->VTOR is configured to be not located at FLASH_BASE, this will be overwritten by
+	 * `SystemInit()`.
+	 */
+	SCB->VTOR = FLASH_BASE;
+#endif
+
+	__DSB();
+	__ISB();
+
 	SystemInit();
+
+	/*
+	 * Re-enable the interrupts as they are disabled first in Reset_Handler for DFU cleanup
+	 * reasons.
+	 */
+	__enable_irq();
 }
 
 void dfu_run_bootloader(void)

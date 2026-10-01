@@ -27,6 +27,7 @@
 #include "board.h"
 #include "can_common.h"
 #include "can_drv.h"
+#include "device.h"
 #include "timer.h"
 
 #define M_CAN_PSR_ACT_SYNC		  0
@@ -40,6 +41,7 @@ const struct gs_device_bt_const CAN_btconst = {
 	.feature =
 		GS_CAN_FEATURE_LISTEN_ONLY |
 		GS_CAN_FEATURE_LOOP_BACK |
+		GS_CAN_FEATURE_ONE_SHOT |
 		GS_CAN_FEATURE_HW_TIMESTAMP |
 		GS_CAN_FEATURE_IDENTIFY |
 		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE |
@@ -70,6 +72,7 @@ const struct gs_device_bt_const_extended CAN_btconst_ext = {
 	.feature =
 		GS_CAN_FEATURE_LISTEN_ONLY |
 		GS_CAN_FEATURE_LOOP_BACK |
+		GS_CAN_FEATURE_ONE_SHOT |
 		GS_CAN_FEATURE_HW_TIMESTAMP |
 		GS_CAN_FEATURE_IDENTIFY |
 		GS_CAN_FEATURE_PAD_PKTS_TO_MAX_PKT_SIZE |
@@ -116,6 +119,8 @@ const struct gs_device_tdc_const CAN_tdc_const = {
 
 void can_init(struct can_channel *channel, const struct board_channel_config *config)
 {
+	device_can_init(channel, config);
+
 	channel->channel.Instance = config->interface;
 	channel->channel.Init.ClockDivider = FDCAN_CLOCK_DIV1;
 	channel->channel.Init.FrameFormat = FDCAN_FRAME_FD_BRS;

@@ -88,6 +88,8 @@
  * - struct gs_device_bus_off_recovery
  */
 #define GS_CAN_FEATURE_BUS_OFF_RECOVERY					  (1<<18)
+/* Elmue protocol supports selecting one-shot mode per TX frame */
+#define GS_CAN_FEATURE_ELM_PER_FRAME_ONE_SHOT			  (1<<19)
 
 #define GS_CAN_FLAG_OVERFLOW							  (1<<0)
 #define GS_CAN_FLAG_FD									  (1<<1) /* is a CAN-FD frame */

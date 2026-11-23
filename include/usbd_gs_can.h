@@ -102,6 +102,15 @@ typedef struct {
 	struct gs_host_frame_object *from_host_buf[USBD_GS_CAN_RX_BUFFER_COUNT];
 	struct gs_host_frame_object *to_host_buf;
 
+	/*
+	 * Receive target for host frames while from_host_buf[0] is empty (frame
+	 * pool exhausted): a frame that still arrives through the OUT double
+	 * buffer lands here and is dropped, instead of being written through a
+	 * NULL pointer.
+	 */
+	uint8_t __aligned(4) from_host_scratch[CAN_DATA_MAX_PACKET_SIZE];
+	uint32_t from_host_dropped;
+
 	can_data_t channels[NUM_CAN_CHANNEL];
 
 	uint32_t sof_timestamp_us;

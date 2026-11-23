@@ -276,8 +276,11 @@ static void usbd_gs_can_purge_to_host_buf(USBD_GS_CAN_HandleTypeDef *hcan)
 static inline uint8_t USBD_GS_CAN_PrepareReceive(USBD_HandleTypeDef *pdev)
 {
 	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
-	struct gs_host_frame *frame = &hcan->from_host_buf[0]->frame;
+	struct gs_host_frame *frame = (struct gs_host_frame *)hcan->from_host_scratch;
 	uint16_t size;
+
+	if (hcan->from_host_buf[0])
+		frame = &hcan->from_host_buf[0]->frame;
 
 	if (IS_ENABLED(CONFIG_CANFD)) {
 		size = struct_size(frame, canfd_ts, 1);
@@ -749,8 +752,16 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 	USBD_GS_CAN_HandleTypeDef *hcan = pdev->pClassData;
 	can_data_t *channel;
 
-	/* If we do not have a valid incoming frame pointer, something broke. */
-	assert_basic(hcan->from_host_buf[0]);
+	/*
+	 * The frame pool ran dry and the frame was received into the scratch
+	 * buffer (see USBD_GS_CAN_PrepareReceive()): drop it and keep the
+	 * endpoint NAKed until USBD_GS_CAN_ReceiveFromHost() has refilled the
+	 * receive buffers.
+	 */
+	if (!hcan->from_host_buf[0]) {
+		hcan->from_host_dropped++;
+		goto out_nak;
+	}
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen < (struct_size(&hcan->from_host_buf[0]->frame, classic_can, 1))) {
@@ -788,19 +799,24 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 		USBD_GS_CAN_PrepareReceive(pdev);
 	} else {
 		restore_irq(was_irq_enabled);
-
-#if defined(USB) || defined(USB_DRD_FS)
-		// Not all RX buffers are ready. We got enough in the
-		// pre-allocated reserve to ensure callbacks which are going
-		// to be called due to USB frames being received into double
-		// buffer, but disable further RX. If double buffer not in use,
-		// RX would have already been disabled by USB HW.
-		USBD_GS_CAN_PrepareReceive(pdev);
-		PCD_SET_EP_RX_STATUS(((PCD_HandleTypeDef *)pdev->pData)->Instance,
-							 GSUSB_ENDPOINT_OUT,
-							 USB_EP_RX_NAK);
-#endif
+		goto out_nak;
 	}
+	return USBD_OK;
+
+out_nak:
+#if defined(USB) || defined(USB_DRD_FS)
+	// Not all RX buffers are ready. We got enough in the
+	// pre-allocated reserve to ensure callbacks which are going
+	// to be called due to USB frames being received into double
+	// buffer, but disable further RX. If double buffer not in use,
+	// RX would have already been disabled by USB HW. Should the
+	// reserve be used up, the next frame lands in the scratch
+	// buffer and is dropped.
+	USBD_GS_CAN_PrepareReceive(pdev);
+	PCD_SET_EP_RX_STATUS(((PCD_HandleTypeDef *)pdev->pData)->Instance,
+						 GSUSB_ENDPOINT_OUT,
+						 USB_EP_RX_NAK);
+#endif
 	return USBD_OK;
 
 out_prepare_receive:

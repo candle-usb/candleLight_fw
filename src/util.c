@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include <util.h>
 #include <cmsis_device.h>
+#include "watchdog.h"
 
 void hex32(char *out, uint32_t val)
 {
@@ -47,6 +48,6 @@ void hex32(char *out, uint32_t val)
 }
 
 void assert_failed(void) {
-	/* for now, just halt and trigger debugger (if attached) */
-	__BKPT(0);
+	/* stop in the debugger if one is attached, else reset the device */
+	fault_reset();
 }

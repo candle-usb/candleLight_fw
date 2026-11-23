@@ -270,6 +270,7 @@ THE SOFTWARE.
 	#define DFU_INTERFACE_STRING_FS	 "UCAN firmware upgrade interface"
 
 	#define CAN_QUEUE_SIZE			 256 /* STM32F072CB: 16 KiB RAM, room for a larger frame pool */
+	#define CONFIG_WATCHDOG			 1
 
 	#define TIM2_CLOCK_SPEED		 48000000
 

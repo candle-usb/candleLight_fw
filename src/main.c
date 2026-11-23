@@ -41,6 +41,7 @@
 #include "usbd_def.h"
 #include "usbd_desc.h"
 #include "usbd_gs_can.h"
+#include "watchdog.h"
 
 void initialise_monitor_handles(void);
 
@@ -93,7 +94,11 @@ int main(void)
 		HAL_GPIO_TogglePin(LEDTX_GPIO_Port, LEDTX_Pin);
 	}
 
+	watchdog_init();
+
 	while (1) {
+		watchdog_feed();
+
 		for (unsigned int i = 0; i < ARRAY_SIZE(hGS_CAN.channels); i++) {
 			can_data_t *channel = &hGS_CAN.channels[i];
 

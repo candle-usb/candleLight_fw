@@ -217,6 +217,7 @@ set(
 	include/led.h src/led.c
 	include/timer.h src/timer.c
 	include/util.h src/util.c
+	include/watchdog.h src/watchdog.c
 
 	src/interrupts.c
 	src/main.c

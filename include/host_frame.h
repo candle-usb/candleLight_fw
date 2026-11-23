@@ -67,3 +67,34 @@ gs_host_frame_object_get_locked(USBD_GS_CAN_HandleTypeDef *hcan)
 
 	return frame_object;
 }
+
+/*
+ * Like gs_host_frame_object_get_locked(), but fails if that would leave fewer
+ * than CAN_QUEUE_RESERVE objects in the pool. For frames that originate on
+ * the CAN side (RX, error and state frames).
+ */
+static inline
+struct gs_host_frame_object *
+gs_host_frame_object_get_reserved_locked(USBD_GS_CAN_HandleTypeDef *hcan)
+{
+	struct gs_host_frame_object *frame_object = NULL;
+	struct list_head *pos;
+	unsigned int n = 0;
+
+	bool was_irq_enabled = disable_irq();
+	list_for_each(pos, &hcan->list_frame_pool) {
+		if (++n > CAN_QUEUE_RESERVE)
+			break;
+	}
+
+	if (n > CAN_QUEUE_RESERVE) {
+		frame_object = list_first_entry(&hcan->list_frame_pool,
+										struct gs_host_frame_object,
+										list);
+		list_del(&frame_object->list);
+	}
+	restore_irq(was_irq_enabled);
+
+	return frame_object;
+}
+

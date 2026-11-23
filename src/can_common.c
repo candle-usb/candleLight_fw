@@ -278,8 +278,17 @@ void CAN_ReceiveFrame(USBD_GS_CAN_HandleTypeDef *hcan, can_data_t *channel)
 		return;
 	}
 
-	frame_object = gs_host_frame_object_get_locked(hcan);
+	frame_object = gs_host_frame_object_get_reserved_locked(hcan);
 	if (!frame_object) {
+		/*
+		 * The host is not reading fast enough. Drop the frame here
+		 * rather than leaving it in the controller's FIFO: that keeps
+		 * the newest frames and lets CAN_HandleError() run.
+		 */
+		struct gs_host_frame_object discard;
+
+		if (can_receive(channel, &discard.frame))
+			hcan->can_rx_dropped++;
 		return;
 	}
 
@@ -386,7 +395,7 @@ void can_lec_error_to_frame(struct gs_host_frame *frame, const uint8_t lec)
 
 static void can_handle_bus_error(USBD_GS_CAN_HandleTypeDef *hcan, const struct can_channel *channel)
 {
-	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_reserved_locked(hcan);
 	if (!frame_object)
 		return;
 
@@ -436,7 +445,7 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 		!(channel->feature & GS_CAN_FEATURE_BUS_OFF_RECOVERY))
 		can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
 
-	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_reserved_locked(hcan);
 	if (!frame_object)
 		return;
 
@@ -474,7 +483,7 @@ static void can_handle_bus_off_recovery(USBD_GS_CAN_HandleTypeDef *hcan, struct 
 
 	channel->bus_off_restart = CAN_CHANNEL_BUS_OFF_RESTART_DISABLED;
 
-	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
+	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_reserved_locked(hcan);
 	if (!frame_object)
 		return;
 

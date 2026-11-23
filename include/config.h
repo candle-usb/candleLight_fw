@@ -38,8 +38,6 @@ THE SOFTWARE.
 
 #pragma once
 
-#define CAN_QUEUE_SIZE				 (64 * NUM_CAN_CHANNEL)
-
 #define USBD_VID					 0x1d50
 #define USBD_PID_FS					 0x606f
 #define USBD_LANGID_STRING			 1033
@@ -271,6 +269,8 @@ THE SOFTWARE.
 	#define USBD_MANUFACTURER_STRING "FYSETC"
 	#define DFU_INTERFACE_STRING_FS	 "UCAN firmware upgrade interface"
 
+	#define CAN_QUEUE_SIZE			 256 /* STM32F072CB: 16 KiB RAM, room for a larger frame pool */
+
 	#define TIM2_CLOCK_SPEED		 48000000
 
 	#define CAN_INTERFACE			 CAN
@@ -496,4 +496,12 @@ THE SOFTWARE.
 #define TERM_Pin		 GPIO_PIN_0
 #define TERM_Mode		 GPIO_MODE_OUTPUT_PP
 #define TERM_Active_High 1
+#endif
+
+/*
+ * Frame objects shared by both directions. A board may define a larger
+ * pool where RAM allows; it rides out longer pauses of the host.
+ */
+#ifndef CAN_QUEUE_SIZE
+#define CAN_QUEUE_SIZE (64 * NUM_CAN_CHANNEL)
 #endif

@@ -426,6 +426,16 @@ void can_schedule_bus_off_recovery(struct can_channel *channel, const uint32_t d
 
 static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_channel *channel)
 {
+	/*
+	 * Schedule the bus-off recovery before allocating the error frame: the state change has
+	 * already been consumed by can_state_change_pending(), so if the frame pool is empty and
+	 * we returned early, the recovery would never be scheduled and the channel would stay
+	 * bus-off for good.
+	 */
+	if (channel->state == GS_CAN_STATE_BUS_OFF &&
+		!(channel->feature & GS_CAN_FEATURE_BUS_OFF_RECOVERY))
+		can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
+
 	struct gs_host_frame_object *frame_object = gs_host_frame_object_get_locked(hcan);
 	if (!frame_object)
 		return;
@@ -435,10 +445,6 @@ static void can_handle_state_change(USBD_GS_CAN_HandleTypeDef *hcan, struct can_
 
 	if (channel->state == GS_CAN_STATE_BUS_OFF) {
 		frame->can_id |= CAN_ERR_BUSOFF;
-
-		/* host is not taking care of CAN bus of recovery */
-		if (!(channel->feature & GS_CAN_FEATURE_BUS_OFF_RECOVERY))
-			can_schedule_bus_off_recovery(channel, CAN_BUS_OFF_RESTART_DELAY_MS);
 	} else {
 		frame->can_id |= CAN_ERR_CRTL | CAN_ERR_CNT;
 		can_drv_handle_state_change(channel, frame);

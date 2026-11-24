@@ -21,6 +21,7 @@ jobs:
           - "ubuntu:22.04"
           - "ubuntu:24.04"
           - "ubuntu:26.04"
+          - "ubuntu:26.10"
           - "ubuntu:rolling"
           - "debian:oldstable-slim"
           - "debian:stable-slim"
@@ -49,7 +50,7 @@ jobs:
 
     - name: Install newlib based toolchain (if required)
       if: |
-        matrix.container == 'ubuntu:rolling' ||
+        matrix.container == 'ubuntu:rolling' || matrix.container == 'ubuntu:26.10' ||
         matrix.container == 'debian:testing-slim' || matrix.container == 'debian:unstable-slim'
       run: |
         ./cmake/install-debian-gcc-arm-none-eabi

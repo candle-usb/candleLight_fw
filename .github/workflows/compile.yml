@@ -48,7 +48,8 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Install newlib based toolchain (if required)
-      if:
+      if: |
+        matrix.container == 'ubuntu:rolling' ||
         matrix.container == 'debian:testing-slim' || matrix.container == 'debian:unstable-slim'
       run: |
         ./cmake/install-debian-gcc-arm-none-eabi

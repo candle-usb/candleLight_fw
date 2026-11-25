@@ -5,32 +5,37 @@ on:
   pull_request:
     branches: [ master ]
 
-env:
-  BUILD_TYPE: Release
-  CMAKE_TOOLCHAIN_FILE: cmake/arm-none-eabi-gcc.cmake
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type:
+          - 'Release'
 
     steps:
-    - uses: actions/checkout@v6
-
-    - name: Install toolchain
-      run: sudo apt-get -yq install gcc-arm-none-eabi
-
-    - name: Configure CMake
+    - name: Install required tools
       run: |
-        cmake -B ${{github.workspace}}/build \
-              -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-              -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/${{env.CMAKE_TOOLCHAIN_FILE}}
+        sudo apt update
+        DEBIAN_FRONTEND='noninteractive' sudo apt install -o APT::Install-Suggests=false -qy \
+          cmake \
+          gcc-arm-none-eabi \
+          git \
+          make
 
-    - name: Build
-      env:
-        MAKEFLAGS: "-j"
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Verify Toolchain Installation
       run: |
-        cmake --build ${{github.workspace}}/build \
-              --config ${{env.BUILD_TYPE}}
+        cmake --version
+        arm-none-eabi-ld --version
+        arm-none-eabi-gcc --version
+
+    - name: Configure
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_TOOLCHAIN_FILE="cmake/arm-none-eabi-gcc.cmake" -B "build"
 
     - name: Get current date
       id: date

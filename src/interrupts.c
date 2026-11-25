@@ -26,17 +26,16 @@ THE SOFTWARE.
 
 #include <stdint.h>
 #include "hal_include.h"
+#include "watchdog.h"
 
 void NMI_Handler(void)
 {
-	__asm__ ("BKPT");
-	while (1);
+	fault_reset();
 }
 
 void HardFault_Handler(void)
 {
-	__asm__ ("BKPT");
-	while (1);
+	fault_reset();
 }
 
 void SysTick_Handler(void)

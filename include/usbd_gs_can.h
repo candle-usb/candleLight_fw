@@ -65,6 +65,17 @@ extern USBD_ClassTypeDef USBD_GS_CAN;
 #define USBD_GS_CAN_RX_BUFFER_COUNT 1
 #endif
 
+/*
+ * Frame objects that CAN RX, error and state frames must leave in the pool,
+ * so that the host's frames (and their echoes) always find buffers even when
+ * the bus delivers faster than the host reads. Without it a busy bus plus a
+ * host that stops reading for some ms empties the pool and the OUT endpoint
+ * starves.
+ */
+#ifndef CAN_QUEUE_RESERVE
+#define CAN_QUEUE_RESERVE (USBD_GS_CAN_RX_BUFFER_COUNT + 12)
+#endif
+
 struct gs_host_frame_object {
 	struct list_head list;
 	union {
@@ -101,6 +112,16 @@ typedef struct {
 
 	struct gs_host_frame_object *from_host_buf[USBD_GS_CAN_RX_BUFFER_COUNT];
 	struct gs_host_frame_object *to_host_buf;
+
+	/*
+	 * Receive target for host frames while from_host_buf[0] is empty (frame
+	 * pool exhausted): a frame that still arrives through the OUT double
+	 * buffer lands here and is dropped, instead of being written through a
+	 * NULL pointer.
+	 */
+	uint8_t __aligned(4) from_host_scratch[CAN_DATA_MAX_PACKET_SIZE];
+	uint32_t from_host_dropped;
+	uint32_t can_rx_dropped;
 
 	can_data_t channels[NUM_CAN_CHANNEL];
 

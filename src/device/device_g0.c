@@ -28,6 +28,8 @@
 #include "device.h"
 #include "hal_include.h"
 
+#define PLL_VCO_RATE 320000000
+
 void device_sysclock_config(void) {
 	__HAL_RCC_SYSCFG_CLK_ENABLE();
 	__HAL_RCC_PWR_CLK_ENABLE();
@@ -45,7 +47,7 @@ void device_sysclock_config(void) {
 		.HSEState = RCC_HSE_ON,
 		.HSI48State = RCC_HSI48_ON,
 		.PLL.PLLSource = RCC_PLLSOURCE_HSE,
-		.PLL.PLLN = 320000000 / CONFIG_HSE_OSC_SPEED,
+		.PLL.PLLN = PLL_VCO_RATE / CONFIG_HSE_OSC_SPEED,
 #else
 		.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI48,
 		.HSIState = RCC_HSI_ON,
@@ -58,7 +60,8 @@ void device_sysclock_config(void) {
 		.PLL.PLLState = RCC_PLL_ON,
 		.PLL.PLLM = RCC_PLLM_DIV1,
 		.PLL.PLLP = RCC_PLLP_DIV2,
-		.PLL.PLLQ = RCC_PLLQ_DIV8,
+		.PLL.PLLQ = FIELD_PREP(RCC_PLLCFGR_PLLQ,
+							   (PLL_VCO_RATE / CAN_CLOCK_SPEED) - 1),
 		.PLL.PLLR = RCC_PLLR_DIV5,
 	};
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
